@@ -37,6 +37,24 @@ export default function Dashboard() {
       return;
     }
 
+    // Validate file size (10MB max)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (resumeFile.size > maxSize) {
+      alert(`File is too large (${(resumeFile.size / 1024 / 1024).toFixed(2)}MB). Maximum size is 10MB.`);
+      return;
+    }
+
+    // Validate file type
+    if (resumeFile.type !== "application/pdf") {
+      alert("Please upload a PDF file. Other file types are not supported.");
+      return;
+    }
+
+    if (jobDescription.trim().length < 100) {
+      alert("Job description is too short. Please provide a complete job description (at least 100 characters).");
+      return;
+    }
+
     // Check if user is premium or can use free trial
     if (isPremium) {
       // Premium user, proceed
@@ -51,6 +69,11 @@ export default function Dashboard() {
       // Convert PDF to base64
       const base64Resume = await fileToBase64(resumeFile);
 
+      // Validate base64 conversion
+      if (!base64Resume || base64Resume.length === 0) {
+        throw new Error("Failed to process resume file. Please try uploading again.");
+      }
+
       // Call API to generate
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -64,7 +87,16 @@ export default function Dashboard() {
       });
 
       if (!response.ok) {
-        throw new Error("Generation failed");
+        // Try to get error message from response
+        let errorMessage = "Generation failed";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -77,9 +109,10 @@ export default function Dashboard() {
         markTrialUsed();
         setCanTrial(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating:", error);
-      alert("Failed to generate. Please try again.");
+      const errorMessage = error.message || "Failed to generate. Please try again.";
+      alert(errorMessage);
     } finally {
       setIsGenerating(false);
     }

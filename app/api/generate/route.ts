@@ -5,19 +5,45 @@ import { parseJobDescription, extractKeywords } from "@/lib/job-description-pars
 
 export async function POST(request: NextRequest) {
   try {
-    const { resume, jobDescription } = await request.json();
+    // Parse request body with better error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid request format. Please ensure you're sending valid JSON." },
+        { status: 400 }
+      );
+    }
+
+    const { resume, jobDescription } = body;
 
     // Comprehensive validation
-    if (!resume || !jobDescription) {
+    if (!resume) {
       return NextResponse.json(
-        { error: "Resume and job description are required" },
+        { error: "Resume file is required. Please upload a PDF resume." },
+        { status: 400 }
+      );
+    }
+
+    if (!jobDescription || typeof jobDescription !== "string") {
+      return NextResponse.json(
+        { error: "Job description is required. Please paste the job description." },
         { status: 400 }
       );
     }
 
     if (jobDescription.trim().length < 100) {
       return NextResponse.json(
-        { error: "Job description is too short. Please provide a complete job description (at least 100 characters)." },
+        { error: `Job description is too short (${jobDescription.trim().length} characters). Please provide a complete job description (at least 100 characters).` },
+        { status: 400 }
+      );
+    }
+
+    // Validate resume is a string (base64)
+    if (typeof resume !== "string") {
+      return NextResponse.json(
+        { error: "Invalid resume format. Please upload a valid PDF file." },
         { status: 400 }
       );
     }
@@ -25,8 +51,22 @@ export async function POST(request: NextRequest) {
     // Parse PDF with enhanced error handling
     let base64Data: string;
     try {
-      base64Data = resume.includes(",") ? resume.split(",")[1] : resume;
-    } catch (error) {
+      // Handle data URL format (data:application/pdf;base64,...) or plain base64
+      if (resume.includes(",")) {
+        base64Data = resume.split(",")[1];
+      } else {
+        base64Data = resume;
+      }
+
+      // Validate base64 data exists
+      if (!base64Data || base64Data.length === 0) {
+        return NextResponse.json(
+          { error: "Resume file appears to be empty. Please upload a valid PDF file." },
+          { status: 400 }
+        );
+      }
+    } catch (error: any) {
+      console.error("Base64 parsing error:", error);
       return NextResponse.json(
         { error: "Invalid resume format. Please upload a valid PDF file." },
         { status: 400 }
@@ -36,7 +76,25 @@ export async function POST(request: NextRequest) {
     let pdfBuffer: Buffer;
     try {
       pdfBuffer = Buffer.from(base64Data, "base64");
-    } catch (error) {
+      
+      // Validate buffer was created
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        return NextResponse.json(
+          { error: "Failed to process resume file. The file may be corrupted." },
+          { status: 400 }
+        );
+      }
+
+      // Check if it's actually a PDF (PDF files start with %PDF)
+      const pdfHeader = pdfBuffer.slice(0, 4).toString();
+      if (!pdfHeader.startsWith("%PDF")) {
+        return NextResponse.json(
+          { error: "Invalid file type. Please upload a PDF file (not an image or other format)." },
+          { status: 400 }
+        );
+      }
+    } catch (error: any) {
+      console.error("Buffer creation error:", error);
       return NextResponse.json(
         { error: "Failed to process resume file. Please ensure it's a valid PDF." },
         { status: 400 }
