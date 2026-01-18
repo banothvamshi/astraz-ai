@@ -32,32 +32,74 @@ export async function generateText(
       throw new Error(`Prompt is too long (${prompt.length} characters). Maximum is ${maxPromptLength} characters.`);
     }
 
-    // Use configurable model name - default to gemini-pro (stable)
+    // Use configurable model name - try multiple options if first fails
     // Can be overridden via GEMINI_MODEL environment variable
-    // Valid options: gemini-pro, gemini-1.5-pro, gemini-1.5-flash-latest
-    const modelName = process.env.GEMINI_MODEL || "gemini-pro";
+    const modelName = process.env.GEMINI_MODEL;
     
-    const model = gemini.getGenerativeModel({
-      model: modelName,
-      systemInstruction: systemInstruction,
-      generationConfig: {
-        temperature: options?.temperature ?? 0.7,
-        maxOutputTokens: options?.maxOutputTokens ?? 2000,
-        topP: 0.95,
-        topK: 40,
-      },
-    });
+    // Try different model names in order of preference
+    const modelNamesToTry = modelName 
+      ? [modelName]
+      : [
+          "gemini-1.5-flash-latest",  // Latest flash model (fast, free tier)
+          "gemini-1.5-flash",         // Stable flash model
+          "gemini-1.5-pro-latest",    // Latest pro model
+          "gemini-1.5-pro",           // Stable pro model
+          "gemini-pro",               // Legacy model
+        ];
+    
+    let lastError: Error | null = null;
+    let text: string | null = null;
+    
+    // Try each model until one works
+    for (const name of modelNamesToTry) {
+      try {
+        const model = gemini.getGenerativeModel({
+          model: name,
+          systemInstruction: systemInstruction,
+          generationConfig: {
+            temperature: options?.temperature ?? 0.7,
+            maxOutputTokens: options?.maxOutputTokens ?? 2000,
+            topP: 0.95,
+            topK: 40,
+          },
+        });
 
-    // Generate with timeout
-    const timeout = 30000; // 30 seconds
-    const generatePromise = model.generateContent(prompt);
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Generation timeout")), timeout)
-    );
+        // Generate with timeout
+        const timeout = 30000; // 30 seconds
+        const generatePromise = model.generateContent(prompt);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Generation timeout")), timeout)
+        );
 
-    const result = await Promise.race([generatePromise, timeoutPromise]);
-    const response = await result.response;
-    const text = response.text();
+        const result = await Promise.race([generatePromise, timeoutPromise]);
+        const response = await result.response;
+        text = response.text();
+        
+        // If we get here, generation was successful
+        break;
+      } catch (modelError: any) {
+        lastError = modelError;
+        const errorMsg = modelError.message || String(modelError);
+        
+        // If it's a model not found error, try next model
+        if (errorMsg.includes("not found") || errorMsg.includes("404") || errorMsg.includes("is not found")) {
+          // Continue to next model
+          continue;
+        }
+        
+        // For other errors (quota, safety, etc.), don't retry with different models
+        throw modelError;
+      }
+    }
+    
+    if (!text) {
+      throw new Error(
+        `No available Gemini model found. Tried: ${modelNamesToTry.join(", ")}. ` +
+        `Last error: ${lastError?.message || "Unknown error"}. ` +
+        `Please set GEMINI_MODEL environment variable to a valid model name. ` +
+        `Check https://ai.google.dev/models/gemini for available models.`
+      );
+    }
 
     // Validate response
     if (!text || text.trim().length === 0) {
