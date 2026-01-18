@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { shouldAllowAPICall, getBillingStatusMessage } from "./billing-guard";
 
 // Lazy initialization to avoid build-time errors
 let geminiInstance: GoogleGenerativeAI | null = null;
@@ -41,6 +42,15 @@ export async function generateText(
   }
 ): Promise<string> {
   try {
+    // Check billing guard - prevent API calls after credits expire
+    if (!shouldAllowAPICall()) {
+      throw new Error(
+        `Service disabled: ${getBillingStatusMessage()}. ` +
+        `To prevent charges, API calls have been disabled. ` +
+        `Please set DISABLE_BILLING=false only if you want to enable paid billing (not recommended).`
+      );
+    }
+    
     const gemini = getGemini();
     
     // Validate prompt length (Gemini has limits)

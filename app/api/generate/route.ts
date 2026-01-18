@@ -6,6 +6,7 @@ import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
 import { getCachedResponse, setCachedResponse } from "@/lib/cache";
 import { validatePDF, validateJobDescription, validateBase64, sanitizeJobDescription } from "@/lib/validation";
 import { retry } from "@/lib/retry";
+import { shouldAllowAPICall, getBillingStatusMessage } from "@/lib/billing-guard";
 
 // Maximum execution time (25 seconds for Vercel)
 const MAX_EXECUTION_TIME = 25000;
@@ -14,6 +15,16 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
   
   try {
+    // Check billing guard - prevent API calls after credits expire
+    if (!shouldAllowAPICall()) {
+      return NextResponse.json(
+        {
+          error: getBillingStatusMessage(),
+          billingStatus: "disabled",
+        },
+        { status: 503 } // Service Unavailable
+      );
+    }
     // Parse request body with timeout protection
     let body;
     try {
