@@ -63,19 +63,18 @@ export async function generateText(
     // Can be overridden via GEMINI_MODEL environment variable
     const modelName = process.env.GEMINI_MODEL;
     
-    // Try different model names in order of preference (FREE TIER MODELS)
-    // Updated based on actual available models from /api/list-models
-    // These are the models that actually exist and support generateContent
+    // Use BEST models for HIGH QUALITY results while optimizing costs
+    // Priority: Quality > Speed > Cost
+    // gemini-2.0-flash: Best balance (high quality, fast, cost-efficient)
+    // gemini-2.5-flash: Higher quality but slightly more expensive
     const modelNamesToTry = modelName 
       ? [modelName]
       : [
-          "gemini-2.0-flash",         // FREE - Fast, efficient model (most likely to work)
-          "gemini-2.0-flash-001",     // Stable version
-          "gemini-flash-latest",      // Latest flash model
-          "gemini-2.5-flash",         // Newer version
-          "gemini-2.0-flash-lite",    // Lite version (faster)
-          "gemini-pro-latest",        // Latest pro model
-          "gemini-2.5-pro",           // Pro version
+          "gemini-2.0-flash",         // BEST CHOICE: High quality, fast, cost-efficient (FREE tier)
+          "gemini-2.0-flash-001",     // Stable version (same quality)
+          "gemini-2.5-flash",         // Higher quality (use if 2.0-flash unavailable)
+          "gemini-flash-latest",      // Latest flash (fallback)
+          "gemini-2.0-flash-lite",    // Lite version (only if others fail - lower quality)
         ];
     
     let lastError: Error | null = null;

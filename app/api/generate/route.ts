@@ -7,6 +7,7 @@ import { getCachedResponse, setCachedResponse } from "@/lib/cache";
 import { validatePDF, validateJobDescription, validateBase64, sanitizeJobDescription } from "@/lib/validation";
 import { retry } from "@/lib/retry";
 import { shouldAllowAPICall, getBillingStatusMessage } from "@/lib/billing-guard";
+import { estimateCost, getCostOptimizationTips } from "@/lib/cost-optimizer";
 
 // Maximum execution time (25 seconds for Vercel)
 const MAX_EXECUTION_TIME = 25000;
@@ -197,50 +198,83 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Premium resume generation prompt with enhanced instructions
-    const resumePrompt = `You are a world-class resume writer and ATS optimization expert with 20+ years of experience. Your resumes help candidates land jobs at top companies.
+    // PREMIUM resume generation prompt - Highest quality output
+    const resumePrompt = `You are an elite executive resume writer with 25+ years of experience helping candidates secure positions at Fortune 500 companies, FAANG, and top-tier organizations. Your resumes consistently pass ATS systems and impress C-level executives.
 
-TASK: Create a premium, ATS-optimized resume that will pass Applicant Tracking Systems and impress hiring managers.
+TASK: Create a PREMIUM, ATS-optimized resume that maximizes interview opportunities and showcases the candidate as an exceptional fit.
 
-CRITICAL REQUIREMENTS:
-1. **ATS Optimization**: 
-   - Use standard section headers: "Professional Summary", "Experience", "Education", "Skills", "Certifications"
-   - NO tables, columns, or complex formatting
-   - Use simple bullet points
-   - Include relevant keywords naturally: ${keywords.slice(0, 30).join(", ")}
+CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
 
-2. **Content Quality**:
-   - Use action verbs: Led, Developed, Implemented, Optimized, Achieved, etc.
-   - Include quantifiable achievements with numbers, percentages, and metrics
-   - Highlight impact and results, not just responsibilities
-   - Match experience to job requirements
-   - Use industry-standard terminology
+1. **ATS Optimization (Critical)**:
+   - Use EXACT standard section headers: "Professional Summary", "Professional Experience", "Education", "Technical Skills", "Certifications", "Projects" (if relevant)
+   - NO tables, columns, graphics, or complex formatting
+   - Use simple, clean bullet points (• or -)
+   - Include ALL relevant keywords naturally: ${keywords.slice(0, 40).join(", ")}
+   - Match job description terminology exactly where appropriate
+   - Use standard date formats (MM/YYYY or Month YYYY)
 
-3. **Professional Formatting**:
-   - Clean, scannable layout
-   - Consistent formatting throughout
-   - Professional tone
-   - No typos or grammatical errors
-   - Proper capitalization and punctuation
+2. **Content Excellence**:
+   - Start each bullet with POWER action verbs: Architected, Spearheaded, Orchestrated, Transformed, Accelerated, Optimized, Delivered, etc.
+   - EVERY bullet MUST include quantifiable metrics: numbers, percentages, dollar amounts, timeframes
+   - Use the STAR method (Situation, Task, Action, Result) structure
+   - Show progression and impact, not just duties
+   - Highlight leadership, innovation, and measurable business impact
+   - Match each experience point to job requirements
 
-4. **Authenticity**:
-   - Maintain candidate's actual experience and dates
-   - Don't fabricate or exaggerate
-   - Reorganize and rephrase for impact, but stay truthful
-   - Preserve all important details
+3. **Professional Summary (Critical)**:
+   - 3-4 lines maximum
+   - Include: Years of experience, core expertise, key achievement, value proposition
+   - Must be compelling and keyword-rich
+   - Example format: "Results-driven [Role] with [X] years of experience in [Domain]. Proven track record of [Key Achievement]. Expert in [Top 3 Skills]."
 
-ORIGINAL RESUME:
+4. **Experience Section**:
+   - Format: Company Name | Location | Dates (MM/YYYY - MM/YYYY)
+   - Role Title (bold or prominent)
+   - 4-6 powerful bullets per role (most recent role can have more)
+   - Each bullet: Action verb + what you did + measurable impact
+   - Show career progression and increasing responsibility
+
+5. **Skills Section**:
+   - Categorize: Technical Skills, Tools & Technologies, Soft Skills
+   - List ALL relevant skills from job description
+   - Use exact terminology from job posting
+   - Prioritize skills mentioned in job description
+
+6. **Formatting & Style**:
+   - Clean, professional, scannable layout
+   - Consistent spacing and formatting
+   - Professional tone throughout
+   - Zero typos or grammatical errors
+   - Proper capitalization (Title Case for headers, sentence case for content)
+   - Use parallel structure in bullets
+
+7. **Authenticity & Ethics**:
+   - Maintain candidate's ACTUAL experience, dates, and achievements
+   - DO NOT fabricate, exaggerate, or invent experience
+   - Reorganize and rephrase for maximum impact while staying truthful
+   - Preserve all important details and accomplishments
+
+ORIGINAL RESUME CONTENT:
 ${resumeText}
 
-JOB DESCRIPTION:
+TARGET JOB INFORMATION:
 ${parsedJob.title ? `Position: ${parsedJob.title}` : ""}
 ${parsedJob.company ? `Company: ${parsedJob.company}` : ""}
-${parsedJob.skills.length > 0 ? `Key Skills Needed: ${parsedJob.skills.join(", ")}` : ""}
+${parsedJob.location ? `Location: ${parsedJob.location}` : ""}
+${parsedJob.skills.length > 0 ? `Required Skills: ${parsedJob.skills.join(", ")}` : ""}
+${parsedJob.experience ? `Experience Required: ${parsedJob.experience}` : ""}
 
-Full Job Description:
+COMPLETE JOB DESCRIPTION:
 ${sanitizedJobDescription}
 
-Generate a premium, professional resume in markdown format. Structure it with clear sections and bullet points. Ensure it's ATS-friendly and human-readable.`;
+Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
+- Passes ATS systems (no formatting issues)
+- Impresses human recruiters (compelling content)
+- Matches job requirements perfectly (keyword optimization)
+- Shows quantifiable achievements (metrics everywhere)
+- Demonstrates value and impact (results-focused)
+
+Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable). Use clear markdown headers (# for main sections, ## for subsections).`;
 
     // Generate resume with retry logic
     let generatedResume: string;
@@ -255,8 +289,8 @@ Generate a premium, professional resume in markdown format. Structure it with cl
             Generate resumes that are both machine-readable and human-appealing.
             Always maintain accuracy and authenticity.`,
             {
-              temperature: 0.6,
-              maxOutputTokens: 3000,
+              temperature: 0.5, // Lower for more consistent, professional output
+              maxOutputTokens: 4000, // Increased for more detailed, comprehensive resumes
             }
           ),
         {
@@ -334,8 +368,8 @@ Generate a premium, personalized cover letter in markdown format.`;
             You avoid clichés and generic statements. Every sentence adds value.
             Maintain authenticity and professionalism.`,
             {
-              temperature: 0.7,
-              maxOutputTokens: 2000,
+              temperature: 0.6, // Slightly lower for more consistent quality
+              maxOutputTokens: 2500, // Increased for more detailed, compelling cover letters
             }
           ),
         {

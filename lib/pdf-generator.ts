@@ -1,8 +1,5 @@
 import { jsPDF } from "jspdf";
 
-/**
- * Premium PDF generator for resumes and cover letters
- */
 export interface PDFOptions {
   type: "resume" | "coverLetter";
   content: string;
@@ -11,15 +8,12 @@ export interface PDFOptions {
 }
 
 /**
- * Generate a professional-grade PDF
+ * Generates a PREMIUM, professional-quality PDF from markdown content.
+ * Optimized for ATS compatibility and human readability.
  */
 export async function generateProfessionalPDF(options: PDFOptions): Promise<Buffer> {
   const { type, content, name, email } = options;
 
-  // Parse markdown content into structured format
-  const parsedContent = parseMarkdownContent(content);
-
-  // Create PDF with professional settings
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -29,260 +23,215 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 20;
-  const contentWidth = pageWidth - 2 * margin;
-
+  const maxWidth = pageWidth - 2 * margin;
   let y = margin;
+  const lineHeight = 6; // Optimized line height
+  const paragraphSpacing = 4; // Space between paragraphs
+  const sectionSpacing = 8; // Space between sections
 
-  // Add header with name/contact info for resume
-  if (type === "resume" && name) {
-    y = addResumeHeader(doc, name, email || "", margin, contentWidth, y);
-    y += 5; // Space after header
+  // Set professional fonts
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+
+  // Add premium header for resume
+  if (type === "resume" && name && email) {
+    y = addPremiumResumeHeader(doc, name, email, margin, pageWidth);
+    y += sectionSpacing;
+  } else if (type === "coverLetter" && name && email) {
+    // Cover letter header
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(name, margin, y);
+    y += lineHeight;
+    doc.setFont("helvetica", "normal");
+    doc.text(email, margin, y);
+    y += sectionSpacing;
+    
+    // Date
+    const today = new Date();
+    const dateStr = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    doc.text(dateStr, margin, y);
+    y += sectionSpacing + 5;
+  } else {
+    y += 10;
   }
 
-  // Add content
-  y = addContent(doc, parsedContent, margin, contentWidth, y, pageHeight - margin);
+  const parsedSections = parseMarkdownContent(content);
 
-  // Add page numbers
-  addPageNumbers(doc, pageHeight);
+  for (const section of parsedSections) {
+    // Check for new page
+    const estimatedHeight = section.type === "heading" ? 15 : section.type === "list" ? section.items!.length * lineHeight + 10 : 20;
+    if (y + estimatedHeight > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+      // Re-add header if it's a resume
+      if (type === "resume" && name && email) {
+        y = addPremiumResumeHeader(doc, name, email, margin, pageWidth);
+        y += sectionSpacing;
+      }
+    }
 
-  // Generate buffer
+    if (section.type === "heading") {
+      // Main section heading (H1)
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      const headingText = section.content.trim();
+      doc.text(headingText, margin, y);
+      y += lineHeight + 3;
+      
+      // Add subtle underline for main sections
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(100, 100, 100);
+      doc.line(margin, y - 2, pageWidth - margin, y - 2);
+      y += 3;
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+    } else if (section.type === "paragraph") {
+      const lines = doc.splitTextToSize(section.content, maxWidth);
+      doc.text(lines, margin, y);
+      y += lines.length * lineHeight + paragraphSpacing;
+    } else if (section.type === "list") {
+      section.items!.forEach((item, index) => {
+        // Check for new page before each item
+        if (y + lineHeight > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+          if (type === "resume" && name && email) {
+            y = addPremiumResumeHeader(doc, name, email, margin, pageWidth);
+            y += sectionSpacing;
+          }
+        }
+        
+        const bullet = "• ";
+        const itemText = item.trim();
+        const itemLines = doc.splitTextToSize(bullet + itemText, maxWidth - 8);
+        
+        // Indent list items
+        doc.text(itemLines, margin + 5, y);
+        y += itemLines.length * lineHeight;
+      });
+      y += paragraphSpacing;
+    }
+  }
+
+  // Generate PDF buffer
   return Buffer.from(doc.output("arraybuffer"));
 }
 
-/**
- * Parse markdown content into structured format
- */
 interface ParsedSection {
   type: "heading" | "paragraph" | "list";
-  level?: number;
-  content?: string;
+  content: string;
   items?: string[];
 }
 
 function parseMarkdownContent(content: string): ParsedSection[] {
   const sections: ParsedSection[] = [];
-  const lines = content.split("\n").map((line) => line.trim()).filter((line) => line.length > 0);
+  const lines = content.split("\n").map((line) => line.trim());
+  let currentList: string[] = [];
+  let currentParagraph: string[] = [];
 
-  for (const line of lines) {
-    // Headings
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const nextLine = i < lines.length - 1 ? lines[i + 1] : "";
+
+    // Handle headings
     if (line.startsWith("#")) {
-      const level = (line.match(/^#+/) || [""])[0].length;
-      const text = line.replace(/^#+\s*/, "").trim();
-      sections.push({ type: "heading", level, content: text });
+      // Flush current paragraph/list
+      if (currentList.length > 0) {
+        sections.push({ type: "list", items: [...currentList], content: "" });
+        currentList = [];
+      }
+      if (currentParagraph.length > 0) {
+        sections.push({ type: "paragraph", content: currentParagraph.join(" ") });
+        currentParagraph = [];
+      }
+
+      const headingText = line.replace(/^#+\s*/, "").trim();
+      sections.push({ type: "heading", content: headingText });
     }
-    // List items
-    else if (line.match(/^[-*•]\s/)) {
-      const text = line.replace(/^[-*•]\s*/, "").trim();
-      const lastSection = sections[sections.length - 1];
-      if (lastSection?.type === "list") {
-        lastSection.items?.push(text);
-      } else {
-        sections.push({ type: "list", items: [text] });
+    // Handle list items
+    else if (line.startsWith("- ") || line.startsWith("* ") || /^\d+\.\s/.test(line)) {
+      // Flush current paragraph
+      if (currentParagraph.length > 0) {
+        sections.push({ type: "paragraph", content: currentParagraph.join(" ") });
+        currentParagraph = [];
+      }
+
+      const itemText = line.replace(/^[-*]\s*/, "").replace(/^\d+\.\s*/, "").trim();
+      if (itemText.length > 0) {
+        currentList.push(itemText);
       }
     }
-    // Paragraphs
+    // Handle empty lines
+    else if (line.length === 0) {
+      // Flush current list or paragraph
+      if (currentList.length > 0) {
+        sections.push({ type: "list", items: [...currentList], content: "" });
+        currentList = [];
+      }
+      if (currentParagraph.length > 0) {
+        sections.push({ type: "paragraph", content: currentParagraph.join(" ") });
+        currentParagraph = [];
+      }
+    }
+    // Handle regular text (paragraphs)
     else {
-      const lastSection = sections[sections.length - 1];
-      if (lastSection?.type === "paragraph") {
-        lastSection.content += " " + line;
-      } else {
-        sections.push({ type: "paragraph", content: line });
+      // Flush current list
+      if (currentList.length > 0) {
+        sections.push({ type: "list", items: [...currentList], content: "" });
+        currentList = [];
       }
+
+      currentParagraph.push(line);
     }
+  }
+
+  // Flush remaining content
+  if (currentList.length > 0) {
+    sections.push({ type: "list", items: currentList, content: "" });
+  }
+  if (currentParagraph.length > 0) {
+    sections.push({ type: "paragraph", content: currentParagraph.join(" ") });
   }
 
   return sections;
 }
 
-/**
- * Add professional resume header
- */
-function addResumeHeader(
+function addPremiumResumeHeader(
   doc: jsPDF,
   name: string,
   email: string,
   margin: number,
-  width: number,
-  y: number
+  pageWidth: number
 ): number {
-  // Name - Large, bold
+  let y = margin;
+
+  // Name - Large, bold, centered
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.setTextColor(30, 30, 30);
-  doc.text(name, margin, y, { align: "left", maxWidth: width });
-
+  const nameWidth = doc.getTextWidth(name);
+  doc.text(name, (pageWidth - nameWidth) / 2, y);
   y += 8;
 
-  // Contact info - Smaller, regular
-  if (email) {
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(60, 60, 60);
-    doc.text(email, margin, y, { align: "left", maxWidth: width });
-    y += 5;
-  }
-
-  // Horizontal line
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.5);
-  doc.line(margin, y, margin + width, y);
-  y += 3;
-
-  return y;
-}
-
-/**
- * Add content sections
- */
-function addContent(
-  doc: jsPDF,
-  sections: ParsedSection[],
-  margin: number,
-  width: number,
-  startY: number,
-  maxY: number
-): number {
-  let y = startY;
-
-  for (const section of sections) {
-    // Check if we need a new page
-    if (y > maxY - 20) {
-      doc.addPage();
-      y = 20;
-    }
-
-    switch (section.type) {
-      case "heading":
-        y = addHeading(doc, section.content || "", section.level || 1, margin, width, y);
-        break;
-      case "paragraph":
-        y = addParagraph(doc, section.content || "", margin, width, y, maxY);
-        break;
-      case "list":
-        y = addList(doc, section.items || [], margin, width, y, maxY);
-        break;
-    }
-  }
-
-  return y;
-}
-
-/**
- * Add heading
- */
-function addHeading(
-  doc: jsPDF,
-  text: string,
-  level: number,
-  margin: number,
-  width: number,
-  y: number
-): number {
-  const fontSize = level === 1 ? 14 : level === 2 ? 12 : 10;
-  const fontWeight = level <= 2 ? "bold" : "normal";
-
-  doc.setFont("helvetica", fontWeight);
-  doc.setFontSize(fontSize);
-  doc.setTextColor(30, 30, 30);
-
-  // Add spacing before heading
-  if (y > 25) {
-    y += level === 1 ? 8 : 5;
-  }
-
-  const lines = doc.splitTextToSize(text, width);
-  doc.text(lines, margin, y, { align: "left", maxWidth: width });
-  y += lines.length * (fontSize * 0.4) + 3;
-
-  return y;
-}
-
-/**
- * Add paragraph
- */
-function addParagraph(
-  doc: jsPDF,
-  text: string,
-  margin: number,
-  width: number,
-  y: number,
-  maxY: number
-): number {
+  // Contact info - Smaller, centered
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-
-  const lines = doc.splitTextToSize(text, width);
   
-  for (const line of lines) {
-    if (y + 5 > maxY) {
-      doc.addPage();
-      y = 20;
-    }
-    doc.text(line, margin, y, { align: "left", maxWidth: width });
-    y += 5;
-  }
+  // Email
+  const emailWidth = doc.getTextWidth(email);
+  doc.text(email, (pageWidth - emailWidth) / 2, y);
+  y += 5;
 
-  y += 2; // Space after paragraph
+  // Add subtle divider line
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 5;
+
   return y;
-}
-
-/**
- * Add list
- */
-function addList(
-  doc: jsPDF,
-  items: string[],
-  margin: number,
-  width: number,
-  y: number,
-  maxY: number
-): number {
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-
-  const bulletX = margin;
-  const textX = margin + 5;
-  const textWidth = width - 5;
-
-  for (const item of items) {
-    if (y + 5 > maxY) {
-      doc.addPage();
-      y = 20;
-    }
-
-    // Bullet point
-    doc.setFillColor(60, 60, 60);
-    doc.circle(bulletX + 2, y - 1.5, 1, "F");
-
-    // Text
-    const lines = doc.splitTextToSize(item, textWidth);
-    doc.text(lines, textX, y, { align: "left", maxWidth: textWidth });
-    y += lines.length * 5 + 2;
-  }
-
-  y += 2; // Space after list
-  return y;
-}
-
-/**
- * Add page numbers
- */
-function addPageNumbers(doc: jsPDF, pageHeight: number): void {
-  const pageCount = doc.getNumberOfPages();
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(120, 120, 120);
-
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    const pageWidth = doc.internal.pageSize.getWidth();
-    doc.text(
-      `Page ${i} of ${pageCount}`,
-      pageWidth / 2,
-      pageHeight - 10,
-      { align: "center" }
-    );
-  }
 }
