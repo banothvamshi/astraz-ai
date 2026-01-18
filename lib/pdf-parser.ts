@@ -34,6 +34,26 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
     // Use pdf2json - pure Node.js, no browser dependencies
     const PDFParser = (await import("pdf2json")).default;
     const pdfParser = new PDFParser();
+    
+    // Suppress verbose warnings (Type3 fonts, etc.) - they're just informational
+    // We'll only log actual errors
+    const originalConsoleWarn = console.warn;
+    const suppressedWarnings = new Set<string>();
+    console.warn = (...args: any[]) => {
+      const message = args.join(" ");
+      // Suppress Type3 font warnings and other pdf2json internal warnings
+      if (
+        message.includes("Type3 font") ||
+        message.includes("fake worker") ||
+        message.includes("Unsupported:") ||
+        message.includes("NOT valid form")
+      ) {
+        // Suppress these warnings - they're expected for many PDFs
+        return;
+      }
+      // Log other warnings
+      originalConsoleWarn.apply(console, args);
+    };
 
     return new Promise<ParsedResume>((resolve, reject) => {
       let parsedText = "";
@@ -42,6 +62,9 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
 
       // Set up event handlers
       pdfParser.on("pdfParser_dataError", (errData: any) => {
+        // Restore console.warn before error handling
+        console.warn = originalConsoleWarn;
+        
         const errorMsg = errData.parserError || "Unknown PDF parsing error";
         if (errorMsg.includes("password") || errorMsg.includes("encrypted")) {
           reject(new Error("PDF is password-protected. Please remove the password and try again."));
@@ -96,6 +119,9 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
             return;
           }
 
+          // Restore console.warn
+          console.warn = originalConsoleWarn;
+
           // Clean and normalize text
           const cleanedText = cleanResumeText(text);
 
@@ -117,6 +143,8 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
       try {
         pdfParser.parseBuffer(pdfBuffer);
       } catch (parseError: any) {
+        // Restore console.warn on error
+        console.warn = originalConsoleWarn;
         reject(new Error(`Failed to parse PDF: ${parseError.message}`));
       }
     });

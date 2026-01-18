@@ -75,10 +75,24 @@ export function parseJobDescription(jobDescription: string): ParsedJobDescriptio
     "Agile", "Scrum", "DevOps", "Microservices",
   ];
 
+  // Helper function to escape special regex characters
+  const escapeRegex = (str: string): string => {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  };
+
   for (const keyword of skillKeywords) {
-    const regex = new RegExp(`\\b${keyword}\\b`, "i");
-    if (regex.test(text) && !skills.includes(keyword)) {
-      skills.push(keyword);
+    try {
+      // Escape special regex characters in keyword
+      const escapedKeyword = escapeRegex(keyword);
+      const regex = new RegExp(`\\b${escapedKeyword}\\b`, "i");
+      if (regex.test(text) && !skills.includes(keyword)) {
+        skills.push(keyword);
+      }
+    } catch (regexError) {
+      // If regex creation fails, use simple string matching as fallback
+      if (text.toLowerCase().includes(keyword.toLowerCase()) && !skills.includes(keyword)) {
+        skills.push(keyword);
+      }
     }
   }
 
