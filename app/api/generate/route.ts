@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { resume, jobDescription } = body;
+    const { resume, jobDescription, companyName } = body;
 
     // Comprehensive validation
     if (!resume) {
@@ -213,6 +213,17 @@ export async function POST(request: NextRequest) {
       keywords = [];
     }
 
+    const normalizedJobTitle = parsedJob.title?.trim();
+    const requestedCompanyName = typeof companyName === "string" ? companyName.trim() : "";
+    const normalizedCompany = requestedCompanyName.length > 1 ? requestedCompanyName : parsedJob.company?.trim();
+    const normalizedLocation = parsedJob.location?.trim();
+    const displayTitle = normalizedJobTitle && normalizedJobTitle.length > 1 ? normalizedJobTitle : "the role";
+    const displayCompany = normalizedCompany && normalizedCompany.length > 1 ? normalizedCompany : "the company";
+    const displayLocation = normalizedLocation && normalizedLocation.length > 1 ? normalizedLocation : undefined;
+    const coverLetterAddressee = normalizedCompany && normalizedCompany.length > 1
+      ? `Hiring Manager at ${normalizedCompany}`
+      : "Hiring Manager";
+
     // Check execution time
     const elapsedTime = Date.now() - startTime;
     if (elapsedTime > MAX_EXECUTION_TIME - 5000) {
@@ -289,9 +300,9 @@ ORIGINAL RESUME CONTENT:
 ${resumeText}
 
 TARGET JOB INFORMATION:
-${parsedJob.title ? `Position: ${parsedJob.title}` : ""}
-${parsedJob.company ? `Company: ${parsedJob.company}` : ""}
-${parsedJob.location ? `Location: ${parsedJob.location}` : ""}
+Position: ${displayTitle}
+Company: ${displayCompany}
+${displayLocation ? `Location: ${displayLocation}` : ""}
 ${parsedJob.skills.length > 0 ? `Required Skills: ${parsedJob.skills.join(", ")}` : ""}
 ${parsedJob.experience ? `Experience Required: ${parsedJob.experience}` : ""}
 
@@ -314,6 +325,7 @@ CRITICAL REQUIREMENTS:
 - Include ALL relevant experience, education, and skills from the original resume
 - Make it comprehensive and complete - at least 1-2 pages of content
 - Every section must be fully populated with real information
+- If the original resume contains multiple roles or sections, include every one of them (do not summarize them away)
 
 CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers. Generate the COMPLETE resume now.`;
 
@@ -379,8 +391,8 @@ TASK: Write a COMPLETE, premium cover letter that:
 CRITICAL: Generate a COMPLETE cover letter. Do NOT use placeholders. Use actual information from the resume and job description.
 
 CRITICAL REQUIREMENTS:
-- Address it to: ${parsedJob.company ? `Hiring Manager at ${parsedJob.company}` : "Hiring Manager"}
-- Reference the position: ${parsedJob.title || "the role"}
+- Address it to: ${coverLetterAddressee}
+- Reference the position: ${displayTitle}
 - Use SPECIFIC examples from the resume (mention actual achievements, companies, projects)
 - Show knowledge of the company/industry from the job description
 - Professional but warm tone
@@ -390,15 +402,15 @@ CRITICAL REQUIREMENTS:
 - Include candidate's actual name: ${resumeSections.name || "the candidate"}
 - Include specific achievements and metrics from their experience
 
-CANDIDATE INFORMATION:
+ CANDIDATE INFORMATION:
 ${resumeSections.name ? `Name: ${resumeSections.name}` : ""}
 ${resumeSections.email ? `Email: ${resumeSections.email}` : ""}
 Key Experience: ${resumeSections.sections["EXPERIENCE"]?.substring(0, 500) || resumeText.substring(0, 500)}
 
 JOB DETAILS:
-${parsedJob.title ? `Position: ${parsedJob.title}` : ""}
-${parsedJob.company ? `Company: ${parsedJob.company}` : ""}
-${parsedJob.location ? `Location: ${parsedJob.location}` : ""}
+Position: ${displayTitle}
+Company: ${displayCompany}
+${displayLocation ? `Location: ${displayLocation}` : ""}
 
 Full Job Description:
 ${sanitizedJobDescription}
@@ -409,8 +421,8 @@ CRITICAL REQUIREMENTS:
 - Write the FULL cover letter with all paragraphs complete
 - Use actual information - no placeholders
 - Include specific examples from the candidate's resume
-- Reference the company name: ${parsedJob.company || "the company"}
-- Reference the job title: ${parsedJob.title || "the position"}
+- Reference the company name: ${displayCompany}
+- Reference the job title: ${displayTitle}
 - Make it compelling and complete (250-400 words)
 
 CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers. Generate the COMPLETE cover letter now.`;

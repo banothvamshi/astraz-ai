@@ -13,6 +13,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedResume, setGeneratedResume] = useState<string | null>(null);
   const [generatedCoverLetter, setGeneratedCoverLetter] = useState<string | null>(null);
@@ -86,6 +87,7 @@ export default function Dashboard() {
         body: JSON.stringify({
           resume: base64Resume,
           jobDescription,
+          companyName: companyName.trim() || undefined,
         }),
       });
 
@@ -231,6 +233,12 @@ export default function Dashboard() {
               <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-50">
                 2. Paste Job Description
               </h2>
+              <input
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Company name (optional, helps targeting)"
+                className="mb-3 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-50 dark:placeholder:text-slate-500"
+              />
               <textarea
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
