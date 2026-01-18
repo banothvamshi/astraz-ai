@@ -179,7 +179,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
       // Handle experience entries with better formatting
       const experienceHeight = estimateExperienceHeight(section, doc, maxWidth, lineHeight);
       ensureSpace(experienceHeight + paragraphSpacing);
-      y = addExperienceEntry(doc, section, margin, maxWidth, y, pageHeight, margin, type === "resume" && name && email ? { name, email } : undefined);
+      y = addExperienceEntry(doc, section, margin, maxWidth, y, pageHeight, margin, MIN_SPACE_BOTTOM, type === "resume" && name && email ? { name, email } : undefined);
     }
   }
 
@@ -411,6 +411,7 @@ function addExperienceEntry(
   y: number,
   pageHeight: number,
   pageMargin: number,
+  minSpaceBottom: number,
   header?: { name: string; email: string }
 ): number {
   const parts = section.content.split("|");
@@ -451,7 +452,7 @@ function addExperienceEntry(
   if (section.items && section.items.length > 0) {
     section.items.forEach((bullet) => {
       // Better check for page break
-      if (y + 7 > pageHeight - MIN_SPACE_BOTTOM) {
+      if (y + 7 > pageHeight - minSpaceBottom) {
         doc.addPage();
         y = pageMargin;
         if (header) {

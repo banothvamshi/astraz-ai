@@ -39,14 +39,34 @@ export class GoogleDocumentAIProvider implements DocumentAIProvider {
       }
 
       // Import and initialize the client
-      const { DocumentProcessorServiceClient } = require('@google-cloud/documentai').v1;
-      this.client = new DocumentProcessorServiceClient({
-        keyFilename: credentialsPath,
-      });
-      
-      console.log('Google Document AI: Client initialized successfully');
+      // Note: @google-cloud/documentai is optional - gracefully skip if not available
+      try {
+        // Safely require the package
+        let DocumentProcessorServiceClient;
+        try {
+          const pkg = require('@google-cloud/documentai');
+          DocumentProcessorServiceClient = pkg.v1?.DocumentProcessorServiceClient;
+        } catch (e) {
+          // Package not installed - this is OK, it's optional
+          console.info('Google Document AI: Package not installed (optional). Install @google-cloud/documentai to use this provider.');
+          return;
+        }
+        
+        if (!DocumentProcessorServiceClient) {
+          console.warn('Google Document AI: Could not find DocumentProcessorServiceClient');
+          return;
+        }
+        
+        this.client = new DocumentProcessorServiceClient({
+          keyFilename: credentialsPath,
+        });
+        console.log('Google Document AI: Client initialized successfully');
+      } catch (initError: any) {
+        console.warn('Google Document AI: Failed to initialize client:', initError.message);
+        this.client = undefined;
+      }
     } catch (error: any) {
-      console.warn('Google Document AI: Failed to initialize client:', error.message);
+      console.warn('Google Document AI: Failed to load credentials:', error.message);
       this.client = undefined;
     }
   }
