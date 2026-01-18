@@ -225,7 +225,9 @@ export async function POST(request: NextRequest) {
     // PREMIUM resume generation prompt - Highest quality output
     const resumePrompt = `You are an elite executive resume writer with 25+ years of experience helping candidates secure positions at Fortune 500 companies, FAANG, and top-tier organizations. Your resumes consistently pass ATS systems and impress C-level executives.
 
-TASK: Create a PREMIUM, ATS-optimized resume that maximizes interview opportunities and showcases the candidate as an exceptional fit.
+TASK: Create a COMPLETE, PREMIUM, ATS-optimized resume that maximizes interview opportunities and showcases the candidate as an exceptional fit.
+
+CRITICAL: Generate a COMPLETE resume with ALL sections filled out. Do NOT use placeholders like "[Company Name]", "[Your Name]", or "[Optional]". Use actual information from the original resume provided below.
 
 CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
 
@@ -305,7 +307,15 @@ Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
 
 Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable). Use clear markdown headers (# for main sections, ## for subsections).
 
-CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers.`;
+CRITICAL REQUIREMENTS:
+- Generate a COMPLETE resume with ALL information filled in
+- Use actual company names, job titles, dates, and achievements from the original resume
+- Do NOT leave any placeholders or empty sections
+- Include ALL relevant experience, education, and skills from the original resume
+- Make it comprehensive and complete - at least 1-2 pages of content
+- Every section must be fully populated with real information
+
+CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers. Generate the COMPLETE resume now.`;
 
     // Generate resume with retry logic
     let generatedResume: string;
@@ -324,8 +334,8 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
             dates, certifications, or qualifications that are not explicitly stated in the original resume.
             Your job is to reorganize and rephrase existing content for maximum impact, NOT to add new content.`,
             {
-              temperature: 0.5, // Lower for more consistent, professional output
-              maxOutputTokens: 4000, // Increased for more detailed, comprehensive resumes
+              temperature: 0.4, // Lower for more consistent, professional output
+              maxOutputTokens: 6000, // Increased significantly for complete, comprehensive resumes
             }
           ),
         {
@@ -359,22 +369,26 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     // Premium cover letter generation
     const coverLetterPrompt = `You are a master cover letter writer who crafts compelling, personalized letters that get candidates interviews.
 
-TASK: Write a premium cover letter that:
+TASK: Write a COMPLETE, premium cover letter that:
 1. Opens with a strong, attention-grabbing hook
 2. Demonstrates understanding of the company and role
 3. Connects candidate's experience to job requirements
 4. Shows enthusiasm and cultural fit
 5. Ends with a confident call to action
 
+CRITICAL: Generate a COMPLETE cover letter. Do NOT use placeholders. Use actual information from the resume and job description.
+
 CRITICAL REQUIREMENTS:
-- Address it to: ${parsedJob.company || "Hiring Manager"}
+- Address it to: ${parsedJob.company ? `Hiring Manager at ${parsedJob.company}` : "Hiring Manager"}
 - Reference the position: ${parsedJob.title || "the role"}
-- Use specific examples from the resume
-- Show knowledge of the company/industry
+- Use SPECIFIC examples from the resume (mention actual achievements, companies, projects)
+- Show knowledge of the company/industry from the job description
 - Professional but warm tone
-- 3-4 well-structured paragraphs
-- No generic phrases like "I am writing to apply"
+- 3-4 well-structured paragraphs (250-400 words total)
+- No generic phrases like "I am writing to apply" or "[Your Name]"
 - Be concise but impactful
+- Include candidate's actual name: ${resumeSections.name || "the candidate"}
+- Include specific achievements and metrics from their experience
 
 CANDIDATE INFORMATION:
 ${resumeSections.name ? `Name: ${resumeSections.name}` : ""}
@@ -389,9 +403,17 @@ ${parsedJob.location ? `Location: ${parsedJob.location}` : ""}
 Full Job Description:
 ${sanitizedJobDescription}
 
-Generate a premium, personalized cover letter in markdown format.
+Generate a COMPLETE, premium, personalized cover letter in markdown format. 
 
-CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers.`;
+CRITICAL REQUIREMENTS:
+- Write the FULL cover letter with all paragraphs complete
+- Use actual information - no placeholders
+- Include specific examples from the candidate's resume
+- Reference the company name: ${parsedJob.company || "the company"}
+- Reference the job title: ${parsedJob.title || "the position"}
+- Make it compelling and complete (250-400 words)
+
+CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers. Generate the COMPLETE cover letter now.`;
 
     // Generate cover letter with retry logic
     let generatedCoverLetter: string;
@@ -405,8 +427,8 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
             You avoid clichés and generic statements. Every sentence adds value.
             Maintain authenticity and professionalism.`,
             {
-              temperature: 0.6, // Slightly lower for more consistent quality
-              maxOutputTokens: 2500, // Increased for more detailed, compelling cover letters
+              temperature: 0.5, // Lower for more consistent quality
+              maxOutputTokens: 3500, // Increased for complete, compelling cover letters
             }
           ),
         {

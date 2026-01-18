@@ -268,17 +268,26 @@ export default function Dashboard() {
                 
                 {/* Resume Section */}
                 {generatedResume && (
-                  <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <span className="text-sm font-medium text-slate-900 dark:text-slate-50">
-                          Resume
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        {!editingResume ? (
-                          <>
+                  <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                    {editingResume ? (
+                      <ResumeEditor
+                        content={generatedResume}
+                        onSave={(edited) => {
+                          setGeneratedResume(edited);
+                          setEditingResume(false);
+                        }}
+                        onCancel={() => setEditingResume(false)}
+                      />
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <span className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                              Generated Resume
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
                             <Button
                               onClick={() => setEditingResume(true)}
                               size="sm"
@@ -290,47 +299,81 @@ export default function Dashboard() {
                             <Button
                               onClick={() => handleDownload("resume")}
                               size="sm"
-                              variant="outline"
+                              className="bg-blue-600 hover:bg-blue-700"
                             >
                               <Download className="mr-2 h-4 w-4" />
-                              Download
+                              Download PDF
                             </Button>
-                          </>
-                        ) : (
-                          <ResumeEditor
-                            content={generatedResume}
-                            onSave={(edited) => {
-                              setGeneratedResume(edited);
-                              setEditingResume(false);
-                            }}
-                            onCancel={() => setEditingResume(false)}
-                          />
-                        )}
-                      </div>
-                    </div>
-                    {!editingResume && (
-                      <div className="rounded border border-slate-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-900">
-                        <pre className="whitespace-pre-wrap text-xs text-slate-700 dark:text-slate-300">
-                          {generatedResume.substring(0, 500)}...
-                        </pre>
-                      </div>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-slate-600 dark:bg-slate-900">
+                            <div className="prose prose-sm max-w-none dark:prose-invert">
+                              <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                                {generatedResume.split('\n').map((line, idx) => {
+                                  if (line.startsWith('#')) {
+                                    return (
+                                      <h3 key={idx} className="mt-6 mb-3 text-lg font-bold text-slate-900 dark:text-slate-50 first:mt-0">
+                                        {line.replace(/^#+\s*/, '')}
+                                      </h3>
+                                    );
+                                  }
+                                  if (line.startsWith('-') || line.startsWith('•') || /^\d+\./.test(line.trim())) {
+                                    return (
+                                      <div key={idx} className="ml-6 mb-2 text-slate-700 dark:text-slate-300">
+                                        {line.replace(/^[-*•]\s*/, '• ').replace(/^\d+\.\s*/, '• ')}
+                                      </div>
+                                    );
+                                  }
+                                  if (line.trim() === '') {
+                                    return <br key={idx} />;
+                                  }
+                                  if (line.includes('**')) {
+                                    const boldText = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                                    return (
+                                      <p key={idx} className="mb-2 font-semibold text-slate-900 dark:text-slate-50" dangerouslySetInnerHTML={{ __html: boldText }} />
+                                    );
+                                  }
+                                  return (
+                                    <p key={idx} className="mb-2 text-slate-700 dark:text-slate-300">
+                                      {line}
+                                    </p>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            ✓ Your resume has been generated! Review it above. Click "Edit" to make final adjustments, or "Download PDF" to get your professional resume.
+                          </p>
+                        </div>
+                      </>
                     )}
                   </div>
                 )}
 
                 {/* Cover Letter Section */}
                 {generatedCoverLetter && (
-                  <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <span className="text-sm font-medium text-slate-900 dark:text-slate-50">
-                          Cover Letter
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        {!editingCoverLetter ? (
-                          <>
+                  <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                    {editingCoverLetter ? (
+                      <ResumeEditor
+                        content={generatedCoverLetter}
+                        onSave={(edited) => {
+                          setGeneratedCoverLetter(edited);
+                          setEditingCoverLetter(false);
+                        }}
+                        onCancel={() => setEditingCoverLetter(false)}
+                      />
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <span className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                              Generated Cover Letter
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
                             <Button
                               onClick={() => setEditingCoverLetter(true)}
                               size="sm"
@@ -342,30 +385,48 @@ export default function Dashboard() {
                             <Button
                               onClick={() => handleDownload("coverLetter")}
                               size="sm"
-                              variant="outline"
+                              className="bg-blue-600 hover:bg-blue-700"
                             >
                               <Download className="mr-2 h-4 w-4" />
-                              Download
+                              Download PDF
                             </Button>
-                          </>
-                        ) : (
-                          <ResumeEditor
-                            content={generatedCoverLetter}
-                            onSave={(edited) => {
-                              setGeneratedCoverLetter(edited);
-                              setEditingCoverLetter(false);
-                            }}
-                            onCancel={() => setEditingCoverLetter(false)}
-                          />
-                        )}
-                      </div>
-                    </div>
-                    {!editingCoverLetter && (
-                      <div className="rounded border border-slate-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-900">
-                        <pre className="whitespace-pre-wrap text-xs text-slate-700 dark:text-slate-300">
-                          {generatedCoverLetter.substring(0, 500)}...
-                        </pre>
-                      </div>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-slate-600 dark:bg-slate-900">
+                            <div className="prose prose-sm max-w-none dark:prose-invert">
+                              <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                                {generatedCoverLetter.split('\n').map((line, idx) => {
+                                  if (line.startsWith('#')) {
+                                    return (
+                                      <h3 key={idx} className="mt-6 mb-3 text-lg font-bold text-slate-900 dark:text-slate-50 first:mt-0">
+                                        {line.replace(/^#+\s*/, '')}
+                                      </h3>
+                                    );
+                                  }
+                                  if (line.trim() === '') {
+                                    return <br key={idx} />;
+                                  }
+                                  if (line.includes('**')) {
+                                    const boldText = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                                    return (
+                                      <p key={idx} className="mb-3 font-semibold text-slate-900 dark:text-slate-50" dangerouslySetInnerHTML={{ __html: boldText }} />
+                                    );
+                                  }
+                                  return (
+                                    <p key={idx} className="mb-3 text-slate-700 dark:text-slate-300">
+                                      {line}
+                                    </p>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            ✓ Your cover letter has been generated! Review it above. Click "Edit" to make final adjustments, or "Download PDF" to get your professional cover letter.
+                          </p>
+                        </div>
+                      </>
                     )}
                   </div>
                 )}
