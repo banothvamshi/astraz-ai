@@ -32,8 +32,10 @@ export async function generateText(
       throw new Error(`Prompt is too long (${prompt.length} characters). Maximum is ${maxPromptLength} characters.`);
     }
 
+    // Use the correct model name - gemini-1.5-flash-latest or gemini-pro
+    // The error suggests the model name format might be wrong, so we'll use the stable version
     const model = gemini.getGenerativeModel({
-      model: "gemini-1.5-flash", // Free tier model - fast and high quality
+      model: "gemini-pro", // Stable model that works with v1beta API
       systemInstruction: systemInstruction,
       generationConfig: {
         temperature: options?.temperature ?? 0.7,
