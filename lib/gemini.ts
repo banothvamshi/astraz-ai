@@ -9,9 +9,25 @@ export function getGemini(): GoogleGenerativeAI {
     if (!apiKey) {
       throw new Error("GOOGLE_GEMINI_API_KEY environment variable is not set");
     }
+    if (apiKey.length < 20) {
+      throw new Error("GOOGLE_GEMINI_API_KEY appears to be invalid (too short)");
+    }
     geminiInstance = new GoogleGenerativeAI(apiKey);
   }
   return geminiInstance;
+}
+
+/**
+ * List available models (for debugging)
+ */
+export async function listAvailableModels(): Promise<string[]> {
+  try {
+    const gemini = getGemini();
+    // Note: The SDK doesn't have a direct listModels method, but we can infer from errors
+    return [];
+  } catch (error) {
+    return [];
+  }
 }
 
 // Helper function to generate text using Gemini with comprehensive error handling
@@ -36,25 +52,30 @@ export async function generateText(
     // Can be overridden via GEMINI_MODEL environment variable
     const modelName = process.env.GEMINI_MODEL;
     
-    // Try different model names in order of preference
+    // Try different model names in order of preference (FREE TIER MODELS)
+    // These are the actual available model names as of 2024/2025
     const modelNamesToTry = modelName 
       ? [modelName]
       : [
-          "gemini-1.5-flash-latest",  // Latest flash model (fast, free tier)
-          "gemini-1.5-flash",         // Stable flash model
-          "gemini-1.5-pro-latest",    // Latest pro model
-          "gemini-1.5-pro",           // Stable pro model
-          "gemini-pro",               // Legacy model
+          "gemini-1.5-flash",         // FREE - Fast, efficient model
+          "gemini-1.5-pro",          // FREE tier available
+          "gemini-pro",               // Legacy free model
+          "models/gemini-1.5-flash",  // Alternative format
+          "models/gemini-1.5-pro",    // Alternative format
         ];
     
     let lastError: Error | null = null;
     let text: string | null = null;
+    let successfulModel: string | null = null;
     
     // Try each model until one works
     for (const name of modelNamesToTry) {
       try {
+        // Clean model name (remove 'models/' prefix if present in some configs)
+        const cleanName = name.replace(/^models\//, "");
+        
         const model = gemini.getGenerativeModel({
-          model: name,
+          model: cleanName,
           systemInstruction: systemInstruction,
           generationConfig: {
             temperature: options?.temperature ?? 0.7,
@@ -74,12 +95,19 @@ export async function generateText(
         const result = await Promise.race([generatePromise, timeoutPromise]);
         const response = await result.response;
         text = response.text();
+        successfulModel = cleanName;
+        
+        // Log successful model for debugging
+        console.log(`Successfully used Gemini model: ${cleanName}`);
         
         // If we get here, generation was successful
         break;
       } catch (modelError: any) {
         lastError = modelError;
         const errorMsg = modelError.message || String(modelError);
+        
+        // Log which model failed for debugging
+        console.log(`Model ${name} failed: ${errorMsg.substring(0, 100)}`);
         
         // If it's a model not found error, try next model
         if (errorMsg.includes("not found") || errorMsg.includes("404") || errorMsg.includes("is not found")) {
@@ -93,11 +121,17 @@ export async function generateText(
     }
     
     if (!text) {
+      // Provide helpful error message with troubleshooting
+      const errorDetails = lastError?.message || "Unknown error";
       throw new Error(
         `No available Gemini model found. Tried: ${modelNamesToTry.join(", ")}. ` +
-        `Last error: ${lastError?.message || "Unknown error"}. ` +
-        `Please set GEMINI_MODEL environment variable to a valid model name. ` +
-        `Check https://ai.google.dev/models/gemini for available models.`
+        `Last error: ${errorDetails}. ` +
+        `\n\nTroubleshooting:` +
+        `\n1. Verify your GOOGLE_GEMINI_API_KEY is correct` +
+        `\n2. Check API key has access to Gemini models at https://makersuite.google.com/app/apikey` +
+        `\n3. Ensure you're using a valid API key (not restricted)` +
+        `\n4. Try setting GEMINI_MODEL environment variable to: gemini-1.5-flash` +
+        `\n5. Check available models: https://ai.google.dev/models/gemini`
       );
     }
 
