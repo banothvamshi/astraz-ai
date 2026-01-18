@@ -12,6 +12,28 @@ import { estimateCost, getCostOptimizationTips } from "@/lib/cost-optimizer";
 // Maximum execution time (25 seconds for Vercel)
 const MAX_EXECUTION_TIME = 25000;
 
+/**
+ * Clean markdown content - remove code blocks and extra formatting
+ */
+function cleanMarkdownContent(content: string): string {
+  if (!content) return content;
+  
+  // Remove markdown code blocks
+  let cleaned = content
+    .replace(/^```markdown\s*\n?/gm, "")
+    .replace(/^```\s*\n?/gm, "")
+    .replace(/\n?```\s*$/gm, "")
+    .trim();
+  
+  // Remove inline code blocks
+  cleaned = cleaned.replace(/```[\s\S]*?```/g, "");
+  
+  // Clean up extra whitespace
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+  
+  return cleaned.trim();
+}
+
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   
@@ -274,7 +296,9 @@ Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
 - Shows quantifiable achievements (metrics everywhere)
 - Demonstrates value and impact (results-focused)
 
-Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable). Use clear markdown headers (# for main sections, ## for subsections).`;
+Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable). Use clear markdown headers (# for main sections, ## for subsections).
+
+CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers.`;
 
     // Generate resume with retry logic
     let generatedResume: string;
@@ -354,7 +378,9 @@ ${parsedJob.location ? `Location: ${parsedJob.location}` : ""}
 Full Job Description:
 ${sanitizedJobDescription}
 
-Generate a premium, personalized cover letter in markdown format.`;
+Generate a premium, personalized cover letter in markdown format.
+
+CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers.`;
 
     // Generate cover letter with retry logic
     let generatedCoverLetter: string;
@@ -431,11 +457,15 @@ Generate a premium, personalized cover letter in markdown format.`;
       );
     }
 
+    // Clean generated content - remove code blocks if present
+    const cleanResume = cleanMarkdownContent(generatedResume);
+    const cleanCoverLetter = cleanMarkdownContent(generatedCoverLetter);
+
     // Cache the response
     try {
       setCachedResponse(resumeText, sanitizedJobDescription, {
-        resume: generatedResume,
-        coverLetter: generatedCoverLetter,
+        resume: cleanResume,
+        coverLetter: cleanCoverLetter,
       });
     } catch (cacheError) {
       // Cache failure is not critical, continue
@@ -443,8 +473,8 @@ Generate a premium, personalized cover letter in markdown format.`;
     }
 
     return NextResponse.json({
-      resume: generatedResume,
-      coverLetter: generatedCoverLetter,
+      resume: cleanResume,
+      coverLetter: cleanCoverLetter,
       cached: false,
       rateLimit: {
         remaining: rateLimit.remaining,
