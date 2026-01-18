@@ -12,6 +12,7 @@ export function getGemini(): GoogleGenerativeAI {
     if (apiKey.length < 20) {
       throw new Error("GOOGLE_GEMINI_API_KEY appears to be invalid (too short)");
     }
+    // Initialize with API key - SDK will handle API version automatically
     geminiInstance = new GoogleGenerativeAI(apiKey);
   }
   return geminiInstance;
@@ -53,15 +54,14 @@ export async function generateText(
     const modelName = process.env.GEMINI_MODEL;
     
     // Try different model names in order of preference (FREE TIER MODELS)
-    // These are the actual available model names as of 2024/2025
+    // Based on Google AI Studio API keys, these should work
+    // The SDK automatically uses the correct API version
     const modelNamesToTry = modelName 
       ? [modelName]
       : [
-          "gemini-1.5-flash",         // FREE - Fast, efficient model
-          "gemini-1.5-pro",          // FREE tier available
+          "gemini-1.5-flash",         // FREE - Fast, efficient model (most likely to work)
+          "gemini-1.5-pro",           // FREE tier available
           "gemini-pro",               // Legacy free model
-          "models/gemini-1.5-flash",  // Alternative format
-          "models/gemini-1.5-pro",    // Alternative format
         ];
     
     let lastError: Error | null = null;
