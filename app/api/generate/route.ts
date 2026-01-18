@@ -102,7 +102,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse PDF with premium parser
-    const parsedResume = await parseResumePDF(pdfBuffer);
+    let parsedResume;
+    try {
+      parsedResume = await parseResumePDF(pdfBuffer);
+    } catch (parseError: any) {
+      console.error("PDF parsing error in API:", {
+        error: parseError.message,
+        bufferSize: pdfBuffer.length,
+        pdfHeader: pdfBuffer.slice(0, 10).toString(),
+      });
+      
+      return NextResponse.json(
+        { 
+          error: parseError.message || "Failed to parse PDF. Please ensure it's a valid, text-based PDF file. If the error persists, try converting your PDF to a text-based format.",
+          details: process.env.NODE_ENV === "development" ? parseError.message : undefined
+        },
+        { status: 400 }
+      );
+    }
+    
     const resumeText = parsedResume.text;
     const resumeSections = extractResumeSections(resumeText);
 

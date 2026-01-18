@@ -49,9 +49,23 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
     
     // Parse PDF - pass buffer directly (not file path)
     // This prevents pdf-parse from trying to access test files
-    const pdfData = await pdfParse(pdfBuffer, {
-      max: 0, // Parse all pages (0 = all pages)
-    });
+    let pdfData: any;
+    try {
+      pdfData = await pdfParse(pdfBuffer, {
+        max: 0, // Parse all pages (0 = all pages)
+      });
+    } catch (parseError: any) {
+      // Log the actual error for debugging
+      console.error("PDF parse error details:", {
+        message: parseError.message,
+        stack: parseError.stack,
+        bufferLength: pdfBuffer.length,
+        bufferStart: pdfBuffer.slice(0, 20).toString(),
+      });
+      
+      // Re-throw with more context
+      throw new Error(`PDF parsing failed: ${parseError.message || "Unknown error"}`);
+    }
 
     // Validate parsed content
     const text = (pdfData.text || "").trim();
@@ -103,7 +117,8 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
           };
         }
       } catch (retryError: any) {
-        throw new Error("Failed to parse PDF. Please ensure it's a valid, text-based PDF file.");
+        console.error("PDF parse retry error:", retryError.message);
+        throw new Error(`Failed to parse PDF: ${retryError.message || "Please ensure it's a valid, text-based PDF file."}`);
       }
     }
     
