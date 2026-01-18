@@ -33,6 +33,26 @@ export function parseJobDescription(jobDescription: string): ParsedJobDescriptio
       break;
     }
   }
+  if (!title) {
+    const titleHints = [
+      "Engineer",
+      "Developer",
+      "Designer",
+      "Manager",
+      "Director",
+      "Analyst",
+      "Architect",
+      "Specialist",
+      "Scientist",
+      "Consultant",
+    ];
+    const candidateLine = lines.slice(0, 4).find((line) =>
+      titleHints.some((hint) => line.toLowerCase().includes(hint.toLowerCase()))
+    );
+    if (candidateLine) {
+      title = candidateLine.replace(/\s+at\s+.+$/i, "").trim();
+    }
+  }
 
   // Extract company name
   let company: string | undefined;
@@ -40,12 +60,20 @@ export function parseJobDescription(jobDescription: string): ParsedJobDescriptio
     /(?:Company|Organization|Employer)[\s:]*([^\n]+)/i,
     /(?:at|@)\s+([A-Z][A-Za-z0-9\s&]+)/,
     /^[^@\n]+(?:at|@)\s+([A-Z][A-Za-z0-9\s&]+)/i,
+    /(?:About|Who We Are|About Us)[\s:]*([A-Z][A-Za-z0-9\s&]+)/i,
   ];
   for (const pattern of companyPatterns) {
     const match = text.match(pattern);
     if (match && match[1]) {
       company = match[1].trim();
       break;
+    }
+  }
+  if (!company) {
+    const atLine = lines.find((line) => /\s+(?:at|@)\s+/i.test(line));
+    if (atLine) {
+      const parts = atLine.split(/\s+(?:at|@)\s+/i);
+      company = parts[1]?.trim();
     }
   }
 
@@ -98,7 +126,7 @@ export function parseJobDescription(jobDescription: string): ParsedJobDescriptio
 
   // Extract requirements
   const requirements: string[] = [];
-  const requirementSection = extractSection(text, ["REQUIREMENTS", "QUALIFICATIONS", "MUST HAVE", "REQUIRED"]);
+  const requirementSection = extractSection(text, ["REQUIREMENTS", "QUALIFICATIONS", "MUST HAVE", "REQUIRED", "WHAT YOU BRING"]);
   if (requirementSection) {
     const reqLines = requirementSection.split("\n").filter((line) => line.trim().length > 0);
     requirements.push(...reqLines);
@@ -106,7 +134,7 @@ export function parseJobDescription(jobDescription: string): ParsedJobDescriptio
 
   // Extract responsibilities
   const responsibilities: string[] = [];
-  const respSection = extractSection(text, ["RESPONSIBILITIES", "DUTIES", "WHAT YOU'LL DO", "KEY RESPONSIBILITIES"]);
+  const respSection = extractSection(text, ["RESPONSIBILITIES", "DUTIES", "WHAT YOU'LL DO", "KEY RESPONSIBILITIES", "WHAT YOU WILL DO"]);
   if (respSection) {
     const respLines = respSection.split("\n").filter((line) => line.trim().length > 0);
     responsibilities.push(...respLines);
