@@ -8,6 +8,7 @@ import { validatePDF, validateJobDescription, validateBase64, sanitizeJobDescrip
 import { retry } from "@/lib/retry";
 import { shouldAllowAPICall, getBillingStatusMessage } from "@/lib/billing-guard";
 import { estimateCost, getCostOptimizationTips } from "@/lib/cost-optimizer";
+import { validateGeneratedContent } from "@/lib/content-validator";
 
 // Maximum execution time (25 seconds for Vercel)
 const MAX_EXECUTION_TIME = 25000;
@@ -257,10 +258,11 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Show career progression and increasing responsibility
 
 5. **Skills Section**:
-   - Categorize: Technical Skills, Tools & Technologies, Soft Skills
-   - List ALL relevant skills from job description
-   - Use exact terminology from job posting
-   - Prioritize skills mentioned in job description
+   - ONLY include skills that are explicitly mentioned in the ORIGINAL RESUME CONTENT
+   - DO NOT add skills from the job description if they are not in the original resume
+   - Categorize existing skills: Technical Skills, Tools & Technologies, Soft Skills
+   - Use exact terminology from the original resume
+   - You can reorder and reorganize skills, but DO NOT add new ones
 
 6. **Formatting & Style**:
    - Clean, professional, scannable layout
@@ -270,11 +272,15 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Proper capitalization (Title Case for headers, sentence case for content)
    - Use parallel structure in bullets
 
-7. **Authenticity & Ethics**:
-   - Maintain candidate's ACTUAL experience, dates, and achievements
-   - DO NOT fabricate, exaggerate, or invent experience
-   - Reorganize and rephrase for maximum impact while staying truthful
-   - Preserve all important details and accomplishments
+7. **CRITICAL - NO HALLUCINATION POLICY**:
+   - ONLY use information that exists in the ORIGINAL RESUME CONTENT provided above
+   - DO NOT add any skills, experiences, achievements, or qualifications that are NOT in the original resume
+   - DO NOT invent companies, job titles, dates, or accomplishments
+   - DO NOT add certifications, education, or projects that are not in the original resume
+   - If a skill is mentioned in the job description but NOT in the original resume, DO NOT add it
+   - You can rephrase and reorganize existing content, but you CANNOT add new content
+   - If information is missing from the original resume, leave it out - do not invent it
+   - Every bullet point, skill, and achievement MUST be traceable to the original resume content
 
 ORIGINAL RESUME CONTENT:
 ${resumeText}
@@ -311,7 +317,11 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
             Your resumes consistently help candidates secure positions at Fortune 500 companies.
             You understand both ATS systems and human recruiter psychology.
             Generate resumes that are both machine-readable and human-appealing.
-            Always maintain accuracy and authenticity.`,
+            
+            CRITICAL RULE: You MUST ONLY use information from the original resume provided. 
+            DO NOT add, invent, or hallucinate any skills, experiences, achievements, companies, 
+            dates, certifications, or qualifications that are not explicitly stated in the original resume.
+            Your job is to reorganize and rephrase existing content for maximum impact, NOT to add new content.`,
             {
               temperature: 0.5, // Lower for more consistent, professional output
               maxOutputTokens: 4000, // Increased for more detailed, comprehensive resumes
@@ -460,6 +470,13 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     // Clean generated content - remove code blocks if present
     const cleanResume = cleanMarkdownContent(generatedResume);
     const cleanCoverLetter = cleanMarkdownContent(generatedCoverLetter);
+
+    // Validate content doesn't contain hallucinated information
+    const resumeValidation = validateGeneratedContent(cleanResume, resumeText);
+    if (!resumeValidation.valid && resumeValidation.errors.length > 0) {
+      console.warn("Resume validation warnings:", resumeValidation.errors);
+      // Log but don't fail - the prompt should prevent this
+    }
 
     // Cache the response
     try {
