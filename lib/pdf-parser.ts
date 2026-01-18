@@ -25,13 +25,32 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
       throw new Error(`PDF file too large: ${(pdfBuffer.length / 1024 / 1024).toFixed(2)}MB. Maximum size is 10MB.`);
     }
 
-    // Use pdf-parse v1 API (Node.js compatible, no browser APIs)
-    // Dynamic require to ensure it loads in server environment
-    const pdfParse = require("pdf-parse");
+    // Use pdf-parse with proper error handling
+    // Load pdf-parse dynamically to avoid initialization issues
+    let pdfParse: any;
     
-    // Parse PDF using v1 API
+    try {
+      // Try CommonJS require first (more reliable for server-side)
+      pdfParse = require("pdf-parse");
+    } catch (requireError: any) {
+      // If require fails, try ES module import
+      try {
+        const pdfParseModule = await import("pdf-parse");
+        pdfParse = pdfParseModule.default || pdfParseModule;
+      } catch (importError: any) {
+        throw new Error(`Failed to load PDF parser: ${importError.message}`);
+      }
+    }
+    
+    // Ensure pdfParse is a function
+    if (typeof pdfParse !== "function") {
+      throw new Error("PDF parser is not a function. Please check pdf-parse installation.");
+    }
+    
+    // Parse PDF - pass buffer directly (not file path)
+    // This prevents pdf-parse from trying to access test files
     const pdfData = await pdfParse(pdfBuffer, {
-      max: 0, // Parse all pages
+      max: 0, // Parse all pages (0 = all pages)
     });
 
     // Validate parsed content
@@ -60,17 +79,45 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
     };
   } catch (error: any) {
     // Enhanced error messages
-    if (error.message.includes("Invalid PDF")) {
+    const errorMsg = error.message || String(error);
+    
+    // Handle test file access errors (pdf-parse initialization issue)
+    if (errorMsg.includes("test/data") || errorMsg.includes("ENOENT")) {
+      // This is a pdf-parse internal error, retry with different approach
+      console.error("PDF parser initialization error, retrying...", errorMsg);
+      try {
+        // Retry with a fresh require
+        const pdfParseRetry = require("pdf-parse");
+        const pdfDataRetry = await pdfParseRetry(pdfBuffer, { max: 0 });
+        const textRetry = (pdfDataRetry.text || "").trim();
+        
+        if (textRetry && textRetry.length >= 50) {
+          return {
+            text: cleanResumeText(textRetry),
+            pages: pdfDataRetry.numpages || 1,
+            metadata: {
+              title: pdfDataRetry.info?.Title,
+              author: pdfDataRetry.info?.Author,
+              subject: pdfDataRetry.info?.Subject,
+            },
+          };
+        }
+      } catch (retryError: any) {
+        throw new Error("Failed to parse PDF. Please ensure it's a valid, text-based PDF file.");
+      }
+    }
+    
+    if (errorMsg.includes("Invalid PDF")) {
       throw new Error("Invalid PDF file. Please ensure the file is a valid PDF document.");
     }
-    if (error.message.includes("password")) {
+    if (errorMsg.includes("password")) {
       throw new Error("PDF is password-protected. Please remove the password and try again.");
     }
-    if (error.message.includes("corrupted")) {
+    if (errorMsg.includes("corrupted")) {
       throw new Error("PDF file appears to be corrupted. Please try a different file.");
     }
     
-    throw new Error(`PDF parsing failed: ${error.message}`);
+    throw new Error(`PDF parsing failed: ${errorMsg}`);
   }
 }
 
