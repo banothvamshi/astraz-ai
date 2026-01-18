@@ -5,6 +5,7 @@ import { parseResumePDFEnhanced, extractStructuredSections } from "@/lib/pdf-par
 import { parseAdvancedPDF } from "@/lib/pdf-parser-advanced-v3";
 import { removeAllPlaceholders, sanitizeCoverLetter as removeTemplateContent } from "@/lib/placeholder-detector";
 import { parseUniversalDocument } from "@/lib/universal-document-parser-v2";
+import { parsePDFReliable, isPDFBuffer } from "@/lib/pdf-parser-simple";
 import { normalizeResume, formatNormalizedResume, NormalizedResume } from "@/lib/resume-normalizer";
 import { parseJobDescription, extractKeywords } from "@/lib/job-description-parser";
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
@@ -159,43 +160,95 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse document using universal parser (handles PDF, DOCX, scanned PDFs, OCR)
-    let parsedResume: ParsedResume;
+    // STAGE 0: Parse PDF with simple reliable parser
+    console.log("=".repeat(50));
+    console.log("STAGE 0: Parsing PDF with Simple Reliable Parser");
+    console.log("=".repeat(50));
+    
+    let resumeText: string;
     try {
-      console.log("Parsing document with universal parser v2...");
-      parsedResume = await retry(
-        () => parseUniversalDocument(pdfBuffer, {
-          includeOCR: true,
-          ocrLanguage: "eng",
-          maxPages: 100,
-          mergePages: true,
-        }),
+      // Check if it's a valid PDF
+      if (isPDFBuffer(pdfBuffer)) {
+        console.log("✅ Buffer is valid PDF (starts with %PDF)");
+      } else {
+        console.warn("⚠️ Buffer doesn't start with %PDF - might be corrupted");
+      }
+      
+      console.log(`Buffer size: ${pdfBuffer.length} bytes`);
+      
+      // Use simple reliable parser first
+      resumeText = await retry(
+        () => parsePDFReliable(pdfBuffer),
         {
           maxRetries: 2,
           initialDelay: 1000,
           retryableErrors: ["timeout", "network"],
         }
       );
+      
+      console.log(`✅ Successfully parsed PDF: ${resumeText.length} characters extracted`);
+      
+      if (resumeText.trim().length === 0) {
+        throw new Error("PDF parsed but returned empty text");
+      }
     } catch (parseError: any) {
-      console.error("Document parsing error:", {
-        error: parseError.message,
-        bufferSize: pdfBuffer.length,
-        clientId,
-      });
-
+      console.error("❌ Simple PDF parser failed:", parseError.message);
+      console.log("Falling back to universal parser...");
+      
+      // Fallback to universal parser
+      try {
+        const parsedResume = await retry(
+          () => parseUniversalDocument(pdfBuffer, {
+            includeOCR: true,
+            ocrLanguage: "eng",
+            maxPages: 100,
+            mergePages: true,
+          }),
+          {
+            maxRetries: 2,
+            initialDelay: 1000,
+            retryableErrors: ["timeout", "network"],
+          }
+        );
+        resumeText = parsedResume.text;
+        console.log(`✅ Universal parser succeeded: ${resumeText.length} characters`);
+      } catch (universalError: any) {
+        console.error("❌ Both parsers failed!");
+        return NextResponse.json(
+          {
+            error: "Failed to read PDF. Please ensure it's a valid, readable PDF file. Try exporting as a new PDF from Word/Google Docs.",
+            details: process.env.NODE_ENV === "development" 
+              ? `Simple: ${parseError.message}, Universal: ${universalError.message}` 
+              : undefined,
+            debug: process.env.NODE_ENV === "development"
+              ? {
+                  bufferSize: pdfBuffer.length,
+                  isValidPDF: isPDFBuffer(pdfBuffer),
+                  firstBytes: pdfBuffer.slice(0, 20).toString('utf8', 0, 10),
+                }
+              : undefined,
+          },
+          { status: 400 }
+        );
+      }
+    }
+    
+    if (!resumeText || resumeText.trim().length < 50) {
       return NextResponse.json(
         {
-          error: parseError.message || "Failed to parse document. Supported formats: PDF, DOCX, scanned PDFs, images. Make sure the file contains readable content.",
-          details: process.env.NODE_ENV === "development" ? parseError.message : undefined,
+          error: "PDF appears to be empty or unreadable. Please ensure it contains text and try again.",
+          debug: process.env.NODE_ENV === "development" ? `Extracted ${resumeText?.length || 0} characters` : undefined,
         },
         { status: 400 }
       );
     }
-
-    const resumeText = parsedResume.text;
     
     // STAGE 1: Normalize raw resume to clean, structured format
-    console.log("Stage 1: Normalizing resume to clean format...");
+    console.log("=".repeat(50));
+    console.log("STAGE 1: Normalizing resume to clean format");
+    console.log("=".repeat(50));
+    console.log(`Input text length: ${resumeText.length} characters`);
+    
     let normalizedResume: NormalizedResume;
     let cleanResumeFormatted: string;
     
