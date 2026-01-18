@@ -1,5 +1,3 @@
-import { PDFParse } from "pdf-parse";
-
 export interface ParsedResume {
   text: string;
   pages: number;
@@ -12,6 +10,7 @@ export interface ParsedResume {
 
 /**
  * Premium PDF parsing with comprehensive error handling
+ * Uses dynamic import to avoid browser API issues in Node.js
  */
 export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
   try {
@@ -26,18 +25,21 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
       throw new Error(`PDF file too large: ${(pdfBuffer.length / 1024 / 1024).toFixed(2)}MB. Maximum size is 10MB.`);
     }
 
-    // Parse PDF
+    // Use pdf-parse v1 API (Node.js compatible, no browser APIs)
+    // Dynamic require to ensure it loads in server environment
     const pdfParse = require("pdf-parse");
+    
+    // Parse PDF using v1 API
     const pdfData = await pdfParse(pdfBuffer, {
       max: 0, // Parse all pages
     });
 
     // Validate parsed content
-    if (!pdfData || !pdfData.text) {
+    const text = (pdfData.text || "").trim();
+
+    if (!text || text.length === 0) {
       throw new Error("Failed to extract text from PDF. The PDF might be image-based or corrupted.");
     }
-
-    const text = pdfData.text.trim();
 
     // Check if text was extracted
     if (text.length < 50) {
@@ -49,11 +51,11 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
 
     return {
       text: cleanedText,
-      pages: pdfData.numpages || 1,
+      pages: pdfData.numpages || pdfData.pages?.length || 1,
       metadata: {
-        title: pdfData.info?.Title,
-        author: pdfData.info?.Author,
-        subject: pdfData.info?.Subject,
+        title: pdfData.info?.Title || pdfData.metadata?.title,
+        author: pdfData.info?.Author || pdfData.metadata?.author,
+        subject: pdfData.info?.Subject || pdfData.metadata?.subject,
       },
     };
   } catch (error: any) {
