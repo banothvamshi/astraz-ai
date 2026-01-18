@@ -38,9 +38,14 @@ export async function parseResumePDFEnhanced(pdfBuffer: Buffer): Promise<ParsedR
 function enhanceExtractedText(text: string): string {
   let enhanced = text;
   
-  // Normalize whitespace
-  enhanced = enhanced.replace(/\s+/g, " ");
-  enhanced = enhanced.replace(/\n\s*\n\s*\n+/g, "\n\n");
+  enhanced = enhanced.replace(/\r\n/g, "\n");
+  enhanced = enhanced.replace(/\r/g, "\n");
+  enhanced = enhanced.replace(/[ \t]+/g, " ");
+  enhanced = enhanced
+    .split("\n")
+    .map((line) => line.trim())
+    .join("\n");
+  enhanced = enhanced.replace(/\n{4,}/g, "\n\n");
   
   // Detect and preserve section headers (common patterns)
   const sectionPatterns = [

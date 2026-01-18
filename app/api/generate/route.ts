@@ -185,10 +185,64 @@ export async function POST(request: NextRequest) {
 
     const resumeText = parsedResume.text;
     const resumeSections = extractResumeSections(resumeText);
+    const structuredResume = extractStructuredSections(resumeText);
+
+    const hasGibberishLetters = (text: string): boolean => {
+      const tokens = text.split(/\s+/).filter(Boolean);
+      if (tokens.length < 30) return true;
+      const singleCharTokens = tokens.filter((t) => /^[A-Za-z]$/.test(t));
+      return singleCharTokens.length / tokens.length > 0.25;
+    };
+
+    const hasPlaceholderTokens = (text: string): boolean => {
+      if (!text) return false;
+      return /\[[^\]]+\]/.test(text) || /Hiring Manager Name/i.test(text);
+    };
+
+    const sanitizeCoverLetter = (text: string, candidateName?: string): string => {
+      if (!text) return text;
+      let cleaned = text;
+
+      cleaned = cleaned
+        .split("\n")
+        .filter((line) => {
+          const trimmed = line.trim();
+          if (/^\[hiring manager name\]$/i.test(trimmed)) return false;
+          if (/^hiring manager$/i.test(trimmed)) return true;
+          if (trimmed.includes("[Hiring Manager") || trimmed.includes("[Candidate")) return false;
+          return true;
+        })
+        .join("\n")
+        .trim();
+
+      if (candidateName) {
+        cleaned = cleaned.replace(/\[(candidate'?s name|your name)\]/gi, candidateName);
+      } else {
+        cleaned = cleaned.replace(/\[(candidate'?s name|your name)\]/gi, "");
+      }
+
+      return cleaned.trim();
+    };
+
+    if (hasGibberishLetters(resumeText)) {
+      return NextResponse.json(
+        {
+          error:
+            "We couldn't read your resume text correctly (it looks like an image-based/encoded PDF). Please upload a text-based resume PDF (selectable text) or export a fresh PDF from Word/Google Docs.",
+        },
+        { status: 400 }
+      );
+    }
 
     // Check cache first
     const cachedResponse = getCachedResponse(resumeText, sanitizedJobDescription);
-    if (cachedResponse) {
+    if (
+      cachedResponse &&
+      !hasGibberishLetters(cachedResponse.resume) &&
+      !hasGibberishLetters(cachedResponse.coverLetter) &&
+      !hasPlaceholderTokens(cachedResponse.resume) &&
+      !hasPlaceholderTokens(cachedResponse.coverLetter)
+    ) {
       return NextResponse.json({
         resume: cachedResponse.resume,
         coverLetter: cachedResponse.coverLetter,
@@ -379,6 +433,10 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     }
 
     // Premium cover letter generation
+    const candidateName = structuredResume.name || resumeSections.name;
+    const candidateEmail = structuredResume.email || resumeSections.email;
+    const candidatePhone = structuredResume.phone || resumeSections.phone;
+
     const coverLetterPrompt = `You are a master cover letter writer who crafts compelling, personalized letters that get candidates interviews.
 
 TASK: Write a COMPLETE, premium cover letter that:
@@ -399,12 +457,13 @@ CRITICAL REQUIREMENTS:
 - 3-4 well-structured paragraphs (250-400 words total)
 - No generic phrases like "I am writing to apply" or "[Your Name]"
 - Be concise but impactful
-- Include candidate's actual name: ${resumeSections.name || "the candidate"}
+- Include candidate's actual name: ${candidateName || "the candidate"}
 - Include specific achievements and metrics from their experience
 
  CANDIDATE INFORMATION:
-${resumeSections.name ? `Name: ${resumeSections.name}` : ""}
-${resumeSections.email ? `Email: ${resumeSections.email}` : ""}
+${candidateName ? `Name: ${candidateName}` : ""}
+${candidateEmail ? `Email: ${candidateEmail}` : ""}
+${candidatePhone ? `Phone: ${candidatePhone}` : ""}
 Key Experience: ${resumeSections.sections["EXPERIENCE"]?.substring(0, 500) || resumeText.substring(0, 500)}
 
 JOB DETAILS:
@@ -425,7 +484,14 @@ CRITICAL REQUIREMENTS:
 - Reference the job title: ${displayTitle}
 - Make it compelling and complete (250-400 words)
 
-CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers. Generate the COMPLETE cover letter now.`;
+CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers.
+
+SIGN-OFF RULES:
+- End the letter with "Sincerely," on its own line.
+- Then print the candidate's real name on the next line.
+- If candidate name is missing from the resume text, end with just "Sincerely," and do NOT add placeholders.
+
+Generate the COMPLETE cover letter now.`;
 
     // Generate cover letter with retry logic
     let generatedCoverLetter: string;
@@ -487,6 +553,8 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
       );
     }
 
+    generatedCoverLetter = sanitizeCoverLetter(generatedCoverLetter, candidateName);
+
     // Validate generated content
     if (!generatedResume || generatedResume.trim().length < 100) {
       return NextResponse.json(
@@ -505,6 +573,16 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     // Clean generated content - remove code blocks if present
     const cleanResume = cleanMarkdownContent(generatedResume);
     const cleanCoverLetter = cleanMarkdownContent(generatedCoverLetter);
+
+    if (hasGibberishLetters(cleanResume) || hasGibberishLetters(cleanCoverLetter)) {
+      return NextResponse.json(
+        {
+          error:
+            "Generated content looks corrupted. Please re-upload your resume as a text-based PDF (selectable text) or export a fresh PDF from Word/Google Docs.",
+        },
+        { status: 400 }
+      );
+    }
 
     // Validate content doesn't contain hallucinated information
     const resumeValidation = validateGeneratedContent(cleanResume, resumeText);
