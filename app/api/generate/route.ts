@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateText } from "@/lib/gemini";
 import { parseResumePDF, extractResumeSections, ParsedResume } from "@/lib/pdf-parser";
 import { parseResumePDFEnhanced, extractStructuredSections } from "@/lib/pdf-parser-enhanced";
+import { parseUniversalDocument } from "@/lib/universal-document-parser";
 import { parseJobDescription, extractKeywords } from "@/lib/job-description-parser";
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
 import { getCachedResponse, setCachedResponse } from "@/lib/cache";
@@ -155,12 +156,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse PDF using Document AI service with Google Document AI and fallback
+    // Parse document using universal parser (handles PDF, DOCX, scanned PDFs, OCR)
     let parsedResume: ParsedResume;
     try {
-      const { documentAIService } = await import('@/lib/document-ai-provider');
+      console.log("Parsing document with universal parser...");
       parsedResume = await retry(
-        () => documentAIService.parseResumePDF(pdfBuffer),
+        () => parseUniversalDocument(pdfBuffer, {
+          includeOCR: true,
+          ocrLanguage: "eng",
+          timeout: 45000,
+        }),
         {
           maxRetries: 2,
           initialDelay: 1000,
@@ -168,16 +173,15 @@ export async function POST(request: NextRequest) {
         }
       );
     } catch (parseError: any) {
-      console.error("PDF parsing error:", {
+      console.error("Document parsing error:", {
         error: parseError.message,
         bufferSize: pdfBuffer.length,
-        pdfHeader: pdfBuffer.slice(0, 10).toString(),
         clientId,
       });
 
       return NextResponse.json(
         {
-          error: parseError.message || "Failed to parse PDF. Please ensure it's a valid, text-based PDF file.",
+          error: parseError.message || "Failed to parse document. Supported formats: PDF, DOCX, scanned PDFs, images. Make sure the file contains readable content.",
           details: process.env.NODE_ENV === "development" ? parseError.message : undefined,
         },
         { status: 400 }
@@ -191,8 +195,8 @@ export async function POST(request: NextRequest) {
     const hasGibberishLetters = (text: string): boolean => {
       if (!text || text.length < 50) return true;
 
-      // Check for repeating single character pattern (like GGGGGGGG, BBBBBBB, etc.)
-      // This indicates corrupted PDF extraction
+      // This is now more lenient - we accept OCR output and various formats
+      // Only reject if MOST content is gibberish (very strict threshold)
       const lines = text.split('\n');
       let gibberishLineCount = 0;
       let totalNonEmptyLines = 0;
@@ -217,29 +221,23 @@ export async function POST(request: NextRequest) {
         const maxCount = Math.max(...Object.values(charCount));
         const repetitionRatio = maxCount / letterChars;
         
-        // If one character makes up more than 70% of the line, it's likely gibberish
-        if (repetitionRatio > 0.7) {
+        // Much higher threshold - only flag if VERY obviously corrupted
+        // This allows OCR output and partial corruption to pass through
+        if (repetitionRatio > 0.85) {
           gibberishLineCount++;
         }
       }
 
-      // If more than 30% of lines are gibberish, reject the text
-      if (totalNonEmptyLines > 0) {
+      // Only reject if MAJORITY (>70%) of lines are obviously corrupted
+      if (totalNonEmptyLines > 10) {
         const gibberishRatio = gibberishLineCount / totalNonEmptyLines;
-        if (gibberishRatio > 0.3) {
+        if (gibberishRatio > 0.7) {
           return true;
         }
       }
 
-      const tokens = text.split(/\s+/).filter(Boolean);
-      if (tokens.length < 30) return true;
-
-      const singleCharTokens = tokens.filter((t) => /^[A-Za-z]$/.test(t));
-      const singleCharRatio = singleCharTokens.length / tokens.length;
-
-      // Many PDFs break words into characters; treat it as gibberish only when it's overwhelming.
-      // Avoid false positives by requiring both a high ratio AND a meaningful absolute count.
-      return singleCharRatio > 0.55 && singleCharTokens.length > 200;
+      // For short documents, be more lenient
+      return false;
     };
 
     const hasPlaceholderTokens = (text: string): boolean => {
