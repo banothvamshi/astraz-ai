@@ -5,6 +5,7 @@ import { parseResumePDFEnhanced, extractStructuredSections } from "@/lib/pdf-par
 import { parseAdvancedPDF } from "@/lib/pdf-parser-advanced-v3";
 import { removeAllPlaceholders, sanitizeCoverLetter as removeTemplateContent } from "@/lib/placeholder-detector";
 import { parseUniversalDocument } from "@/lib/universal-document-parser-v2";
+import { normalizeResume, formatNormalizedResume, NormalizedResume } from "@/lib/resume-normalizer";
 import { parseJobDescription, extractKeywords } from "@/lib/job-description-parser";
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
 import { getCachedResponse, setCachedResponse } from "@/lib/cache";
@@ -192,8 +193,31 @@ export async function POST(request: NextRequest) {
     }
 
     const resumeText = parsedResume.text;
-    const resumeSections = extractResumeSections(resumeText);
-    const structuredResume = extractStructuredSections(resumeText);
+    
+    // STAGE 1: Normalize raw resume to clean, structured format
+    console.log("Stage 1: Normalizing resume to clean format...");
+    let normalizedResume: NormalizedResume;
+    let cleanResumeFormatted: string;
+    
+    try {
+      normalizedResume = await normalizeResume(resumeText);
+      cleanResumeFormatted = formatNormalizedResume(normalizedResume);
+      console.log("Resume normalized successfully");
+    } catch (normalizeError: any) {
+      console.error("Resume normalization error:", normalizeError.message);
+      return NextResponse.json(
+        {
+          error: "Failed to normalize resume. Please ensure your resume contains standard sections (name, email, phone, experience, education, skills).",
+          details: process.env.NODE_ENV === "development" ? normalizeError.message : undefined,
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Use the clean formatted resume for generation (now properly structured)
+    const finalResumeText = cleanResumeFormatted;
+    const resumeSections = extractResumeSections(finalResumeText);
+    const structuredResume = extractStructuredSections(finalResumeText);
 
     const hasGibberishLetters = (text: string): boolean => {
       if (!text || text.length < 100) return false; // Minimum threshold
@@ -258,7 +282,7 @@ export async function POST(request: NextRequest) {
       return cleaned.trim();
     };
 
-    if (hasGibberishLetters(resumeText)) {
+    if (hasGibberishLetters(finalResumeText)) {
       return NextResponse.json(
         {
           error:
@@ -266,13 +290,13 @@ export async function POST(request: NextRequest) {
           debug:
             process.env.NODE_ENV === "development"
               ? {
-                  extractedChars: resumeText.length,
-                  tokenCount: resumeText.split(/\s+/).filter(Boolean).length,
-                  singleLetterTokenCount: resumeText
+                  extractedChars: finalResumeText.length,
+                  tokenCount: finalResumeText.split(/\s+/).filter(Boolean).length,
+                  singleLetterTokenCount: finalResumeText
                     .split(/\s+/)
                     .filter(Boolean)
                     .filter((t: string) => /^[A-Za-z]$/.test(t)).length,
-                  preview: resumeText.slice(0, 300),
+                  preview: finalResumeText.slice(0, 300),
                 }
               : undefined,
         },
@@ -281,7 +305,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check cache first
-    const cachedResponse = getCachedResponse(resumeText, sanitizedJobDescription);
+    const cachedResponse = getCachedResponse(finalResumeText, sanitizedJobDescription);
     if (
       cachedResponse &&
       !hasGibberishLetters(cachedResponse.resume) &&
@@ -397,7 +421,7 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Every bullet point, skill, and achievement MUST be traceable to the original resume content
 
 ORIGINAL RESUME CONTENT:
-${resumeText}
+${finalResumeText}
 
 TARGET JOB INFORMATION:
 Position: ${displayTitle}
@@ -510,7 +534,7 @@ CRITICAL REQUIREMENTS:
 ${candidateName ? `Name: ${candidateName}` : ""}
 ${candidateEmail ? `Email: ${candidateEmail}` : ""}
 ${candidatePhone ? `Phone: ${candidatePhone}` : ""}
-Key Experience: ${resumeSections.sections["EXPERIENCE"]?.substring(0, 500) || resumeText.substring(0, 500)}
+Key Experience: ${resumeSections.sections["EXPERIENCE"]?.substring(0, 500) || finalResumeText.substring(0, 500)}
 
 JOB DETAILS:
 Position: ${displayTitle}
@@ -638,7 +662,7 @@ Generate the COMPLETE cover letter now.`;
     }
 
     // Validate content doesn't contain hallucinated information
-    const resumeValidation = validateGeneratedContent(cleanResume, resumeText);
+    const resumeValidation = validateGeneratedContent(cleanResume, finalResumeText);
     if (!resumeValidation.valid && resumeValidation.errors.length > 0) {
       console.warn("Resume validation warnings:", resumeValidation.errors);
       // Log but don't fail - the prompt should prevent this
@@ -646,7 +670,7 @@ Generate the COMPLETE cover letter now.`;
 
     // Cache the response
     try {
-      setCachedResponse(resumeText, sanitizedJobDescription, {
+      setCachedResponse(finalResumeText, sanitizedJobDescription, {
         resume: cleanResume,
         coverLetter: cleanCoverLetter,
       });
