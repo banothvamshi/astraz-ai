@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateText } from "@/lib/gemini";
 import { parseResumePDF, extractResumeSections, ParsedResume } from "@/lib/pdf-parser";
 import { parseResumePDFEnhanced, extractStructuredSections } from "@/lib/pdf-parser-enhanced";
-import { parseUniversalDocument } from "@/lib/universal-document-parser";
+import { parseUniversalDocument } from "@/lib/universal-document-parser-v2";
 import { parseJobDescription, extractKeywords } from "@/lib/job-description-parser";
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
 import { getCachedResponse, setCachedResponse } from "@/lib/cache";
@@ -159,12 +159,13 @@ export async function POST(request: NextRequest) {
     // Parse document using universal parser (handles PDF, DOCX, scanned PDFs, OCR)
     let parsedResume: ParsedResume;
     try {
-      console.log("Parsing document with universal parser...");
+      console.log("Parsing document with universal parser v2...");
       parsedResume = await retry(
         () => parseUniversalDocument(pdfBuffer, {
           includeOCR: true,
           ocrLanguage: "eng",
-          timeout: 45000,
+          maxPages: 100,
+          mergePages: true,
         }),
         {
           maxRetries: 2,
@@ -193,51 +194,36 @@ export async function POST(request: NextRequest) {
     const structuredResume = extractStructuredSections(resumeText);
 
     const hasGibberishLetters = (text: string): boolean => {
-      if (!text || text.length < 50) return true;
+      if (!text || text.length < 100) return false; // Minimum threshold
 
-      // This is now more lenient - we accept OCR output and various formats
-      // Only reject if MOST content is gibberish (very strict threshold)
-      const lines = text.split('\n');
-      let gibberishLineCount = 0;
-      let totalNonEmptyLines = 0;
+      // Very lenient check - only reject if ALMOST EVERYTHING is gibberish
+      const lines = text.split('\n').filter(l => l.trim().length > 0);
+      if (lines.length === 0) return true;
+
+      let veryBadLines = 0;
 
       for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.length === 0) continue;
-        
-        totalNonEmptyLines++;
-        
-        // Check if line is mostly a single repeated character
         const charCount: Record<string, number> = {};
-        for (const char of trimmed) {
+        let alphanumeric = 0;
+
+        for (const char of line) {
           if (char.match(/[A-Za-z0-9]/)) {
             charCount[char] = (charCount[char] || 0) + 1;
+            alphanumeric++;
           }
         }
-        
-        const letterChars = Object.values(charCount).reduce((a, b) => a + b, 0);
-        if (letterChars === 0) continue;
-        
-        const maxCount = Math.max(...Object.values(charCount));
-        const repetitionRatio = maxCount / letterChars;
-        
-        // Much higher threshold - only flag if VERY obviously corrupted
-        // This allows OCR output and partial corruption to pass through
-        if (repetitionRatio > 0.85) {
-          gibberishLineCount++;
+
+        if (alphanumeric === 0) continue;
+
+        // Only flag if a single character is >90% of the line
+        const maxCount = Math.max(...Object.values(charCount), 0);
+        if (maxCount / alphanumeric > 0.9 && alphanumeric > 5) {
+          veryBadLines++;
         }
       }
 
-      // Only reject if MAJORITY (>70%) of lines are obviously corrupted
-      if (totalNonEmptyLines > 10) {
-        const gibberishRatio = gibberishLineCount / totalNonEmptyLines;
-        if (gibberishRatio > 0.7) {
-          return true;
-        }
-      }
-
-      // For short documents, be more lenient
-      return false;
+      // Only reject if >90% of lines are extremely corrupted
+      return veryBadLines / lines.length > 0.9;
     };
 
     const hasPlaceholderTokens = (text: string): boolean => {
