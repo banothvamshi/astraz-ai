@@ -32,10 +32,13 @@ export async function generateText(
       throw new Error(`Prompt is too long (${prompt.length} characters). Maximum is ${maxPromptLength} characters.`);
     }
 
-    // Use the correct model name - gemini-1.5-flash-latest or gemini-pro
-    // The error suggests the model name format might be wrong, so we'll use the stable version
+    // Use configurable model name - default to gemini-pro (stable)
+    // Can be overridden via GEMINI_MODEL environment variable
+    // Valid options: gemini-pro, gemini-1.5-pro, gemini-1.5-flash-latest
+    const modelName = process.env.GEMINI_MODEL || "gemini-pro";
+    
     const model = gemini.getGenerativeModel({
-      model: "gemini-pro", // Stable model that works with v1beta API
+      model: modelName,
       systemInstruction: systemInstruction,
       generationConfig: {
         temperature: options?.temperature ?? 0.7,
@@ -65,6 +68,16 @@ export async function generateText(
   } catch (error: any) {
     // Enhanced error handling
     const errorMsg = error.message || String(error);
+
+    // Model not found error - provide helpful guidance
+    if (errorMsg.includes("not found") || errorMsg.includes("404") || errorMsg.includes("is not found")) {
+      const currentModel = process.env.GEMINI_MODEL || "gemini-pro";
+      throw new Error(
+        `AI model "${currentModel}" is not available. ` +
+        `Please set GEMINI_MODEL environment variable to a valid model name (e.g., gemini-pro, gemini-1.5-pro). ` +
+        `Error: ${errorMsg}`
+      );
+    }
 
     if (errorMsg.includes("API_KEY_INVALID") || errorMsg.includes("API key")) {
       throw new Error("AI service configuration error. Please contact support.");
