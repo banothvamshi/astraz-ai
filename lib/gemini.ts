@@ -64,17 +64,18 @@ export async function generateText(
     const modelName = process.env.GEMINI_MODEL;
     
     // Try different model names in order of preference (FREE TIER MODELS)
-    // Based on Google AI Studio API keys, these should work
-    // The SDK automatically uses the correct API version
+    // Updated based on actual available models from /api/list-models
+    // These are the models that actually exist and support generateContent
     const modelNamesToTry = modelName 
       ? [modelName]
       : [
-          "gemini-1.5-flash",         // FREE - Fast, efficient model (most likely to work)
-          "gemini-1.5-flash-001",     // Alternative naming
-          "gemini-1.5-pro",           // FREE tier available
-          "gemini-1.5-pro-001",       // Alternative naming
-          "gemini-pro",               // Legacy free model
-          "gemini-pro-001",           // Alternative naming
+          "gemini-2.0-flash",         // FREE - Fast, efficient model (most likely to work)
+          "gemini-2.0-flash-001",     // Stable version
+          "gemini-flash-latest",      // Latest flash model
+          "gemini-2.5-flash",         // Newer version
+          "gemini-2.0-flash-lite",    // Lite version (faster)
+          "gemini-pro-latest",        // Latest pro model
+          "gemini-2.5-pro",           // Pro version
         ];
     
     let lastError: Error | null = null;
@@ -87,8 +88,11 @@ export async function generateText(
         // Clean model name (remove 'models/' prefix if present in some configs)
         const cleanName = name.replace(/^models\//, "");
         
+        // Remove 'models/' prefix if present (SDK handles it)
+        const modelNameForSDK = cleanName.replace(/^models\//, "");
+        
         const model = gemini.getGenerativeModel({
-          model: cleanName,
+          model: modelNameForSDK,
           systemInstruction: systemInstruction,
           generationConfig: {
             temperature: options?.temperature ?? 0.7,
