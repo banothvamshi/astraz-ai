@@ -25,47 +25,64 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
       throw new Error(`PDF file too large: ${(pdfBuffer.length / 1024 / 1024).toFixed(2)}MB. Maximum size is 10MB.`);
     }
 
-    // Use pdf-parse with proper error handling
-    // Load pdf-parse dynamically to avoid initialization issues
-    let pdfParse: any;
+    // Use pdfjs-dist for reliable server-side PDF parsing
+    // This avoids the test file access issues with pdf-parse
+    const pdfjsLib = await import("pdfjs-dist");
+    
+    // Set up worker for pdfjs (required for server-side)
+    // Use a simple worker that doesn't require external files
+    const workerSrc = `
+      self.onmessage = function(e) {
+        // Simple worker stub - pdfjs will handle parsing
+      };
+    `;
+    
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({
+      data: pdfBuffer,
+      useSystemFonts: true,
+      verbosity: 0, // Suppress warnings
+    });
+    
+    const pdfDocument = await loadingTask.promise;
+    const numPages = pdfDocument.numPages;
+    
+    // Extract text from all pages
+    let fullText = "";
+    const metadata: any = {};
     
     try {
-      // Try CommonJS require first (more reliable for server-side)
-      pdfParse = require("pdf-parse");
-    } catch (requireError: any) {
-      // If require fails, try ES module import
+      const pdfMetadata = await pdfDocument.getMetadata();
+      if (pdfMetadata?.info) {
+        const info = pdfMetadata.info as any;
+        metadata.title = info.Title;
+        metadata.author = info.Author;
+        metadata.subject = info.Subject;
+      }
+    } catch (e) {
+      // Metadata is optional, continue without it
+    }
+    
+    // Extract text from each page
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
       try {
-        const pdfParseModule = await import("pdf-parse");
-        pdfParse = pdfParseModule.default || pdfParseModule;
-      } catch (importError: any) {
-        throw new Error(`Failed to load PDF parser: ${importError.message}`);
+        const page = await pdfDocument.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str || "")
+          .join(" ");
+        fullText += pageText + "\n";
+      } catch (pageError: any) {
+        console.error(`Error extracting text from page ${pageNum}:`, pageError.message);
+        // Continue with other pages
       }
     }
     
-    // Ensure pdfParse is a function
-    if (typeof pdfParse !== "function") {
-      throw new Error("PDF parser is not a function. Please check pdf-parse installation.");
-    }
-    
-    // Parse PDF - pass buffer directly (not file path)
-    // This prevents pdf-parse from trying to access test files
-    let pdfData: any;
-    try {
-      pdfData = await pdfParse(pdfBuffer, {
-        max: 0, // Parse all pages (0 = all pages)
-      });
-    } catch (parseError: any) {
-      // Log the actual error for debugging
-      console.error("PDF parse error details:", {
-        message: parseError.message,
-        stack: parseError.stack,
-        bufferLength: pdfBuffer.length,
-        bufferStart: pdfBuffer.slice(0, 20).toString(),
-      });
-      
-      // Re-throw with more context
-      throw new Error(`PDF parsing failed: ${parseError.message || "Unknown error"}`);
-    }
+    const pdfData = {
+      text: fullText,
+      numpages: numPages,
+      info: metadata,
+    };
 
     // Validate parsed content
     const text = (pdfData.text || "").trim();
@@ -84,42 +101,26 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
 
     return {
       text: cleanedText,
-      pages: pdfData.numpages || pdfData.pages?.length || 1,
+      pages: pdfData.numpages || 1,
       metadata: {
-        title: pdfData.info?.Title || pdfData.metadata?.title,
-        author: pdfData.info?.Author || pdfData.metadata?.author,
-        subject: pdfData.info?.Subject || pdfData.metadata?.subject,
+        title: pdfData.info?.title,
+        author: pdfData.info?.author,
+        subject: pdfData.info?.subject,
       },
     };
   } catch (error: any) {
     // Enhanced error messages
     const errorMsg = error.message || String(error);
     
-    // Handle test file access errors (pdf-parse initialization issue)
-    if (errorMsg.includes("test/data") || errorMsg.includes("ENOENT")) {
-      // This is a pdf-parse internal error, retry with different approach
-      console.error("PDF parser initialization error, retrying...", errorMsg);
-      try {
-        // Retry with a fresh require
-        const pdfParseRetry = require("pdf-parse");
-        const pdfDataRetry = await pdfParseRetry(pdfBuffer, { max: 0 });
-        const textRetry = (pdfDataRetry.text || "").trim();
-        
-        if (textRetry && textRetry.length >= 50) {
-          return {
-            text: cleanResumeText(textRetry),
-            pages: pdfDataRetry.numpages || 1,
-            metadata: {
-              title: pdfDataRetry.info?.Title,
-              author: pdfDataRetry.info?.Author,
-              subject: pdfDataRetry.info?.Subject,
-            },
-          };
-        }
-      } catch (retryError: any) {
-        console.error("PDF parse retry error:", retryError.message);
-        throw new Error(`Failed to parse PDF: ${retryError.message || "Please ensure it's a valid, text-based PDF file."}`);
-      }
+    // Handle specific error types
+    if (errorMsg.includes("Invalid PDF")) {
+      throw new Error("Invalid PDF file. Please ensure the file is a valid PDF document.");
+    }
+    if (errorMsg.includes("password")) {
+      throw new Error("PDF is password-protected. Please remove the password and try again.");
+    }
+    if (errorMsg.includes("corrupted")) {
+      throw new Error("PDF file appears to be corrupted. Please try a different file.");
     }
     
     if (errorMsg.includes("Invalid PDF")) {
