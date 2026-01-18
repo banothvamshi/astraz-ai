@@ -58,6 +58,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   const paragraphSpacing = 3.5;
   const sectionSpacing = 9;
   const headingLineHeight = 7;
+  const MIN_SPACE_BOTTOM = 15; // Ensure minimum space before new page
 
   // Set professional fonts
   doc.setFont("helvetica", "normal");
@@ -104,14 +105,17 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   };
 
   const ensureSpace = (heightNeeded: number) => {
-    if (y + heightNeeded > pageHeight - margin - 12) {
+    // Improved page break logic - more conservative to avoid cutting off content
+    const spaceAvailable = pageHeight - margin - MIN_SPACE_BOTTOM;
+    if (y + heightNeeded > spaceAvailable) {
       addPageWithHeader();
     }
   };
 
   const renderLines = (lines: string[], x: number, extraSpacing = 0) => {
     lines.forEach((line) => {
-      if (y + lineHeight > pageHeight - margin - 12) {
+      // Better check for when we need a new page
+      if (y + lineHeight > pageHeight - MIN_SPACE_BOTTOM) {
         addPageWithHeader();
       }
       doc.text(line, x, y);
@@ -149,14 +153,16 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     } else if (section.type === "paragraph") {
       const text = stripMarkdown(section.content);
       const lines = doc.splitTextToSize(text, maxWidth);
+      ensureSpace(lines.length * lineHeight + paragraphSpacing);
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
       renderLines(lines, margin, paragraphSpacing);
     } else if (section.type === "list") {
       section.items!.forEach((item) => {
         const itemText = stripMarkdown(item.trim());
         const itemLines = doc.splitTextToSize(itemText, maxWidth - 8);
+        ensureSpace(itemLines.length * lineHeight + 3);
         itemLines.forEach((line: string, index: number) => {
-          if (y + lineHeight > pageHeight - margin - 12) {
+          if (y + lineHeight > pageHeight - MIN_SPACE_BOTTOM) {
             addPageWithHeader();
           }
           doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
@@ -444,8 +450,8 @@ function addExperienceEntry(
   
   if (section.items && section.items.length > 0) {
     section.items.forEach((bullet) => {
-      // Check for new page
-      if (y + 7 > pageHeight - pageMargin - 12) {
+      // Better check for page break
+      if (y + 7 > pageHeight - MIN_SPACE_BOTTOM) {
         doc.addPage();
         y = pageMargin;
         if (header) {

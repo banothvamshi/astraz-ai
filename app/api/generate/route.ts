@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateText } from "@/lib/gemini";
-import { parseResumePDF, extractResumeSections } from "@/lib/pdf-parser";
+import { parseResumePDF, extractResumeSections, ParsedResume } from "@/lib/pdf-parser";
 import { parseResumePDFEnhanced, extractStructuredSections } from "@/lib/pdf-parser-enhanced";
 import { parseJobDescription, extractKeywords } from "@/lib/job-description-parser";
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
@@ -155,11 +155,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse PDF with enhanced parser and retry logic
-    let parsedResume;
+    // Parse PDF using Document AI service with Google Document AI and fallback
+    let parsedResume: ParsedResume;
     try {
+      const { documentAIService } = await import('@/lib/document-ai-provider');
       parsedResume = await retry(
-        () => parseResumePDFEnhanced(pdfBuffer),
+        () => documentAIService.parseResumePDF(pdfBuffer),
         {
           maxRetries: 2,
           initialDelay: 1000,
@@ -190,8 +191,13 @@ export async function POST(request: NextRequest) {
     const hasGibberishLetters = (text: string): boolean => {
       const tokens = text.split(/\s+/).filter(Boolean);
       if (tokens.length < 30) return true;
+
       const singleCharTokens = tokens.filter((t) => /^[A-Za-z]$/.test(t));
-      return singleCharTokens.length / tokens.length > 0.25;
+      const singleCharRatio = singleCharTokens.length / tokens.length;
+
+      // Many PDFs break words into characters; treat it as gibberish only when it's overwhelming.
+      // Avoid false positives by requiring both a high ratio AND a meaningful absolute count.
+      return singleCharRatio > 0.55 && singleCharTokens.length > 200;
     };
 
     const hasPlaceholderTokens = (text: string): boolean => {
@@ -229,6 +235,18 @@ export async function POST(request: NextRequest) {
         {
           error:
             "We couldn't read your resume text correctly (it looks like an image-based/encoded PDF). Please upload a text-based resume PDF (selectable text) or export a fresh PDF from Word/Google Docs.",
+          debug:
+            process.env.NODE_ENV === "development"
+              ? {
+                  extractedChars: resumeText.length,
+                  tokenCount: resumeText.split(/\s+/).filter(Boolean).length,
+                  singleLetterTokenCount: resumeText
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .filter((t: string) => /^[A-Za-z]$/.test(t)).length,
+                  preview: resumeText.slice(0, 300),
+                }
+              : undefined,
         },
         { status: 400 }
       );

@@ -71,7 +71,7 @@ function enhanceExtractedText(text: string): string {
 }
 
 /**
- * Extract structured sections from resume text
+ * Extract structured sections from resume text with improved name detection
  */
 export function extractStructuredSections(text: string): {
   name?: string;
@@ -88,11 +88,58 @@ export function extractStructuredSections(text: string): {
   const phoneMatch = text.match(/(\+?\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9})/);
   const phone = phoneMatch ? phoneMatch[1] : undefined;
   
-  // Extract name (usually first line or before email)
+  // Extract name with advanced detection strategy
+  let name: string | undefined;
   const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  const name = lines.length > 0 && lines[0].length < 50 && !lines[0].includes("@") 
-    ? lines[0] 
-    : undefined;
+  
+  // Common section headers to skip
+  const commonSectionHeaders = [
+    "PROFESSIONAL SUMMARY", "SUMMARY", "OBJECTIVE", "EXPERIENCE", "WORK EXPERIENCE",
+    "EMPLOYMENT", "EDUCATION", "SKILLS", "TECHNICAL SKILLS", "CERTIFICATIONS",
+    "PROJECTS", "ACHIEVEMENTS", "AWARDS", "PUBLICATIONS", "LANGUAGES",
+    "CONTACT", "LINKS", "REFERENCES", "CORE COMPETENCIES", "QUALIFICATIONS"
+  ];
+  
+  // Strategy 1: Find first non-header, non-contact line that looks like a name
+  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+    const line = lines[i];
+    const lineUpper = line.toUpperCase();
+    
+    // Skip if it's a section header
+    if (commonSectionHeaders.some(h => lineUpper.includes(h))) {
+      continue;
+    }
+    
+    // Skip if it contains email or phone
+    if (line.includes("@") || line.match(/[\d\-\(\)\.]/)) {
+      continue;
+    }
+    
+    // Skip if too short or too long
+    if (line.length < 2 || line.length > 80) {
+      continue;
+    }
+    
+    // Name detection patterns
+    const namePatterns = [
+      /^[A-Z][a-z]+(\s+[A-Z][a-z]+)+$/, // First Last format
+      /^[A-Z][a-z]+(\s+[A-Z]\.?)+$/, // First M. or First M
+      /^[A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+/, // First Middle Last
+      /^[A-Z][a-z]+(-[A-Z][a-z]+)?(\s+[A-Z][a-z]+)?/ // Hyphenated names
+    ];
+    
+    // Check if line matches any name pattern
+    if (namePatterns.some(pattern => pattern.test(line))) {
+      name = line;
+      break;
+    }
+    
+    // Strategy 2: If first non-header line is short and capitalized, likely a name
+    if (i < 3 && line.match(/^[A-Z]/) && !line.includes(".") && !line.match(/^\d/) && line.split(/\s+/).length <= 4) {
+      name = line;
+      break;
+    }
+  }
   
   // Extract sections using common headers
   const sectionHeaders = [

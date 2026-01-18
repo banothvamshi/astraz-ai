@@ -91,11 +91,13 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
             metadata.subject = pdfData.Meta.Subject;
           }
 
-          // Extract text from all pages with error handling per page
+          // Extract text from ALL pages with error handling per page
           let pagesWithText = 0;
-          const maxPages = 50; // Limit to prevent abuse
+          const maxPages = 100; // Increased limit to capture complete resumes
           
           const pagesToProcess = (pdfData.Pages || []).slice(0, maxPages);
+          
+          console.log(`Processing ${pagesToProcess.length} pages from PDF`);
           
           for (let i = 0; i < pagesToProcess.length; i++) {
             try {
@@ -119,7 +121,12 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
             }
           }
 
-          // Warn if pages were skipped
+          // Log page processing results
+          if (pagesToProcess.length > 0) {
+            console.log(`Successfully extracted text from ${pagesWithText}/${pagesToProcess.length} pages`);
+          }
+
+          // Warn if pages were skipped (but don't limit to 50 anymore)
           if ((pdfData.Pages || []).length > maxPages) {
             console.warn(`PDF has ${pdfData.Pages.length} pages, processing first ${maxPages} pages`);
           }
@@ -212,11 +219,16 @@ function extractTextFromPage(page: any): string {
     return "";
   }
 
-  const textItems: string[] = [];
+  const positionedItems: Array<{ x: number; y: number; text: string }> = [];
   
   try {
     for (const textObj of page.Texts) {
       if (!textObj) continue;
+
+      const x = typeof textObj.x === "number" ? textObj.x : 0;
+      const y = typeof textObj.y === "number" ? textObj.y : 0;
+
+      const pieces: string[] = [];
 
       // Handle different text object structures
       if (textObj.R && Array.isArray(textObj.R)) {
@@ -227,12 +239,12 @@ function extractTextFromPage(page: any): string {
               // Decode URI-encoded text
               const decodedText = decodeURIComponent(run.T);
               if (decodedText.trim().length > 0) {
-                textItems.push(decodedText);
+                pieces.push(decodedText);
               }
             } catch (e) {
               // If decoding fails, use as-is (might already be decoded)
               if (run.T.trim().length > 0) {
-                textItems.push(run.T);
+                pieces.push(run.T);
               }
             }
           }
@@ -242,18 +254,23 @@ function extractTextFromPage(page: any): string {
         try {
           const decodedText = decodeURIComponent(textObj.T);
           if (decodedText.trim().length > 0) {
-            textItems.push(decodedText);
+            pieces.push(decodedText);
           }
         } catch (e) {
           if (textObj.T.trim().length > 0) {
-            textItems.push(textObj.T);
+            pieces.push(textObj.T);
           }
         }
       } else if (typeof textObj === "string") {
         // Simple string
         if (textObj.trim().length > 0) {
-          textItems.push(textObj);
+          pieces.push(textObj);
         }
+      }
+
+      const combined = pieces.join("").replace(/\s+/g, " ").trim();
+      if (combined.length > 0) {
+        positionedItems.push({ x, y, text: combined });
       }
     }
   } catch (extractError) {
@@ -261,8 +278,62 @@ function extractTextFromPage(page: any): string {
     // Return what we have so far
   }
 
-  // Join with space, but preserve line structure where possible
-  return textItems.join(" ");
+  if (positionedItems.length === 0) return "";
+
+  // Group by approximate line (y position)
+  const lineMap = new Map<number, Array<{ x: number; text: string }>>();
+  const quantizeY = (val: number) => Math.round(val * 2) / 2; // 0.5 precision
+
+  for (const item of positionedItems) {
+    const yKey = quantizeY(item.y);
+    const arr = lineMap.get(yKey) ?? [];
+    arr.push({ x: item.x, text: item.text });
+    lineMap.set(yKey, arr);
+  }
+
+  const yKeys = Array.from(lineMap.keys()).sort((a, b) => a - b);
+  const lines: string[] = [];
+
+  for (const yKey of yKeys) {
+    const items = (lineMap.get(yKey) ?? []).sort((a, b) => a.x - b.x);
+    let line = "";
+    let prevEndX: number | null = null;
+    let prevToken = "";
+
+    for (const item of items) {
+      const token = item.text.replace(/\s+/g, " ").trim();
+      if (!token) continue;
+
+      if (!line) {
+        line = token;
+        prevToken = token;
+        prevEndX = item.x + token.length * 0.5;
+        continue;
+      }
+
+      const gap = prevEndX !== null ? item.x - prevEndX : 0;
+      const prevLast = line.slice(-1);
+      const curFirst = token[0];
+
+      const prevIsSingle = prevToken.length === 1 && /^[A-Za-z0-9]$/.test(prevToken);
+      const curIsSingle = token.length === 1 && /^[A-Za-z0-9]$/.test(token);
+      const joinAsWord = prevIsSingle && curIsSingle && gap < 1.2;
+
+      const needsSpace =
+        !joinAsWord &&
+        (gap > 1.8 || (/[-\w)]$/.test(prevLast) && /^[\w(]/.test(curFirst)));
+
+      line += (needsSpace ? " " : "") + (joinAsWord ? token : token);
+      prevToken = token;
+      prevEndX = item.x + token.length * 0.5;
+    }
+
+    if (line.trim().length > 0) {
+      lines.push(line.trim());
+    }
+  }
+
+  return lines.join("\n");
 }
 
 /**
@@ -289,7 +360,7 @@ function cleanResumeText(text: string): string {
 }
 
 /**
- * Extract key information from resume text
+ * Extract key information from resume text with improved name detection
  */
 export function extractResumeSections(text: string): {
   name?: string;
@@ -307,10 +378,33 @@ export function extractResumeSections(text: string): {
   const emails = text.match(emailRegex) || [];
   const phones = text.match(phoneRegex) || [];
 
-  // Extract name (usually first line that's not email/phone)
+  // Extract name with advanced detection
   let name: string | undefined;
-  for (const line of lines.slice(0, 5)) { // Check first 5 lines
-    if (!line.match(emailRegex) && !line.match(phoneRegex) && line.length > 2 && line.length < 50) {
+  
+  // Strategy 1: Look for lines that don't match common patterns
+  const commonSectionHeaders = [
+    "EXPERIENCE", "EDUCATION", "SKILLS", "PROJECTS", "CERTIFICATIONS",
+    "SUMMARY", "OBJECTIVE", "TECHNICAL", "PROFESSIONAL", "SUMMARY",
+    "LANGUAGES", "AWARDS", "PUBLICATIONS", "CONTACT", "LINKS"
+  ];
+  
+  for (const line of lines.slice(0, 8)) {
+    // Skip section headers, emails, and phone numbers
+    const lineUpper = line.toUpperCase();
+    if (
+      line.match(emailRegex) || 
+      line.match(phoneRegex) || 
+      commonSectionHeaders.some(h => lineUpper.includes(h)) ||
+      line.length < 2 || 
+      line.length > 80 ||
+      line.match(/^[^a-zA-Z\s]/i) // Starts with non-letter/space
+    ) {
+      continue;
+    }
+    
+    // Check if line looks like a name (has at least 2 words or is a proper noun pattern)
+    const namePattern = /^[A-Z][a-z]+(\s+[A-Z][a-z]+)+$|^[A-Z][a-z]+$|^[A-Z]\.?\s*[A-Z][a-z]+/;
+    if (line.match(namePattern)) {
       name = line;
       break;
     }
