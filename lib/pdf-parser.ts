@@ -10,7 +10,7 @@ export interface ParsedResume {
 
 /**
  * Premium PDF parsing with comprehensive error handling
- * Uses dynamic import to avoid browser API issues in Node.js
+ * Uses pdf2json - a pure Node.js PDF parser (no browser dependencies)
  */
 export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
   try {
@@ -25,116 +25,162 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
       throw new Error(`PDF file too large: ${(pdfBuffer.length / 1024 / 1024).toFixed(2)}MB. Maximum size is 10MB.`);
     }
 
-    // Use pdfjs-dist for reliable server-side PDF parsing
-    // This avoids the test file access issues with pdf-parse
-    const pdfjsLib = await import("pdfjs-dist");
-    
-    // Set up worker for pdfjs (required for server-side)
-    // Use a simple worker that doesn't require external files
-    const workerSrc = `
-      self.onmessage = function(e) {
-        // Simple worker stub - pdfjs will handle parsing
-      };
-    `;
-    
-    // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({
-      data: pdfBuffer,
-      useSystemFonts: true,
-      verbosity: 0, // Suppress warnings
-    });
-    
-    const pdfDocument = await loadingTask.promise;
-    const numPages = pdfDocument.numPages;
-    
-    // Extract text from all pages
-    let fullText = "";
-    const metadata: any = {};
-    
-    try {
-      const pdfMetadata = await pdfDocument.getMetadata();
-      if (pdfMetadata?.info) {
-        const info = pdfMetadata.info as any;
-        metadata.title = info.Title;
-        metadata.author = info.Author;
-        metadata.subject = info.Subject;
-      }
-    } catch (e) {
-      // Metadata is optional, continue without it
+    // Validate PDF header
+    const pdfHeader = pdfBuffer.slice(0, 4).toString();
+    if (!pdfHeader.startsWith("%PDF")) {
+      throw new Error("Invalid PDF file. File does not start with PDF header.");
     }
-    
-    // Extract text from each page
-    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+
+    // Use pdf2json - pure Node.js, no browser dependencies
+    const PDFParser = (await import("pdf2json")).default;
+    const pdfParser = new PDFParser();
+
+    return new Promise<ParsedResume>((resolve, reject) => {
+      let parsedText = "";
+      let pageCount = 0;
+      const metadata: any = {};
+
+      // Set up event handlers
+      pdfParser.on("pdfParser_dataError", (errData: any) => {
+        const errorMsg = errData.parserError || "Unknown PDF parsing error";
+        if (errorMsg.includes("password") || errorMsg.includes("encrypted")) {
+          reject(new Error("PDF is password-protected. Please remove the password and try again."));
+        } else if (errorMsg.includes("corrupted") || errorMsg.includes("invalid")) {
+          reject(new Error("PDF file appears to be corrupted or invalid. Please try a different file."));
+        } else {
+          reject(new Error(`PDF parsing failed: ${errorMsg}`));
+        }
+      });
+
+      pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+        try {
+          pageCount = pdfData.Pages?.length || 0;
+
+          if (pageCount === 0) {
+            reject(new Error("PDF has no pages. The file may be corrupted."));
+            return;
+          }
+
+          // Extract metadata
+          if (pdfData.Meta) {
+            metadata.title = pdfData.Meta.Title;
+            metadata.author = pdfData.Meta.Author;
+            metadata.subject = pdfData.Meta.Subject;
+          }
+
+          // Extract text from all pages
+          let pagesWithText = 0;
+          for (const page of pdfData.Pages || []) {
+            const pageText = extractTextFromPage(page);
+            if (pageText.trim().length > 0) {
+              parsedText += pageText + "\n\n";
+              pagesWithText++;
+            }
+          }
+
+          // Validate extracted text
+          const text = parsedText.trim();
+
+          if (!text || text.length === 0) {
+            reject(new Error("Failed to extract text from PDF. The PDF might be image-based (scanned) or contain no text. Please use a text-based PDF."));
+            return;
+          }
+
+          if (text.length < 50) {
+            reject(new Error(`PDF appears to be image-based or contains very little text (only ${text.length} characters extracted). Please use a text-based PDF or convert scanned PDFs to text first.`));
+            return;
+          }
+
+          if (pagesWithText === 0) {
+            reject(new Error("No text could be extracted from any page. The PDF might be image-based or corrupted."));
+            return;
+          }
+
+          // Clean and normalize text
+          const cleanedText = cleanResumeText(text);
+
+          resolve({
+            text: cleanedText,
+            pages: pageCount,
+            metadata: {
+              title: metadata.title,
+              author: metadata.author,
+              subject: metadata.subject,
+            },
+          });
+        } catch (parseError: any) {
+          reject(new Error(`Failed to process parsed PDF data: ${parseError.message}`));
+        }
+      });
+
+      // Parse the PDF buffer
       try {
-        const page = await pdfDocument.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str || "")
-          .join(" ");
-        fullText += pageText + "\n";
-      } catch (pageError: any) {
-        console.error(`Error extracting text from page ${pageNum}:`, pageError.message);
-        // Continue with other pages
+        pdfParser.parseBuffer(pdfBuffer);
+      } catch (parseError: any) {
+        reject(new Error(`Failed to parse PDF: ${parseError.message}`));
       }
-    }
-    
-    const pdfData = {
-      text: fullText,
-      numpages: numPages,
-      info: metadata,
-    };
-
-    // Validate parsed content
-    const text = (pdfData.text || "").trim();
-
-    if (!text || text.length === 0) {
-      throw new Error("Failed to extract text from PDF. The PDF might be image-based or corrupted.");
-    }
-
-    // Check if text was extracted
-    if (text.length < 50) {
-      throw new Error("PDF appears to be image-based or contains very little text. Please use a text-based PDF.");
-    }
-
-    // Clean and normalize text
-    const cleanedText = cleanResumeText(text);
-
-    return {
-      text: cleanedText,
-      pages: pdfData.numpages || 1,
-      metadata: {
-        title: pdfData.info?.title,
-        author: pdfData.info?.author,
-        subject: pdfData.info?.subject,
-      },
-    };
+    });
   } catch (error: any) {
     // Enhanced error messages
     const errorMsg = error.message || String(error);
     
+    // Don't wrap our own formatted errors
+    if (errorMsg.startsWith("Invalid PDF") || 
+        errorMsg.startsWith("PDF is password-protected") ||
+        errorMsg.startsWith("Failed to extract text") ||
+        errorMsg.startsWith("PDF appears to be image-based") ||
+        errorMsg.startsWith("No text could be extracted") ||
+        errorMsg.startsWith("PDF has no pages") ||
+        errorMsg.startsWith("PDF file too large")) {
+      throw error;
+    }
+    
     // Handle specific error types
-    if (errorMsg.includes("Invalid PDF")) {
-      throw new Error("Invalid PDF file. Please ensure the file is a valid PDF document.");
-    }
-    if (errorMsg.includes("password")) {
+    if (errorMsg.includes("password") || errorMsg.includes("encrypted")) {
       throw new Error("PDF is password-protected. Please remove the password and try again.");
     }
+    
+    if (errorMsg.includes("Invalid PDF") || errorMsg.includes("invalid")) {
+      throw new Error("Invalid PDF file. Please ensure it's a valid PDF document.");
+    }
+    
     if (errorMsg.includes("corrupted")) {
       throw new Error("PDF file appears to be corrupted. Please try a different file.");
     }
     
-    if (errorMsg.includes("Invalid PDF")) {
-      throw new Error("Invalid PDF file. Please ensure the file is a valid PDF document.");
-    }
-    if (errorMsg.includes("password")) {
-      throw new Error("PDF is password-protected. Please remove the password and try again.");
-    }
-    if (errorMsg.includes("corrupted")) {
-      throw new Error("PDF file appears to be corrupted. Please try a different file.");
-    }
-    
-    throw new Error(`PDF parsing failed: ${errorMsg}`);
+    // Generic error with helpful message
+    throw new Error(`PDF parsing failed: ${errorMsg}. Please ensure you're uploading a valid, text-based PDF file.`);
   }
+}
+
+/**
+ * Extract text from a PDF page object
+ */
+function extractTextFromPage(page: any): string {
+  if (!page.Texts || !Array.isArray(page.Texts)) {
+    return "";
+  }
+
+  const textItems: string[] = [];
+  
+  for (const textObj of page.Texts) {
+    if (textObj.R && Array.isArray(textObj.R)) {
+      for (const run of textObj.R) {
+        if (run.T) {
+          // Decode URI-encoded text
+          try {
+            const decodedText = decodeURIComponent(run.T);
+            textItems.push(decodedText);
+          } catch (e) {
+            // If decoding fails, use as-is
+            textItems.push(run.T);
+          }
+        }
+      }
+    }
+  }
+
+  return textItems.join(" ");
 }
 
 /**
@@ -142,16 +188,21 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
  */
 function cleanResumeText(text: string): string {
   return text
-    // Remove excessive whitespace
-    .replace(/\s+/g, " ")
-    // Remove special characters that might interfere
+    // Remove excessive whitespace (but keep single spaces)
+    .replace(/[ \t]+/g, " ")
+    // Remove special control characters that might interfere
     .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, "")
     // Normalize line breaks
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
-    // Remove multiple consecutive newlines
+    // Remove multiple consecutive newlines (keep max 2)
     .replace(/\n{3,}/g, "\n\n")
-    // Trim
+    // Remove leading/trailing whitespace from each line
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join("\n")
+    // Final trim
     .trim();
 }
 
@@ -174,10 +225,13 @@ export function extractResumeSections(text: string): {
   const emails = text.match(emailRegex) || [];
   const phones = text.match(phoneRegex) || [];
 
-  // Extract name (usually first line)
+  // Extract name (usually first line that's not email/phone)
   let name: string | undefined;
-  if (lines.length > 0 && !lines[0].match(emailRegex) && !lines[0].match(phoneRegex)) {
-    name = lines[0];
+  for (const line of lines.slice(0, 5)) { // Check first 5 lines
+    if (!line.match(emailRegex) && !line.match(phoneRegex) && line.length > 2 && line.length < 50) {
+      name = line;
+      break;
+    }
   }
 
   // Extract sections (common resume sections)

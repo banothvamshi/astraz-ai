@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  // Turbopack config for Next.js 16
+  turbopack: {},
 };
 
 export default nextConfig;
