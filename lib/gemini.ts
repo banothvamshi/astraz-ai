@@ -70,8 +70,11 @@ export async function generateText(
       ? [modelName]
       : [
           "gemini-1.5-flash",         // FREE - Fast, efficient model (most likely to work)
+          "gemini-1.5-flash-001",     // Alternative naming
           "gemini-1.5-pro",           // FREE tier available
+          "gemini-1.5-pro-001",       // Alternative naming
           "gemini-pro",               // Legacy free model
+          "gemini-pro-001",           // Alternative naming
         ];
     
     let lastError: Error | null = null;
@@ -133,15 +136,20 @@ export async function generateText(
     if (!text) {
       // Provide helpful error message with troubleshooting
       const errorDetails = lastError?.message || "Unknown error";
+      const apiKey = process.env.GOOGLE_GEMINI_API_KEY || "";
+      const apiKeyPreview = apiKey.length > 10 ? `${apiKey.substring(0, 10)}...` : "not set";
+      
       throw new Error(
         `No available Gemini model found. Tried: ${modelNamesToTry.join(", ")}. ` +
         `Last error: ${errorDetails}. ` +
         `\n\nTroubleshooting:` +
-        `\n1. Verify your GOOGLE_GEMINI_API_KEY is correct` +
-        `\n2. Check API key has access to Gemini models at https://makersuite.google.com/app/apikey` +
-        `\n3. Ensure you're using a valid API key (not restricted)` +
-        `\n4. Try setting GEMINI_MODEL environment variable to: gemini-1.5-flash` +
-        `\n5. Check available models: https://ai.google.dev/models/gemini`
+        `\n1. Verify your GOOGLE_GEMINI_API_KEY is correct (current: ${apiKeyPreview})` +
+        `\n2. Check API key has access to Gemini models at https://aistudio.google.com/app/api-keys` +
+        `\n3. Ensure API key is from a project WITHOUT billing (for free tier)` +
+        `\n4. Enable "Generative Language API" in Google Cloud Console` +
+        `\n5. Visit /api/list-models to see available models for your API key` +
+        `\n6. Try creating a NEW API key in a project WITHOUT billing account` +
+        `\n7. Check available models: https://ai.google.dev/models/gemini`
       );
     }
 
