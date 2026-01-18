@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateText } from "@/lib/gemini";
 import { parseResumePDF, extractResumeSections, ParsedResume } from "@/lib/pdf-parser";
 import { parseResumePDFEnhanced, extractStructuredSections } from "@/lib/pdf-parser-enhanced";
+import { parseAdvancedPDF } from "@/lib/pdf-parser-advanced-v3";
+import { removeAllPlaceholders, sanitizeCoverLetter as removeTemplateContent } from "@/lib/placeholder-detector";
 import { parseUniversalDocument } from "@/lib/universal-document-parser-v2";
 import { parseJobDescription, extractKeywords } from "@/lib/job-description-parser";
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
@@ -231,7 +233,7 @@ export async function POST(request: NextRequest) {
       return /\[[^\]]+\]/.test(text) || /Hiring Manager Name/i.test(text);
     };
 
-    const sanitizeCoverLetter = (text: string, candidateName?: string): string => {
+    const sanitizeCoverLetterLocal = (text: string, candidateName?: string): string => {
       if (!text) return text;
       let cleaned = text;
 
@@ -597,7 +599,7 @@ Generate the COMPLETE cover letter now.`;
       );
     }
 
-    generatedCoverLetter = sanitizeCoverLetter(generatedCoverLetter, candidateName);
+    generatedCoverLetter = sanitizeCoverLetterLocal(generatedCoverLetter, candidateName);
 
     // Validate generated content
     if (!generatedResume || generatedResume.trim().length < 100) {
@@ -615,8 +617,15 @@ Generate the COMPLETE cover letter now.`;
     }
 
     // Clean generated content - remove code blocks if present
-    const cleanResume = cleanMarkdownContent(generatedResume);
-    const cleanCoverLetter = cleanMarkdownContent(generatedCoverLetter);
+    let cleanResume = cleanMarkdownContent(generatedResume);
+    let cleanCoverLetter = cleanMarkdownContent(generatedCoverLetter);
+
+    // Remove all placeholders from both resume and cover letter
+    cleanResume = removeAllPlaceholders(cleanResume);
+    cleanCoverLetter = removeAllPlaceholders(cleanCoverLetter);
+    
+    // Additional cover letter placeholder sanitization
+    cleanCoverLetter = sanitizeCoverLetterLocal(cleanCoverLetter, candidateName);
 
     if (hasGibberishLetters(cleanResume) || hasGibberishLetters(cleanCoverLetter)) {
       return NextResponse.json(
