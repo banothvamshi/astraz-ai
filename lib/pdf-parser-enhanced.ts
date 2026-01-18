@@ -47,6 +47,42 @@ function enhanceExtractedText(text: string): string {
     .join("\n");
   enhanced = enhanced.replace(/\n{4,}/g, "\n\n");
   
+  // Filter out lines that are mostly garbage (repeating single characters)
+  const lines = enhanced.split("\n");
+  const validLines: string[] = [];
+  
+  for (const line of lines) {
+    if (line.length === 0) {
+      validLines.push(line);
+      continue;
+    }
+    
+    // Check if line is mostly garbage (single repeated character)
+    const charCount: Record<string, number> = {};
+    let maxCount = 0;
+    let maxChar = "";
+    
+    for (const char of line) {
+      if (char.match(/[A-Za-z0-9]/)) {
+        charCount[char] = (charCount[char] || 0) + 1;
+        if (charCount[char] > maxCount) {
+          maxCount = charCount[char];
+          maxChar = char;
+        }
+      }
+    }
+    
+    const totalChars = Object.values(charCount).reduce((a, b) => a + b, 0);
+    const repetitionRatio = totalChars > 0 ? maxCount / totalChars : 0;
+    
+    // If a single character makes up more than 60% of the line, it's garbage
+    if (repetitionRatio < 0.6) {
+      validLines.push(line);
+    }
+  }
+  
+  enhanced = validLines.join("\n");
+  
   // Detect and preserve section headers (common patterns)
   const sectionPatterns = [
     /(?:^|\n)(PROFESSIONAL SUMMARY|SUMMARY|OBJECTIVE|EXPERIENCE|WORK EXPERIENCE|EMPLOYMENT|EDUCATION|SKILLS|TECHNICAL SKILLS|CERTIFICATIONS|PROJECTS|ACHIEVEMENTS)/gi,

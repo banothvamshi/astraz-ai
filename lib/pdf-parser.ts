@@ -236,14 +236,20 @@ function extractTextFromPage(page: any): string {
         for (const run of textObj.R) {
           if (run && run.T) {
             try {
-              // Decode URI-encoded text
-              const decodedText = decodeURIComponent(run.T);
-              if (decodedText.trim().length > 0) {
-                pieces.push(decodedText);
+              // Try to decode URI-encoded text only if it looks encoded
+              let text = run.T;
+              if (text && text.includes("%")) {
+                try {
+                  text = decodeURIComponent(text);
+                } catch (e) {
+                  // If decoding fails, use original
+                }
+              }
+              if (text.trim().length > 0) {
+                pieces.push(text);
               }
             } catch (e) {
-              // If decoding fails, use as-is (might already be decoded)
-              if (run.T.trim().length > 0) {
+              if (run.T && run.T.trim().length > 0) {
                 pieces.push(run.T);
               }
             }
@@ -252,12 +258,19 @@ function extractTextFromPage(page: any): string {
       } else if (textObj.T) {
         // Direct text property
         try {
-          const decodedText = decodeURIComponent(textObj.T);
-          if (decodedText.trim().length > 0) {
-            pieces.push(decodedText);
+          let text = textObj.T;
+          if (text && text.includes("%")) {
+            try {
+              text = decodeURIComponent(text);
+            } catch (e) {
+              // If decoding fails, use original
+            }
+          }
+          if (text.trim().length > 0) {
+            pieces.push(text);
           }
         } catch (e) {
-          if (textObj.T.trim().length > 0) {
+          if (textObj.T && textObj.T.trim().length > 0) {
             pieces.push(textObj.T);
           }
         }
@@ -337,10 +350,10 @@ function extractTextFromPage(page: any): string {
 }
 
 /**
- * Clean and normalize resume text
+ * Clean and normalize resume text with better garbage detection
  */
 function cleanResumeText(text: string): string {
-  return text
+  let cleaned = text
     // Remove excessive whitespace (but keep single spaces)
     .replace(/[ \t]+/g, " ")
     // Remove special control characters that might interfere
@@ -354,9 +367,42 @@ function cleanResumeText(text: string): string {
     .split("\n")
     .map(line => line.trim())
     .filter(line => line.length > 0)
-    .join("\n")
-    // Final trim
-    .trim();
+    .join("\n");
+
+  // Detect if text is mostly garbage (repeating single characters like G, B, F, etc.)
+  // If more than 40% of non-whitespace characters are the same repeated character, it's likely corrupted
+  const lines = cleaned.split("\n");
+  const validLines: string[] = [];
+  
+  for (const line of lines) {
+    // Check if line is mostly garbage (single repeated character)
+    const charCount: Record<string, number> = {};
+    let maxCount = 0;
+    let maxChar = "";
+    
+    for (const char of line) {
+      if (char.match(/[A-Za-z0-9]/)) {
+        charCount[char] = (charCount[char] || 0) + 1;
+        if (charCount[char] > maxCount) {
+          maxCount = charCount[char];
+          maxChar = char;
+        }
+      }
+    }
+    
+    const totalChars = Object.values(charCount).reduce((a, b) => a + b, 0);
+    const repetitionRatio = totalChars > 0 ? maxCount / totalChars : 0;
+    
+    // If a single character makes up more than 60% of the line, it's garbage
+    if (repetitionRatio < 0.6 || line.length < 3) {
+      validLines.push(line);
+    }
+  }
+  
+  cleaned = validLines.join("\n");
+  
+  // Final trim
+  return cleaned.trim();
 }
 
 /**

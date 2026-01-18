@@ -189,6 +189,48 @@ export async function POST(request: NextRequest) {
     const structuredResume = extractStructuredSections(resumeText);
 
     const hasGibberishLetters = (text: string): boolean => {
+      if (!text || text.length < 50) return true;
+
+      // Check for repeating single character pattern (like GGGGGGGG, BBBBBBB, etc.)
+      // This indicates corrupted PDF extraction
+      const lines = text.split('\n');
+      let gibberishLineCount = 0;
+      let totalNonEmptyLines = 0;
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.length === 0) continue;
+        
+        totalNonEmptyLines++;
+        
+        // Check if line is mostly a single repeated character
+        const charCount: Record<string, number> = {};
+        for (const char of trimmed) {
+          if (char.match(/[A-Za-z0-9]/)) {
+            charCount[char] = (charCount[char] || 0) + 1;
+          }
+        }
+        
+        const letterChars = Object.values(charCount).reduce((a, b) => a + b, 0);
+        if (letterChars === 0) continue;
+        
+        const maxCount = Math.max(...Object.values(charCount));
+        const repetitionRatio = maxCount / letterChars;
+        
+        // If one character makes up more than 70% of the line, it's likely gibberish
+        if (repetitionRatio > 0.7) {
+          gibberishLineCount++;
+        }
+      }
+
+      // If more than 30% of lines are gibberish, reject the text
+      if (totalNonEmptyLines > 0) {
+        const gibberishRatio = gibberishLineCount / totalNonEmptyLines;
+        if (gibberishRatio > 0.3) {
+          return true;
+        }
+      }
+
       const tokens = text.split(/\s+/).filter(Boolean);
       if (tokens.length < 30) return true;
 
