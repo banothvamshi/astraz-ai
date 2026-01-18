@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateText } from "@/lib/gemini";
 import { parseResumePDF, extractResumeSections } from "@/lib/pdf-parser";
+import { parseResumePDFEnhanced, extractStructuredSections } from "@/lib/pdf-parser-enhanced";
 import { parseJobDescription, extractKeywords } from "@/lib/job-description-parser";
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
 import { getCachedResponse, setCachedResponse } from "@/lib/cache";
@@ -154,11 +155,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse PDF with premium parser and retry logic
+    // Parse PDF with enhanced parser and retry logic
     let parsedResume;
     try {
       parsedResume = await retry(
-        () => parseResumePDF(pdfBuffer),
+        () => parseResumePDFEnhanced(pdfBuffer),
         {
           maxRetries: 2,
           initialDelay: 1000,

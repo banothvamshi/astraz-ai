@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Download, Sparkles, ArrowLeft } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadArea } from "@/components/upload-area";
 import { PaywallModal } from "@/components/paywall-modal";
+import { ResumeEditor } from "@/components/resume-editor";
 import { canUseFreeTrial, markTrialUsed, hasUsedTrial } from "@/lib/storage";
 
 export default function Dashboard() {
@@ -18,6 +19,8 @@ export default function Dashboard() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [canTrial, setCanTrial] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
+  const [editingResume, setEditingResume] = useState(false);
+  const [editingCoverLetter, setEditingCoverLetter] = useState(false);
 
   useEffect(() => {
     setCanTrial(canUseFreeTrial());
@@ -258,48 +261,114 @@ export default function Dashboard() {
 
             {/* Results */}
             {(generatedResume || generatedCoverLetter) && (
-              <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
                   Your Generated Documents
                 </h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {generatedResume && (
-                    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+                
+                {/* Resume Section */}
+                {generatedResume && (
+                  <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-blue-600" />
                         <span className="text-sm font-medium text-slate-900 dark:text-slate-50">
                           Resume
                         </span>
                       </div>
-                      <Button
-                        onClick={() => handleDownload("resume")}
-                        size="sm"
-                        variant="outline"
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
-                      </Button>
+                      <div className="flex gap-2">
+                        {!editingResume ? (
+                          <>
+                            <Button
+                              onClick={() => setEditingResume(true)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <Edit2 className="mr-2 h-4 w-4" />
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() => handleDownload("resume")}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              Download
+                            </Button>
+                          </>
+                        ) : (
+                          <ResumeEditor
+                            content={generatedResume}
+                            onSave={(edited) => {
+                              setGeneratedResume(edited);
+                              setEditingResume(false);
+                            }}
+                            onCancel={() => setEditingResume(false)}
+                          />
+                        )}
+                      </div>
                     </div>
-                  )}
-                  {generatedCoverLetter && (
-                    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+                    {!editingResume && (
+                      <div className="rounded border border-slate-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-900">
+                        <pre className="whitespace-pre-wrap text-xs text-slate-700 dark:text-slate-300">
+                          {generatedResume.substring(0, 500)}...
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Cover Letter Section */}
+                {generatedCoverLetter && (
+                  <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-blue-600" />
                         <span className="text-sm font-medium text-slate-900 dark:text-slate-50">
                           Cover Letter
                         </span>
                       </div>
-                      <Button
-                        onClick={() => handleDownload("coverLetter")}
-                        size="sm"
-                        variant="outline"
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
-                      </Button>
+                      <div className="flex gap-2">
+                        {!editingCoverLetter ? (
+                          <>
+                            <Button
+                              onClick={() => setEditingCoverLetter(true)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <Edit2 className="mr-2 h-4 w-4" />
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() => handleDownload("coverLetter")}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              Download
+                            </Button>
+                          </>
+                        ) : (
+                          <ResumeEditor
+                            content={generatedCoverLetter}
+                            onSave={(edited) => {
+                              setGeneratedCoverLetter(edited);
+                              setEditingCoverLetter(false);
+                            }}
+                            onCancel={() => setEditingCoverLetter(false)}
+                          />
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
+                    {!editingCoverLetter && (
+                      <div className="rounded border border-slate-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-900">
+                        <pre className="whitespace-pre-wrap text-xs text-slate-700 dark:text-slate-300">
+                          {generatedCoverLetter.substring(0, 500)}...
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

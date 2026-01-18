@@ -7,14 +7,16 @@ export interface PDFOptions {
   email?: string;
 }
 
-// Professional color scheme
+// Enterprise-grade professional color scheme
 const COLORS = {
-  primary: [30, 30, 30],      // Dark gray/black for headers
-  secondary: [60, 60, 60],    // Medium gray for subtext
-  accent: [37, 99, 235],      // Blue accent
-  divider: [220, 220, 220],   // Light gray for dividers
-  text: [40, 40, 40],         // Dark text
-  lightText: [100, 100, 100], // Light text
+  primary: [15, 23, 42],       // Deep slate-900 for headers
+  secondary: [51, 65, 85],    // Slate-700 for subtext
+  accent: [59, 130, 246],      // Blue-500 accent
+  accentLight: [147, 197, 253], // Blue-300 for highlights
+  divider: [226, 232, 240],   // Slate-200 for dividers
+  text: [30, 41, 59],          // Slate-800 for body text
+  lightText: [100, 116, 139],  // Slate-500 for dates/locations
+  background: [248, 250, 252], // Slate-50 for backgrounds
 };
 
 /**
@@ -33,8 +35,8 @@ function stripCodeBlocks(content: string): string {
 }
 
 /**
- * Generates a PREMIUM, professional-quality PDF from markdown content.
- * Optimized for ATS compatibility and human readability.
+ * Generates an ENTERPRISE-GRADE, premium-quality PDF from markdown content.
+ * Optimized for ATS compatibility and human readability with professional design.
  */
 export async function generateProfessionalPDF(options: PDFOptions): Promise<Buffer> {
   const { type, content, name, email } = options;
@@ -46,16 +48,17 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     orientation: "portrait",
     unit: "mm",
     format: "a4",
+    compress: true, // Enable compression for smaller file size
   });
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 15; // Reduced margin for more content space
+  const margin = 18; // Professional margins
   const maxWidth = pageWidth - 2 * margin;
   let y = margin;
-  const lineHeight = 5.5;
-  const paragraphSpacing = 3;
-  const sectionSpacing = 8;
+  const lineHeight = 5.8;
+  const paragraphSpacing = 4;
+  const sectionSpacing = 10;
 
   // Set professional fonts
   doc.setFont("helvetica", "normal");
@@ -63,7 +66,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
   // Add premium header for resume
   if (type === "resume" && name && email) {
-    y = addPremiumResumeHeader(doc, name, email, margin, pageWidth);
+    y = addEnterpriseResumeHeader(doc, name, email, margin, pageWidth);
     y += sectionSpacing;
   } else if (type === "coverLetter" && name && email) {
     // Cover letter header
@@ -71,11 +74,11 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     doc.setFont("helvetica", "bold");
     doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
     doc.text(name, margin, y);
-    y += lineHeight;
+    y += lineHeight + 2;
     doc.setFont("helvetica", "normal");
     doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
     doc.text(email, margin, y);
-    y += sectionSpacing;
+    y += sectionSpacing + 3;
     
     // Date
     const today = new Date();
@@ -85,7 +88,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
       day: "numeric",
     });
     doc.text(dateStr, margin, y);
-    y += sectionSpacing + 5;
+    y += sectionSpacing + 6;
   } else {
     y += 10;
   }
@@ -94,36 +97,36 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
   for (const section of parsedSections) {
     // Check for new page
-    const estimatedHeight = section.type === "heading" ? 20 : section.type === "list" ? section.items!.length * (lineHeight + 1) + 10 : section.type === "experience" ? 30 : 25;
-    if (y + estimatedHeight > pageHeight - margin - 10) {
+    const estimatedHeight = section.type === "heading" ? 22 : section.type === "list" ? section.items!.length * (lineHeight + 1.2) + 12 : section.type === "experience" ? 35 : 28;
+    if (y + estimatedHeight > pageHeight - margin - 12) {
       doc.addPage();
       y = margin;
       if (type === "resume" && name && email) {
-        y = addPremiumResumeHeader(doc, name, email, margin, pageWidth);
+        y = addEnterpriseResumeHeader(doc, name, email, margin, pageWidth);
         y += sectionSpacing;
       }
     }
 
     if (section.type === "heading") {
-      // Main section heading with accent bar
+      // Main section heading with professional accent bar
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
+      doc.setFontSize(12.5);
       doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
       
       const headingText = stripMarkdown(section.content.trim());
       
       // Add accent bar before heading
       doc.setFillColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-      doc.rect(margin, y - 1, 3, 5, "F");
+      doc.rect(margin, y - 0.5, 4, 6, "F");
       
-      doc.text(headingText, margin + 6, y + 2);
-      y += lineHeight + 3;
+      doc.text(headingText, margin + 7, y + 3);
+      y += lineHeight + 4;
       
       // Add subtle divider line
-      doc.setLineWidth(0.2);
+      doc.setLineWidth(0.3);
       doc.setDrawColor(COLORS.divider[0], COLORS.divider[1], COLORS.divider[2]);
       doc.line(margin, y, pageWidth - margin, y);
-      y += 4;
+      y += 5;
       
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
@@ -137,26 +140,26 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     } else if (section.type === "list") {
       section.items!.forEach((item) => {
         // Check for new page before each item
-        if (y + lineHeight + 2 > pageHeight - margin - 10) {
+        if (y + lineHeight + 3 > pageHeight - margin - 12) {
           doc.addPage();
           y = margin;
           if (type === "resume" && name && email) {
-            y = addPremiumResumeHeader(doc, name, email, margin, pageWidth);
+            y = addEnterpriseResumeHeader(doc, name, email, margin, pageWidth);
             y += sectionSpacing;
           }
         }
         
         const itemText = stripMarkdown(item.trim());
-        const itemLines = doc.splitTextToSize(itemText, maxWidth - 8);
+        const itemLines = doc.splitTextToSize(itemText, maxWidth - 10);
         
-        // Professional bullet point
+        // Professional bullet point with accent color
         doc.setFillColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-        doc.circle(margin + 2.5, y - 1.5, 1.2, "F");
+        doc.circle(margin + 3, y - 1.5, 1.3, "F");
         
         // Text with proper indentation
         doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-        doc.text(itemLines, margin + 7, y);
-        y += itemLines.length * lineHeight + 1.5;
+        doc.text(itemLines, margin + 8, y);
+        y += itemLines.length * lineHeight + 2;
       });
       y += paragraphSpacing;
     } else if (section.type === "experience") {
@@ -359,7 +362,7 @@ function parseExperienceEntry(lines: string[], startIndex: number): { entry: Par
 }
 
 /**
- * Add experience entry with professional formatting
+ * Add experience entry with enterprise-grade formatting
  */
 function addExperienceEntry(
   doc: jsPDF,
@@ -377,18 +380,18 @@ function addExperienceEntry(
   const location = parts[2] || "";
   const dates = parts[3] || "";
 
-  // Job title - Bold, larger
+  // Job title - Bold, larger, primary color
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
+  doc.setFontSize(11.5);
   doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
   const titleLines = doc.splitTextToSize(jobTitle, maxWidth);
   doc.text(titleLines, margin, y);
-  y += titleLines.length * 6 + 1;
+  y += titleLines.length * 6.5 + 2;
 
-  // Company, location, dates - Regular, smaller, gray
+  // Company, location, dates - Regular, smaller, light gray
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-    doc.setTextColor(COLORS.lightText[0], COLORS.lightText[1], COLORS.lightText[2]);
+  doc.setTextColor(COLORS.lightText[0], COLORS.lightText[1], COLORS.lightText[2]);
   
   const details: string[] = [];
   if (company) details.push(company);
@@ -399,7 +402,7 @@ function addExperienceEntry(
     const detailsText = details.join(" | ");
     const detailsLines = doc.splitTextToSize(detailsText, maxWidth);
     doc.text(detailsLines, margin, y);
-    y += detailsLines.length * 5 + 3;
+    y += detailsLines.length * 5.5 + 4;
   }
 
   // Bullet points
@@ -409,34 +412,34 @@ function addExperienceEntry(
   if (section.items && section.items.length > 0) {
     section.items.forEach((bullet) => {
       // Check for new page
-      if (y + 6 > pageHeight - pageMargin - 10) {
+      if (y + 7 > pageHeight - pageMargin - 12) {
         doc.addPage();
         y = pageMargin;
         if (header) {
-          y = addPremiumResumeHeader(doc, header.name, header.email, margin, doc.internal.pageSize.getWidth());
+          y = addEnterpriseResumeHeader(doc, header.name, header.email, margin, doc.internal.pageSize.getWidth());
           y += 10;
         }
       }
 
       const bulletText = stripMarkdown(bullet);
-      const bulletLines = doc.splitTextToSize(bulletText, maxWidth - 8);
+      const bulletLines = doc.splitTextToSize(bulletText, maxWidth - 10);
       
-      // Professional bullet point
+      // Professional bullet point with accent color
       doc.setFillColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-      doc.circle(margin + 2.5, y - 1.5, 1.2, "F");
+      doc.circle(margin + 3, y - 1.5, 1.3, "F");
       
       // Text
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-      doc.text(bulletLines, margin + 7, y);
-      y += bulletLines.length * 5.5 + 1.5;
+      doc.text(bulletLines, margin + 8, y);
+      y += bulletLines.length * 6 + 2;
     });
   }
 
-  y += 4; // Space after experience entry
+  y += 5; // Space after experience entry
   return y;
 }
 
-function addPremiumResumeHeader(
+function addEnterpriseResumeHeader(
   doc: jsPDF,
   name: string,
   email: string,
@@ -445,33 +448,33 @@ function addPremiumResumeHeader(
 ): number {
   let y = margin;
 
-  // Name - Large, bold, centered
+  // Name - Large, bold, centered, primary color
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
+  doc.setFontSize(24);
   doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
   const nameWidth = doc.getTextWidth(name);
   doc.text(name, (pageWidth - nameWidth) / 2, y);
-  y += 10;
+  y += 11;
 
-  // Contact info - Smaller, centered, gray
+  // Contact info - Smaller, centered, secondary color
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFontSize(10.5);
   doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
   
   const emailWidth = doc.getTextWidth(email);
   doc.text(email, (pageWidth - emailWidth) / 2, y);
-  y += 7;
+  y += 8;
 
-  // Add professional divider line with accent
+  // Add professional divider line with accent bar
   doc.setLineWidth(0.5);
   doc.setDrawColor(COLORS.divider[0], COLORS.divider[1], COLORS.divider[2]);
   doc.line(margin, y, pageWidth - margin, y);
   
   // Add accent bar
   doc.setFillColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-  doc.rect(margin, y - 0.5, 20, 1, "F");
+  doc.rect(margin, y - 0.5, 25, 1, "F");
   
-  y += 7;
+  y += 8;
 
   return y;
 }
@@ -483,7 +486,7 @@ function addPageNumbers(doc: jsPDF, pageHeight: number, pageWidth: number): void
   const pageCount = doc.getNumberOfPages();
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-    doc.setTextColor(COLORS.lightText[0], COLORS.lightText[1], COLORS.lightText[2]);
+  doc.setTextColor(COLORS.lightText[0], COLORS.lightText[1], COLORS.lightText[2]);
 
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
