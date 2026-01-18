@@ -91,14 +91,37 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
             metadata.subject = pdfData.Meta.Subject;
           }
 
-          // Extract text from all pages
+          // Extract text from all pages with error handling per page
           let pagesWithText = 0;
-          for (const page of pdfData.Pages || []) {
-            const pageText = extractTextFromPage(page);
-            if (pageText.trim().length > 0) {
-              parsedText += pageText + "\n\n";
-              pagesWithText++;
+          const maxPages = 50; // Limit to prevent abuse
+          
+          const pagesToProcess = (pdfData.Pages || []).slice(0, maxPages);
+          
+          for (let i = 0; i < pagesToProcess.length; i++) {
+            try {
+              const page = pagesToProcess[i];
+              if (!page) continue;
+
+              const pageText = extractTextFromPage(page);
+              const trimmedText = pageText.trim();
+              
+              if (trimmedText.length > 0) {
+                parsedText += trimmedText + "\n\n";
+                pagesWithText++;
+              }
+            } catch (pageError: any) {
+              console.error(`Error processing page ${i + 1}:`, pageError.message);
+              // Continue with other pages - don't fail completely
+              // If it's the first page and it fails, we might have a problem
+              if (i === 0 && pagesWithText === 0) {
+                throw new Error(`Failed to extract text from first page: ${pageError.message}`);
+              }
             }
+          }
+
+          // Warn if pages were skipped
+          if ((pdfData.Pages || []).length > maxPages) {
+            console.warn(`PDF has ${pdfData.Pages.length} pages, processing first ${maxPages} pages`);
           }
 
           // Validate extracted text
@@ -182,32 +205,63 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
 }
 
 /**
- * Extract text from a PDF page object
+ * Extract text from a PDF page object with comprehensive handling
  */
 function extractTextFromPage(page: any): string {
-  if (!page.Texts || !Array.isArray(page.Texts)) {
+  if (!page || !page.Texts || !Array.isArray(page.Texts)) {
     return "";
   }
 
   const textItems: string[] = [];
   
-  for (const textObj of page.Texts) {
-    if (textObj.R && Array.isArray(textObj.R)) {
-      for (const run of textObj.R) {
-        if (run.T) {
-          // Decode URI-encoded text
-          try {
-            const decodedText = decodeURIComponent(run.T);
-            textItems.push(decodedText);
-          } catch (e) {
-            // If decoding fails, use as-is
-            textItems.push(run.T);
+  try {
+    for (const textObj of page.Texts) {
+      if (!textObj) continue;
+
+      // Handle different text object structures
+      if (textObj.R && Array.isArray(textObj.R)) {
+        // Standard structure: R array with T properties
+        for (const run of textObj.R) {
+          if (run && run.T) {
+            try {
+              // Decode URI-encoded text
+              const decodedText = decodeURIComponent(run.T);
+              if (decodedText.trim().length > 0) {
+                textItems.push(decodedText);
+              }
+            } catch (e) {
+              // If decoding fails, use as-is (might already be decoded)
+              if (run.T.trim().length > 0) {
+                textItems.push(run.T);
+              }
+            }
           }
+        }
+      } else if (textObj.T) {
+        // Direct text property
+        try {
+          const decodedText = decodeURIComponent(textObj.T);
+          if (decodedText.trim().length > 0) {
+            textItems.push(decodedText);
+          }
+        } catch (e) {
+          if (textObj.T.trim().length > 0) {
+            textItems.push(textObj.T);
+          }
+        }
+      } else if (typeof textObj === "string") {
+        // Simple string
+        if (textObj.trim().length > 0) {
+          textItems.push(textObj);
         }
       }
     }
+  } catch (extractError) {
+    console.error("Error extracting text from page:", extractError);
+    // Return what we have so far
   }
 
+  // Join with space, but preserve line structure where possible
   return textItems.join(" ");
 }
 
