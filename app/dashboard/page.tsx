@@ -35,7 +35,8 @@ export default function Dashboard() {
   const [canTrial, setCanTrial] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   const [editingResume, setEditingResume] = useState(false);
-  const [editingCoverLetter, setEditingCoverLetter] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false); // Loading state for PDF generation
 
   // New: Contact info state
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
@@ -164,6 +165,11 @@ export default function Dashboard() {
       setGeneratedCoverLetter(data.coverLetter);
       setResumeMeta(data.meta);
 
+      // Auto-generate PDF preview
+      if (data.resume) {
+        generatePreviewPdf(data.resume, data.meta);
+      }
+
       // Mark trial as used
       if (canTrial) {
         markTrialUsed();
@@ -187,7 +193,40 @@ export default function Dashboard() {
     });
   };
 
+  const generatePreviewPdf = async (resumeContent: string, meta: any) => {
+    setIsPreviewLoading(true);
+    try {
+      const response = await fetch("/api/download-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: resumeContent,
+          type: "resume",
+          name: contactInfo.fullName || meta?.name,
+          email: contactInfo.email || meta?.email,
+          phone: contactInfo.phone || meta?.phone,
+          linkedin: contactInfo.linkedin || meta?.linkedin,
+          location: contactInfo.location || meta?.location,
+          company: jobDetails.companyName || undefined,
+          jobTitle: jobDetails.jobTitle || undefined,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to generate preview");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      setPdfPreviewUrl(url);
+    } catch (error) {
+      console.error("Preview generation error:", error);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
   const handleDownload = async (type: "resume" | "coverLetter") => {
+    // Re-use preview URL if available and content matches (optimization)
+    // For now, simple download logic is safer to ensure latest state
     const content = type === "resume" ? generatedResume : generatedCoverLetter;
     if (!content) return;
 
@@ -488,20 +527,34 @@ export default function Dashboard() {
                             onSave={(edited) => {
                               setGeneratedResume(edited);
                               setEditingResume(false);
+                              // Regenerate preview on save
+                              generatePreviewPdf(edited, resumeMeta);
                             }}
                             onCancel={() => setEditingResume(false)}
                           />
                         ) : (
-                          <div className="h-[600px] overflow-y-auto p-8 bg-white dark:bg-slate-950 scrollbar-thin">
-                            <div className="prose prose-sm max-w-none dark:prose-invert">
-                              <div className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-700 dark:text-slate-300 font-sans">
-                                {generatedResume}
+                          <div className="h-[800px] w-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-4">
+                            {isPreviewLoading ? (
+                              <div className="flex flex-col items-center gap-3">
+                                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                                <p className="text-sm text-slate-500">Generating PDF Preview...</p>
                               </div>
-                            </div>
+                            ) : pdfPreviewUrl ? (
+                              <iframe
+                                src={`${pdfPreviewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                                className="w-full h-full rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 bg-white"
+                                title="Resume Preview"
+                              />
+                            ) : (
+                              <div className="text-center text-slate-400">
+                                <p>Preview not available</p>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
                     </div>
+
                   )}
 
 
@@ -529,6 +582,6 @@ export default function Dashboard() {
         onOpenChange={setShowPaywall}
         onUpgrade={() => router.push("/payment")}
       />
-    </div>
+    </div >
   );
 }

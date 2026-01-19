@@ -64,7 +64,10 @@ const PATTERNS = {
   DATE_RANGE: /((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[a-z]*[\.,]?\s+\d{4}|\d{1,2}[\/-]\d{4}|\d{4})\s*(?:[-–to]+)\s*((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[a-z]*[\.,]?\s+\d{4}|\d{1,2}[\/-]\d{4}|\d{4}|Present|Current|Now)/i,
 
   // LinkedIn URL patterns
+  // LinkedIn URL patterns - Enhanced for incomplete URLs and text indicators
   LINKEDIN: /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9_-]+)\/?/i,
+  LINKEDIN_LOOSE: /linkedin(?:\.com)?(?:\/in)?\/([a-zA-Z0-9_-]+)/i, // Matches "linkedin/in/user" or "linkedin.com/in/user"
+  LINKEDIN_TEXT: /linkedin\s*:?\s*([a-zA-Z0-9_-]{3,})/i, // Matches "LinkedIn: username"
 
   // GitHub URL patterns
   GITHUB: /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_-]+)\/?/i,
@@ -120,7 +123,7 @@ function extractName(text: string): string {
 /**
  * Extract contact information with high recall
  */
-function extractContact(text: string): {
+export function extractContact(text: string): {
   email: string;
   phone: string;
   location: string;
@@ -147,13 +150,35 @@ function extractContact(text: string): {
     }
   }
 
-  // 3. LinkedIn Extraction
-  const linkedinMatch = text.match(PATTERNS.LINKEDIN);
+  // 3. LinkedIn Extraction - Robust Multi-pass
   let linkedin = '';
+
+  // Pass 1: Standard URL
+  const linkedinMatch = text.match(PATTERNS.LINKEDIN);
   if (linkedinMatch) {
-    // Normalize to full URL
-    const username = linkedinMatch[1];
-    linkedin = `https://linkedin.com/in/${username}`;
+    linkedin = `https://linkedin.com/in/${linkedinMatch[1]}`;
+  }
+
+  // Pass 2: Loose URL (e.g. linkedin.com/in/user without https)
+  if (!linkedin) {
+    const looseMatch = text.match(PATTERNS.LINKEDIN_LOOSE);
+    if (looseMatch) {
+      linkedin = `https://linkedin.com/in/${looseMatch[1]}`;
+    }
+  }
+
+  // Pass 3: Text Label (e.g. "LinkedIn: username")
+  if (!linkedin) {
+    // Search in first 1000 chars to avoid false positives in body text
+    const headerContext = text.substring(0, 1000);
+    const textMatch = headerContext.match(PATTERNS.LINKEDIN_TEXT);
+    if (textMatch) {
+      // Validate username length and chars
+      const possibleUser = textMatch[1].trim();
+      if (possibleUser.length > 3 && possibleUser.length < 50) {
+        linkedin = `https://linkedin.com/in/${possibleUser}`;
+      }
+    }
   }
 
   // 4. GitHub Extraction

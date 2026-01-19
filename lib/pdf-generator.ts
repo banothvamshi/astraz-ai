@@ -254,8 +254,14 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     }
 
     // METADATA LINE (Company | Date | Location)
-    // Detects lines starting with ** or containing | and date patterns
-    if (line.startsWith("**") || (line.includes("|") && /\d{4}/.test(line))) {
+    // STRICTER CHECK: Must contain "|" or be a known pattern, not just ANY bold text
+    // We want to avoid catching "**Team Lead**" as metadata if it's actually a sub-header.
+    const isMetadata = (
+      (line.includes("|") && /\d{4}|Present|Current/i.test(line)) || // Standard metadata line
+      (line.startsWith("**") && line.includes("|")) // Bold metadata with pipe
+    );
+
+    if (isMetadata) {
       const metaText = line.replace(/\*\*/g, "").trim(); // Strip bold markers for clean text
       checkPageBreak(10);
 
@@ -263,6 +269,22 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
       doc.setFontSize(SIZE_BODY - 0.5);
       doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]); // Dark Grey
       doc.text(metaText, MARGIN, cursorY);
+      cursorY += 6;
+      i++;
+      continue;
+    }
+
+    // BOLD "HEADERS" that aren't Markdown Headers (fallback)
+    // If a line is just "**Text**" and short, treat it as a small sub-header
+    if (line.startsWith("**") && line.endsWith("**") && line.length < 50) {
+      const boldText = line.replace(/\*\*/g, "").trim();
+      checkPageBreak(15);
+      if (cursorY > MARGIN) cursorY += 3;
+
+      doc.setFont(FONT_HEADER, "bold");
+      doc.setFontSize(SIZE_BODY); // Same as body but bold
+      doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+      doc.text(boldText, MARGIN, cursorY);
       cursorY += 6;
       i++;
       continue;

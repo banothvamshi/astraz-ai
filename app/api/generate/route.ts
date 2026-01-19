@@ -437,13 +437,15 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Proper capitalization (Title Case for headers, sentence case for content)
    - Use parallel structure in bullets
 
-7. **INTELLIGENT CONTENT UTILIZATION**:
-   - Use information from the ORIGINAL RESUME CONTENT provided below.
-   - You MAY rephrase, reorganize, and professionally polish the content.
-   - You MAY fill in missing details if they are obvious from context (e.g. if Company is "Google", Industry is "Technology").
-   - If the resume mentions a project but lacks details, you can expand on it based on standard industry practices for that role, BUT keep it grounded in reality.
-   - DO NOT invent completely new roles, companies, or degrees.
-   - If sections like "Skills" or "Projects" are missing in the structured data, LOOK IN THE "UNCLASSIFIED / OTHER INFORMATION" section.
+7. **INTELLIGENT CONTENT OVERHAUL (CRITICAL)**:
+   - **DO NOT** just copy potential bullets from the original resume. **REWRITE THEM COMPLETELY**.
+   - **REPHRASE** weak or passive bullet points into aggressive, impactful success statements.
+   - **TAILOR** the content specifically to the JOB DESCRIPTION. If the JD asks for "Leadership", rewrite an experience to highlight "Led a team...".
+   - **Example**: 
+     - *Original*: "Worked on Python script for data."
+     - *Overhauled*: "Architected a high-performance Python data pipeline, reducing processing time by 40% and enabling real-time analytics."
+   - You MAY fill in missing details if they are obvious from context to make the resume complete and professional.
+   - **AGGRESSIVELY OPTIMIZE** for the target role. If the candidate has 10 skills but the job only needs 3, HIGHLIGHT those 3 prominently.
 
 ORIGINAL RESUME CONTENT:
 ${finalResumeText}
@@ -472,9 +474,10 @@ CRITICAL FORMATTING RULES:
 1. **DO NOT** include the candidate's Name, Email, Phone, or Location at the top. The system adds this automatically.
 2. **START DIRECTLY** with the first section header (e.g., \`# Professional Summary\`).
 3. Use \`#\` for Main Section Headers.
-4. Use \`###\` for Job Titles (e.g. \`### Senior Software Engineer\`)
-5. On the line immediately below the Job Title, put: \`** Company Name ** | Location | Dates\`
-6. Use standard bullet points (\`-\`) for achievements.
+4. **STRICTLY** use \`###\` for Job Titles (e.g. \`### Senior Software Engineer\`).
+5. **NEVER** use bullet points for Job Titles or Headers. (e.g. DO NOT write \`- **Title**\`).
+6. On the line immediately below the Job Title, put: \`** Company Name ** | Location | Dates\`
+7. Use standard bullet points (\`-\`) ONLY for achievements/details.
 
 Example Experience Entry:
 ### Senior Project Manager
@@ -499,7 +502,14 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     let generatedResume: string;
     try {
       const systemPrompt = `
-    You are an expert ATS-Optimization AI. Your goal is to write a perfect, keyword-optimized resume based on the user's background and the target job description.
+    You are an expert ATS-Optimization AI. Your goal is to not just formatting, but to REWRITE and ELEVATE the user's resume.
+    
+    TRANSFORM MEDIOCRE CONTENT INTO EXECUTIVE-LEVEL ACHIEVEMENTS.
+    
+    CRITICAL:
+    1. **REPHRASE**: Rewrite every single bullet point to be stronger, punchier, and results-oriented.
+    2. **MATCH JD**: Forcefully align the experience with the Job Description keywords.
+    3. **NO COPY-PASTE**: Do not just copy the user's text. Improve it. Overhaul it.
     
     CRITICAL INPUT HANDLING:
     - The user's resume has been parsed from a PDF and may contain "parsing artifacts".
