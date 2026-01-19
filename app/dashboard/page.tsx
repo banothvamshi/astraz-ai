@@ -2,18 +2,31 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronRight } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadArea } from "@/components/upload-area";
 import { PaywallModal } from "@/components/paywall-modal";
 import { ResumeEditor } from "@/components/resume-editor";
 import { canUseFreeTrial, markTrialUsed, hasUsedTrial } from "@/lib/storage";
 
+interface ContactInfo {
+  fullName: string;
+  email: string;
+  phone: string;
+  linkedin: string;
+  location: string;
+}
+
+interface JobDetails {
+  companyName: string;
+  jobTitle: string;
+  location: string;
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-  const [companyName, setCompanyName] = useState("");
   const [resumeMeta, setResumeMeta] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedResume, setGeneratedResume] = useState<string | null>(null);
@@ -23,6 +36,23 @@ export default function Dashboard() {
   const [isPremium, setIsPremium] = useState(false);
   const [editingResume, setEditingResume] = useState(false);
   const [editingCoverLetter, setEditingCoverLetter] = useState(false);
+
+  // New: Contact info state
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
+    fullName: "",
+    email: "",
+    phone: "",
+    linkedin: "",
+    location: "",
+  });
+  const [showContactInfo, setShowContactInfo] = useState(false);
+
+  // New: Job details state
+  const [jobDetails, setJobDetails] = useState<JobDetails>({
+    companyName: "",
+    jobTitle: "",
+    location: "",
+  });
 
   useEffect(() => {
     setCanTrial(canUseFreeTrial());
@@ -35,6 +65,19 @@ export default function Dashboard() {
       localStorage.setItem("astraz_premium", "true");
     }
   }, []);
+
+  // Update contact info from parsed resume meta
+  useEffect(() => {
+    if (resumeMeta) {
+      setContactInfo(prev => ({
+        fullName: resumeMeta.name || prev.fullName,
+        email: resumeMeta.email || prev.email,
+        phone: resumeMeta.phone || prev.phone,
+        linkedin: resumeMeta.linkedin || prev.linkedin,
+        location: resumeMeta.location || prev.location,
+      }));
+    }
+  }, [resumeMeta]);
 
   const handleGenerate = async () => {
     if (!resumeFile || !jobDescription.trim()) {
@@ -88,7 +131,17 @@ export default function Dashboard() {
         body: JSON.stringify({
           resume: base64Resume,
           jobDescription,
-          companyName: companyName.trim() || undefined,
+          companyName: jobDetails.companyName.trim() || undefined,
+          jobTitle: jobDetails.jobTitle.trim() || undefined,
+          jobLocation: jobDetails.location.trim() || undefined,
+          // Send contact overrides if user provided them
+          contactOverrides: {
+            fullName: contactInfo.fullName.trim() || undefined,
+            email: contactInfo.email.trim() || undefined,
+            phone: contactInfo.phone.trim() || undefined,
+            linkedin: contactInfo.linkedin.trim() || undefined,
+            location: contactInfo.location.trim() || undefined,
+          },
         }),
       });
 
@@ -139,9 +192,6 @@ export default function Dashboard() {
     if (!content) return;
 
     try {
-      const nameMatch = content.match(/^#\s*(.+)$/m);
-      const emailMatch = content.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-
       const response = await fetch("/api/download-pdf", {
         method: "POST",
         headers: {
@@ -150,9 +200,13 @@ export default function Dashboard() {
         body: JSON.stringify({
           content,
           type,
-          name: resumeMeta?.name || (nameMatch ? nameMatch[1].trim() : undefined),
-          email: resumeMeta?.email || (emailMatch ? emailMatch[1] : undefined),
-          company: companyName || undefined,
+          name: contactInfo.fullName || resumeMeta?.name,
+          email: contactInfo.email || resumeMeta?.email,
+          phone: contactInfo.phone || resumeMeta?.phone,
+          linkedin: contactInfo.linkedin || resumeMeta?.linkedin,
+          location: contactInfo.location || resumeMeta?.location,
+          company: jobDetails.companyName || undefined,
+          jobTitle: jobDetails.jobTitle || undefined,
         }),
       });
 
@@ -250,7 +304,82 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* 2. Job Description */}
+              {/* 2. Contact Info (Collapsible) */}
+              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-indigo-500/30">
+                <div
+                  className="p-4 flex items-center justify-between cursor-pointer"
+                  onClick={() => setShowContactInfo(!showContactInfo)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h2 className="font-semibold text-lg">Contact Information</h2>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Optional: Override parsed contact info</p>
+                    </div>
+                  </div>
+                  {showContactInfo ? (
+                    <ChevronUp className="h-5 w-5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-slate-400" />
+                  )}
+                </div>
+
+                {showContactInfo && (
+                  <div className="px-6 pb-6 space-y-3">
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.fullName}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, fullName: e.target.value }))}
+                        placeholder="Full Name"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.email}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Email Address"
+                        type="email"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.phone}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder="Phone Number"
+                        type="tel"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.linkedin}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, linkedin: e.target.value }))}
+                        placeholder="LinkedIn URL (e.g. linkedin.com/in/yourname)"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.location}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, location: e.target.value }))}
+                        placeholder="Location (e.g. San Francisco, CA)"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Job Description & Details */}
               <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-indigo-500/30">
                 <div className="p-6">
                   <div className="flex items-center gap-3 mb-4">
@@ -261,17 +390,40 @@ export default function Dashboard() {
                   </div>
 
                   <div className="space-y-4">
-                    <input
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="Company Name (e.g. Google, Amazon)"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                          value={jobDetails.companyName}
+                          onChange={(e) => setJobDetails(prev => ({ ...prev, companyName: e.target.value }))}
+                          placeholder="Company Name"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        />
+                      </div>
+                      <div className="relative">
+                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                          value={jobDetails.jobTitle}
+                          onChange={(e) => setJobDetails(prev => ({ ...prev, jobTitle: e.target.value }))}
+                          placeholder="Job Title"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={jobDetails.location}
+                        onChange={(e) => setJobDetails(prev => ({ ...prev, location: e.target.value }))}
+                        placeholder="Job Location (e.g. Remote, New York, NY)"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
                     <textarea
                       value={jobDescription}
                       onChange={(e) => setJobDescription(e.target.value)}
                       placeholder="Paste the complete job description here..."
-                      className="w-full min-h-[200px] rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all resize-none"
+                      className="w-full min-h-[180px] rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all resize-none"
                     />
                   </div>
                 </div>

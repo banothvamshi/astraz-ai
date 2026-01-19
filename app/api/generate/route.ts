@@ -745,7 +745,22 @@ Generate now.`;
     return NextResponse.json({
       resume: cleanResume,
       coverLetter: cleanCoverLetter,
-      meta: structuredResume, // Return parsed metadata for frontend use
+      meta: {
+        ...structuredResume,
+        name: normalizedResume.name || structuredResume.name,
+        email: normalizedResume.email || structuredResume.email,
+        phone: normalizedResume.phone || structuredResume.phone,
+        location: normalizedResume.location,
+        linkedin: normalizedResume.linkedin,
+        github: normalizedResume.github,
+        website: normalizedResume.website,
+      },
+      parsedJob: {
+        title: parsedJob.title,
+        company: parsedJob.company,
+        location: parsedJob.location,
+        workMode: parsedJob.workMode,
+      },
       cached: false,
       rateLimit: {
         remaining: rateLimit.remaining,

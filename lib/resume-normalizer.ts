@@ -8,6 +8,9 @@ export interface NormalizedResume {
   email: string;
   phone: string;
   location: string;
+  linkedin?: string;
+  github?: string;
+  website?: string;
   professional_summary: string;
   experience: Experience[];
   education: Education[];
@@ -60,8 +63,17 @@ const PATTERNS = {
   // Date Range: "Jan 2020 - Present", "2018 to 2019"
   DATE_RANGE: /((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[a-z]*[\.,]?\s+\d{4}|\d{1,2}[\/-]\d{4}|\d{4})\s*(?:[-–to]+)\s*((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[a-z]*[\.,]?\s+\d{4}|\d{1,2}[\/-]\d{4}|\d{4}|Present|Current|Now)/i,
 
-  // LinkedIn / Portfolio URLs
-  URL: /((?:https?:\/\/)?(?:www\.)?(?:linkedin\.com\/in\/[a-zA-Z0-9_-]+|github\.com\/[a-zA-Z0-9_-]+|gitlab\.com\/[a-zA-Z0-9_-]+))/i,
+  // LinkedIn URL patterns
+  LINKEDIN: /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9_-]+)\/?/i,
+
+  // GitHub URL patterns
+  GITHUB: /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_-]+)\/?/i,
+
+  // Website / Portfolio URLs (generic)
+  WEBSITE: /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(?:\/[\w.-]*)*\/?/i,
+
+  // General URL pattern
+  URL: /((?:https?:\/\/)?(?:www\.)?(?:linkedin\.com\/in\/[a-zA-Z0-9_-]+|github\.com\/[a-zA-Z0-9_-]+|gitlab\.com\/[a-zA-Z0-9_-]+|[a-zA-Z0-9-]+\.(?:com|io|dev|me|org|net)\/[\w-]*))/i,
 };
 
 /**
@@ -108,7 +120,14 @@ function extractName(text: string): string {
 /**
  * Extract contact information with high recall
  */
-function extractContact(text: string): { email: string; phone: string; location: string } {
+function extractContact(text: string): {
+  email: string;
+  phone: string;
+  location: string;
+  linkedin: string;
+  github: string;
+  website: string;
+} {
   // 1. Email Extraction
   const emailMatch = text.match(PATTERNS.EMAIL);
   const email = emailMatch?.[0] || '';
@@ -128,7 +147,42 @@ function extractContact(text: string): { email: string; phone: string; location:
     }
   }
 
-  // 3. Location Extraction
+  // 3. LinkedIn Extraction
+  const linkedinMatch = text.match(PATTERNS.LINKEDIN);
+  let linkedin = '';
+  if (linkedinMatch) {
+    // Normalize to full URL
+    const username = linkedinMatch[1];
+    linkedin = `https://linkedin.com/in/${username}`;
+  }
+
+  // 4. GitHub Extraction
+  const githubMatch = text.match(PATTERNS.GITHUB);
+  let github = '';
+  if (githubMatch) {
+    const username = githubMatch[1];
+    github = `https://github.com/${username}`;
+  }
+
+  // 5. Website/Portfolio Extraction (exclude linkedin and github)
+  let website = '';
+  const urlMatches = text.match(new RegExp(PATTERNS.WEBSITE, 'gi')) || [];
+  for (const url of urlMatches) {
+    const lowerUrl = url.toLowerCase();
+    // Skip linkedin and github
+    if (lowerUrl.includes('linkedin.com') || lowerUrl.includes('github.com') ||
+      lowerUrl.includes('gitlab.com') || lowerUrl.includes('gmail.com') ||
+      lowerUrl.includes('outlook.com') || lowerUrl.includes('yahoo.com')) {
+      continue;
+    }
+    // Must have a dot and reasonable length
+    if (url.includes('.') && url.length > 5 && url.length < 100) {
+      website = url.startsWith('http') ? url : `https://${url}`;
+      break;
+    }
+  }
+
+  // 6. Location Extraction
   const BLACKLIST_LOCATIONS = [
     'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december',
     'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
@@ -170,7 +224,7 @@ function extractContact(text: string): { email: string; phone: string; location:
     }
   }
 
-  return { email, phone, location };
+  return { email, phone, location, linkedin, github, website };
 }
 
 /**
@@ -540,7 +594,7 @@ export async function normalizeResume(rawText: string): Promise<NormalizedResume
   const sections = identifySections(cleanedText);
 
   const name = extractName(cleanedText);
-  const { email, phone, location } = extractContact(cleanedText);
+  const { email, phone, location, linkedin, github, website } = extractContact(cleanedText);
 
   const experience = extractExperience(sections.experience);
   const education = extractEducation(sections.education);
@@ -557,6 +611,9 @@ export async function normalizeResume(rawText: string): Promise<NormalizedResume
     email,
     phone,
     location,
+    linkedin,
+    github,
+    website,
     professional_summary,
     experience: experience as Experience[], // Type assertion due to Partial
     education: education as Education[],
@@ -581,6 +638,9 @@ export function formatNormalizedResume(resume: NormalizedResume): string {
   if (resume.email) contact.push(resume.email);
   if (resume.phone) contact.push(resume.phone);
   if (resume.location) contact.push(resume.location);
+  if (resume.linkedin) contact.push(resume.linkedin);
+  if (resume.github) contact.push(resume.github);
+  if (resume.website) contact.push(resume.website);
 
   if (contact.length > 0) {
     output += `${contact.join(' | ')}\n\n`;

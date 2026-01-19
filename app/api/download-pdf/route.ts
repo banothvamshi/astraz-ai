@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { content, type, name, email, company, jobTitle } = body;
+    const { content, type, name, email, phone, linkedin, location, company, jobTitle } = body;
 
     // Validation
     if (!content || typeof content !== "string") {
@@ -82,6 +82,9 @@ export async function POST(request: NextRequest) {
             content,
             name: name || undefined,
             email: email || undefined,
+            phone: phone || undefined,
+            linkedin: linkedin || undefined,
+            location: location || undefined,
             company: company || undefined,
             jobTitle: jobTitle || undefined,
           }),

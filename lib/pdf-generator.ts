@@ -6,6 +6,9 @@ export interface PDFOptions {
   content: string;
   name?: string;
   email?: string;
+  phone?: string;
+  linkedin?: string;
+  location?: string;
   company?: string;
   jobTitle?: string;
 }
@@ -118,7 +121,10 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
   // 1. RENDER HEADER (Name & Contact) - ALWAYS RENDER with fallbacks
   const displayName = name || "Professional Resume";
-  const displayEmail = email || "";
+  const displayEmail = options.email || "";
+  const displayPhone = options.phone || "";
+  const displayLinkedin = options.linkedin || "";
+  const displayLocation = options.location || "";
 
   checkPageBreak(40);
 
@@ -130,13 +136,32 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   doc.text(displayName, (PAGE_WIDTH - nameWidth) / 2, cursorY);
   cursorY += 10;
 
-  // Contact (Centered) - Only if we have email
-  if (displayEmail) {
+  // Build contact info line with all available fields
+  const contactParts: string[] = [];
+  if (displayEmail) contactParts.push(displayEmail);
+  if (displayPhone) contactParts.push(displayPhone);
+  if (displayLocation) contactParts.push(displayLocation);
+
+  // Contact Line 1 (Email | Phone | Location)
+  if (contactParts.length > 0) {
     doc.setFont(FONT_HEADER, "normal");
     doc.setFontSize(SIZE_BODY);
     doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
-    const emailWidth = doc.getTextWidth(displayEmail);
-    doc.text(displayEmail, (PAGE_WIDTH - emailWidth) / 2, cursorY);
+    const contactLine = contactParts.join("  |  ");
+    const contactWidth = doc.getTextWidth(contactLine);
+    doc.text(contactLine, (PAGE_WIDTH - contactWidth) / 2, cursorY);
+    cursorY += 5;
+  }
+
+  // Contact Line 2 (LinkedIn) - separate line for clean layout
+  if (displayLinkedin) {
+    doc.setFont(FONT_HEADER, "normal");
+    doc.setFontSize(SIZE_BODY - 1);
+    doc.setTextColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
+    // Clean LinkedIn URL for display
+    const linkedinDisplay = displayLinkedin.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const linkedinWidth = doc.getTextWidth(linkedinDisplay);
+    doc.text(linkedinDisplay, (PAGE_WIDTH - linkedinWidth) / 2, cursorY);
     cursorY += 5;
   }
 
