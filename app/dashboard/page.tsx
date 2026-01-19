@@ -150,6 +150,7 @@ export default function Dashboard() {
           type,
           name: nameMatch ? nameMatch[1].trim() : undefined,
           email: emailMatch ? emailMatch[1] : undefined,
+          company: companyName || undefined,
         }),
       });
 

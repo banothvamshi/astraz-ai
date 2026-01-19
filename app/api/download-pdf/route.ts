@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { content, type, name, email } = body;
+    const { content, type, name, email, company, jobTitle } = body;
 
     // Validation
     if (!content || typeof content !== "string") {
@@ -82,6 +82,8 @@ export async function POST(request: NextRequest) {
             content,
             name: name || undefined,
             email: email || undefined,
+            company: company || undefined,
+            jobTitle: jobTitle || undefined,
           }),
         {
           maxRetries: 2,
@@ -122,9 +124,8 @@ export async function POST(request: NextRequest) {
     const sanitizedName = name
       ? name.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 50)
       : "";
-    const filename = `${type === "resume" ? "Resume" : "CoverLetter"}${
-      sanitizedName ? `_${sanitizedName}` : ""
-    }_${timestamp}.pdf`;
+    const filename = `${type === "resume" ? "Resume" : "CoverLetter"}${sanitizedName ? `_${sanitizedName}` : ""
+      }_${timestamp}.pdf`;
 
     return new NextResponse(pdfBuffer as any, {
       headers: {

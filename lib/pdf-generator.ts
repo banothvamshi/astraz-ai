@@ -6,15 +6,17 @@ export interface PDFOptions {
   content: string;
   name?: string;
   email?: string;
+  company?: string;
+  jobTitle?: string;
 }
 
-// Enterprise-Grade Palette (Stark & Professional)
+// Enterprise-Grade Palette (Deep Indigo & Slate Cosmic)
 const COLORS = {
-  primary: [0, 0, 0], // Pure Black for headers
-  secondary: [40, 40, 40], // Dark Grey for subheaders
-  text: [30, 30, 30], // Almost Black for body
-  accent: [0, 0, 0], // Black accents (most professional)
-  divider: [200, 200, 200], // Light grey dividers
+  primary: [15, 23, 42], // Slate 900 (Deep Navy/Black)
+  secondary: [51, 65, 85], // Slate 700 (Professional Grey)
+  text: [30, 41, 59], // Slate 800 (High Contrast Body)
+  accent: [79, 70, 229], // Indigo 600 (Subtle Branding Accent)
+  divider: [203, 213, 225], // Slate 300
 };
 
 /**
@@ -132,11 +134,12 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
       doc.setFontSize(SIZE_BODY);
       doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
 
-      // Add Date for Cover Letter
       let contactLine = email;
+      // For Resume: Name | Phone | Location etc. (Already in contactLine if provided, but we only have email here mostly)
+      // If type is Cover Letter, we add Date here? No, standard format puts date below header or left aligned.
+      // Let's keep the centered header style for consistency.
       if (type === "coverLetter") {
-        const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-        contactLine += ` | ${today}`;
+        // Just the email in the header
       }
 
       const emailWidth = doc.getTextWidth(contactLine);
@@ -147,9 +150,38 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     // Divider Line
     cursorY += 3;
     doc.setLineWidth(0.5);
-    doc.setDrawColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]); // Black Line
+    doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]); // Indigo Accent
     doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
     cursorY += 10;
+  }
+
+  // COVER LETTER: ADD RECIPIENT BLOCK & DATE
+  if (type === "coverLetter") {
+    // Date
+    const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    doc.setFont(FONT_BODY, "normal");
+    doc.setFontSize(SIZE_BODY);
+    doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
+    doc.text(today, MARGIN, cursorY);
+    cursorY += 8;
+
+    // Recipient Block
+    if (options.company) {
+      checkPageBreak(25);
+      doc.setFont(FONT_HEADER, "bold");
+      doc.text("Hiring Manager", MARGIN, cursorY);
+      cursorY += 5;
+      doc.setFont(FONT_BODY, "normal");
+      doc.text(options.company, MARGIN, cursorY);
+      cursorY += 5;
+      // Optional: Add address placeholder or leave simplistic
+      // doc.text("Company Address", MARGIN, cursorY); 
+      // cursorY += 5;
+    } else {
+      doc.text("Hiring Manager", MARGIN, cursorY);
+      cursorY += 5;
+    }
+    cursorY += 10; // Space before salutation
   }
 
   // 2. PARSE AND RENDER CONTENT
@@ -159,6 +191,18 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   while (i < lines.length) {
     let line = lines[i].trim();
     if (!line) {
+      i++;
+      continue;
+    }
+
+    // DUPLICATION GUARD: If line matches name or is "Professional Summary" header when we just started
+    // Actually, AI sometimes outputs "# Name". We detect that.
+    if (i < 5 && name && line.toLowerCase().includes(name.toLowerCase())) {
+      i++; // Skip name if generated in markdown
+      continue;
+    }
+    // Also skip if it is just contact info (contains email)
+    if (i < 5 && email && line.toLowerCase().includes(email.toLowerCase())) {
       i++;
       continue;
     }

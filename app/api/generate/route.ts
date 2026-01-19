@@ -498,10 +498,12 @@ Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
 Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable).
 
 CRITICAL FORMATTING RULES:
-1. Use \`#\` for Main Section Headers (e.g. \`# Professional Experience\`)
-2. Use \`###\` for Job Titles (e.g. \`### Senior Software Engineer\`)
-3. On the line immediately below the Job Title, put: \`** Company Name ** | Location | Dates\`
-4. Use standard bullet points (\`-\`) for achievements.
+1. **DO NOT** include the candidate's Name, Email, Phone, or Location at the top. The system adds this automatically.
+2. **START DIRECTLY** with the first section header (e.g., \`# Professional Summary\`).
+3. Use \`#\` for Main Section Headers.
+4. Use \`###\` for Job Titles (e.g. \`### Senior Software Engineer\`)
+5. On the line immediately below the Job Title, put: \`** Company Name ** | Location | Dates\`
+6. Use standard bullet points (\`-\`) for achievements.
 
 Example Experience Entry:
 ### Senior Project Manager
@@ -606,7 +608,7 @@ CRITICAL REQUIREMENTS:
 - Include candidate's actual name: ${candidateName || "the candidate"}
 - Include specific achievements and metrics from their experience
 
- CANDIDATE INFORMATION:
+CANDIDATE INFORMATION:
 ${candidateName ? `Name: ${candidateName}` : ""}
 ${candidateEmail ? `Email: ${candidateEmail}` : ""}
 ${candidatePhone ? `Phone: ${candidatePhone}` : ""}
@@ -622,13 +624,10 @@ ${sanitizedJobDescription}
 
 Generate a COMPLETE, premium, personalized cover letter in markdown format. 
 
-CRITICAL REQUIREMENTS:
-- Write the FULL cover letter with all paragraphs complete
-- Use actual information - no placeholders
-- Include specific examples from the candidate's resume
-- Reference the company name: ${displayCompany}
-- Reference the job title: ${displayTitle}
-- Make it compelling and complete (250-400 words)
+CRITICAL FORMATTING RULES:
+1. **DO NOT** include a Header (Name, Email, Date, Address). The system adds this automatically.
+2. **START DIRECTLY** with the Salutation (e.g., "Dear Hiring Manager,").
+3. **DO NOT** use placeholders.
 
 CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers.
 
