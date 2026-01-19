@@ -506,11 +506,30 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     
     TRANSFORM MEDIOCRE CONTENT INTO EXECUTIVE-LEVEL ACHIEVEMENTS.
     
+    CRITICAL INSTRUCTION - "MENTAL SANDBOX":
+    Before generating the final resume, you must THINK silently to yourself to plan the overhaul.
+    
+    Wrap your analysis in a <thinking> block at the very beginning of your response.
+    Inside <thinking>:
+    1. **Analyze Gaps**: Compare the User's Resume vs. Job Description. What keywords are missing?
+    2. **Strategy**: How will you rephrase "weak" bullets into "strong" ones?
+    3. **Structure**: Plan the section order for maximum impact.
+    
+    Then, output the final Markdown Resume outside the <thinking> block.
+    
     CRITICAL:
     1. **REPHRASE**: Rewrite every single bullet point to be stronger, punchier, and results-oriented.
     2. **MATCH JD**: Forcefully align the experience with the Job Description keywords.
     3. **NO COPY-PASTE**: Do not just copy the user's text. Improve it. Overhaul it.
     
+    Structure your response EXACTLY as:
+    <thinking>
+    ... your analysis ...
+    </thinking>
+    
+    # Professional Summary
+    ... rest of resume ...
+
     CRITICAL INPUT HANDLING:
     - The user's resume has been parsed from a PDF and may contain "parsing artifacts".
     - **Merged Words**: You might see text like "DataScience" or "ProjectManagement". PLEASE READ THESE AS "Data Science" and "Project Management".
@@ -571,8 +590,18 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
       );
     }
 
-    // Clean generated content - remove code blocks if present
-    let cleanResume = cleanMarkdownContent(generatedResume);
+    // Clean generated content
+    let cleanResume = generatedResume;
+
+    // Remove <thinking> block if present
+    const thinkingMatch = cleanResume.match(/<thinking>[\s\S]*?<\/thinking>/);
+    if (thinkingMatch) {
+      console.log("AI Mental Sandbox Strategy:", thinkingMatch[0]); // Log the strategy for debugging/analytics!
+      cleanResume = cleanResume.replace(/<thinking>[\s\S]*?<\/thinking>/, "").trim();
+    }
+
+    // Remove code blocks if present
+    cleanResume = cleanMarkdownContent(cleanResume);
 
     // Remove all placeholders
     cleanResume = removeAllPlaceholders(cleanResume);

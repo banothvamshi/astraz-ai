@@ -4,11 +4,11 @@ import Razorpay from "razorpay";
 function getRazorpay() {
   const keyId = process.env.RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
-  
+
   if (!keyId || !keySecret) {
     throw new Error("Razorpay credentials are not configured");
   }
-  
+
   return new Razorpay({
     key_id: keyId,
     key_secret: keySecret,
@@ -17,7 +17,7 @@ function getRazorpay() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount } = await request.json();
+    const { amount, currency = "INR" } = await request.json();
 
     if (!amount) {
       return NextResponse.json(
@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
 
     const razorpay = getRazorpay();
     const options = {
-      amount: amount, // amount in paise
-      currency: "INR",
+      amount: amount, // amount in paise or cents
+      currency: currency,
       receipt: `receipt_${Date.now()}`,
     };
 

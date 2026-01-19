@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Check, Crown, Zap } from "lucide-react";
@@ -14,9 +15,16 @@ interface PaywallModalProps {
 export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProps) {
   const router = useRouter();
 
+  const [currency, setCurrency] = useState<"INR" | "USD">("INR");
+
   const handlePlanSelect = (plan: string) => {
     onOpenChange(false);
-    router.push(`/payment?plan=${plan}`);
+    router.push(`/payment?plan=${plan}&currency=${currency}`);
+  };
+
+  const prices = {
+    INR: { basic: "₹99", pro: "₹299", unlimited: "₹499" },
+    USD: { basic: "$4.99", pro: "$9.99", unlimited: "$19.99" }
   };
 
   return (
@@ -32,6 +40,23 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
           <DialogDescription className="text-center text-indigo-100">
             You've used your free trial. Unlock premium features to land your dream job.
           </DialogDescription>
+
+          <div className="mt-4 flex justify-center">
+            <div className="bg-white/20 p-1 rounded-lg flex items-center gap-1">
+              <button
+                onClick={() => setCurrency("INR")}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${currency === "INR" ? "bg-white text-indigo-600 shadow-sm" : "text-white hover:bg-white/10"}`}
+              >
+                🇮🇳 INR
+              </button>
+              <button
+                onClick={() => setCurrency("USD")}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${currency === "USD" ? "bg-white text-indigo-600 shadow-sm" : "text-white hover:bg-white/10"}`}
+              >
+                🌍 USD
+              </button>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -39,7 +64,7 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
           <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
             <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Basic</h3>
             <div className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
-              ₹99
+              {prices[currency].basic}
             </div>
             <ul className="space-y-2 mb-4 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
@@ -66,7 +91,7 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
             </div>
             <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Pro</h3>
             <div className="text-2xl font-bold text-indigo-600 mb-3">
-              ₹299
+              {prices[currency].pro}
             </div>
             <ul className="space-y-2 mb-4 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
@@ -92,7 +117,7 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
           <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
             <h3 className="font-semibold mb-1">Unlimited</h3>
             <div className="text-2xl font-bold mb-3">
-              ₹499
+              {prices[currency].unlimited}
             </div>
             <ul className="space-y-2 mb-4 text-sm">
               <li className="flex items-center gap-2 text-slate-300">

@@ -18,12 +18,23 @@ function PaymentPageContent() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
+  const [currency, setCurrency] = useState<"INR" | "USD">("INR");
+
   useEffect(() => {
     const success = searchParams.get("success");
+    const currencyParam = searchParams.get("currency");
     if (success === "true") {
       setPaymentSuccess(true);
     }
+    if (currencyParam === "USD") {
+      setCurrency("USD");
+    }
   }, [searchParams]);
+
+  const prices = {
+    INR: { basic: "₹99", pro: "₹299", unlimited: "₹499", basicVal: 9900, proVal: 29900, unlimitedVal: 49900 },
+    USD: { basic: "$4.99", pro: "$9.99", unlimited: "$19.99", basicVal: 499, proVal: 999, unlimitedVal: 1999 }
+  };
 
   const handlePayment = async (amount: number = 29900) => {
     setIsProcessing(true);
@@ -37,6 +48,7 @@ function PaymentPageContent() {
         },
         body: JSON.stringify({
           amount: amount,
+          currency: currency
         }),
       });
 
@@ -44,7 +56,7 @@ function PaymentPageContent() {
         throw new Error("Failed to create order");
       }
 
-      const { orderId, amount: orderAmount, currency } = await response.json();
+      const { orderId, amount: orderAmount, currency: orderCurrency } = await response.json();
 
       // Wait for Razorpay to be loaded
       if (!window.Razorpay) {
@@ -57,7 +69,7 @@ function PaymentPageContent() {
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
         amount: orderAmount,
-        currency: currency,
+        currency: orderCurrency,
         name: "Astraz AI",
         description: "Lifetime Premium Access",
         order_id: orderId,
@@ -172,7 +184,7 @@ function PaymentPageContent() {
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-2">Basic</h3>
                 <p className="text-sm text-slate-500 mb-4">Perfect for quick job applications</p>
                 <div className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-6">
-                  ₹99 <span className="text-sm font-normal text-slate-500">/one-time</span>
+                  {prices[currency].basic} <span className="text-sm font-normal text-slate-500">/one-time</span>
                 </div>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -186,7 +198,7 @@ function PaymentPageContent() {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => handlePayment(9900)}
+                  onClick={() => handlePayment(prices[currency].basicVal)}
                   disabled={isProcessing}
                   variant="outline"
                   className="w-full"
@@ -203,7 +215,7 @@ function PaymentPageContent() {
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-2">Pro</h3>
                 <p className="text-sm text-slate-500 mb-4">Best value for active job seekers</p>
                 <div className="text-3xl font-bold text-indigo-600 mb-6">
-                  ₹299 <span className="text-sm font-normal text-slate-500">/one-time</span>
+                  {prices[currency].pro} <span className="text-sm font-normal text-slate-500">/one-time</span>
                 </div>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -220,7 +232,7 @@ function PaymentPageContent() {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => handlePayment(29900)}
+                  onClick={() => handlePayment(prices[currency].proVal)}
                   disabled={isProcessing}
                   className="w-full bg-indigo-600 hover:bg-indigo-700"
                 >
@@ -233,7 +245,7 @@ function PaymentPageContent() {
                 <h3 className="text-lg font-semibold mb-2">Unlimited</h3>
                 <p className="text-sm text-slate-400 mb-4">For career professionals</p>
                 <div className="text-3xl font-bold mb-6">
-                  ₹499 <span className="text-sm font-normal text-slate-400">/lifetime</span>
+                  {prices[currency].unlimited} <span className="text-sm font-normal text-slate-400">/lifetime</span>
                 </div>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-slate-300">
@@ -250,7 +262,7 @@ function PaymentPageContent() {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => handlePayment(49900)}
+                  onClick={() => handlePayment(prices[currency].unlimitedVal)}
                   disabled={isProcessing}
                   className="w-full bg-white text-slate-900 hover:bg-slate-100"
                 >
