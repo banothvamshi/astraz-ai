@@ -33,7 +33,7 @@ function generateCacheKey(resumeText: string, jobDescription: string): string {
 export function getCachedResponse(
   resumeText: string,
   jobDescription: string
-): { resume: string; coverLetter: string } | null {
+): { resume: string; coverLetter?: string } | null {
   const key = generateCacheKey(resumeText, jobDescription);
   const entry = cache.get(key);
 
@@ -56,7 +56,7 @@ export function getCachedResponse(
 export function setCachedResponse(
   resumeText: string,
   jobDescription: string,
-  data: { resume: string; coverLetter: string }
+  data: { resume: string; coverLetter?: string }
 ): void {
   // Prevent cache from growing too large
   if (cache.size >= MAX_CACHE_SIZE) {

@@ -451,7 +451,7 @@ export default function Dashboard() {
 
             {/* RIGHT COLUMN: Results */}
             <div className="lg:col-span-7">
-              {(generatedResume || generatedCoverLetter) ? (
+              {generatedResume ? (
                 <div className="space-y-6">
                   {/* Resume Card */}
                   {generatedResume && (
@@ -504,55 +504,7 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {/* Cover Letter Card */}
-                  {generatedCoverLetter && (
-                    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
-                      <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-                        <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold">
-                          <FileText className="w-5 h-5" />
-                          Cover Letter
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => setEditingCoverLetter(!editingCoverLetter)}
-                            size="sm"
-                            variant="outline"
-                            className="h-8 text-xs"
-                          >
-                            {editingCoverLetter ? "View Preview" : "Edit Mode"}
-                          </Button>
-                          <Button
-                            onClick={() => handleDownload("coverLetter")}
-                            size="sm"
-                            className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700"
-                          >
-                            <Download className="mr-1.5 h-3.5 w-3.5" />
-                            PDF
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="p-0">
-                        {editingCoverLetter ? (
-                          <ResumeEditor
-                            content={generatedCoverLetter}
-                            onSave={(edited) => {
-                              setGeneratedCoverLetter(edited);
-                              setEditingCoverLetter(false);
-                            }}
-                            onCancel={() => setEditingCoverLetter(false)}
-                          />
-                        ) : (
-                          <div className="h-[400px] overflow-y-auto p-8 bg-white dark:bg-slate-950 scrollbar-thin">
-                            <div className="prose prose-sm max-w-none dark:prose-invert">
-                              <div className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-700 dark:text-slate-300 font-serif">
-                                {generatedCoverLetter}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+
                 </div>
               ) : (
                 // Empty State / Placeholder

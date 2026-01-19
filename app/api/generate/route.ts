@@ -316,31 +316,6 @@ export async function POST(request: NextRequest) {
       return /\[[^\]]+\]/.test(text) || /Hiring Manager Name/i.test(text);
     };
 
-    const sanitizeCoverLetterLocal = (text: string, candidateName?: string): string => {
-      if (!text) return text;
-      let cleaned = text;
-
-      cleaned = cleaned
-        .split("\n")
-        .filter((line) => {
-          const trimmed = line.trim();
-          if (/^\[hiring manager name\]$/i.test(trimmed)) return false;
-          if (/^hiring manager$/i.test(trimmed)) return true;
-          if (trimmed.includes("[Hiring Manager") || trimmed.includes("[Candidate")) return false;
-          return true;
-        })
-        .join("\n")
-        .trim();
-
-      if (candidateName) {
-        cleaned = cleaned.replace(/\[(candidate'?s name|your name)\]/gi, candidateName);
-      } else {
-        cleaned = cleaned.replace(/\[(candidate'?s name|your name)\]/gi, "");
-      }
-
-      return cleaned.trim();
-    };
-
     if (hasGibberishLetters(finalResumeText)) {
       return NextResponse.json(
         {
@@ -368,13 +343,10 @@ export async function POST(request: NextRequest) {
     if (
       cachedResponse &&
       !hasGibberishLetters(cachedResponse.resume) &&
-      !hasGibberishLetters(cachedResponse.coverLetter) &&
-      !hasPlaceholderTokens(cachedResponse.resume) &&
-      !hasPlaceholderTokens(cachedResponse.coverLetter)
+      !hasPlaceholderTokens(cachedResponse.resume)
     ) {
       return NextResponse.json({
         resume: cachedResponse.resume,
-        coverLetter: cachedResponse.coverLetter,
         cached: true,
         rateLimit: {
           remaining: rateLimit.remaining,
@@ -403,9 +375,6 @@ export async function POST(request: NextRequest) {
     const displayTitle = normalizedJobTitle && normalizedJobTitle.length > 1 ? normalizedJobTitle : "the role";
     const displayCompany = normalizedCompany && normalizedCompany.length > 1 ? normalizedCompany : "the company";
     const displayLocation = normalizedLocation && normalizedLocation.length > 1 ? normalizedLocation : undefined;
-    const coverLetterAddressee = normalizedCompany && normalizedCompany.length > 1
-      ? `Hiring Manager at ${normalizedCompany}`
-      : "Hiring Manager";
 
     // Check execution time
     const elapsedTime = Date.now() - startTime;
@@ -530,7 +499,7 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     let generatedResume: string;
     try {
       const systemPrompt = `
-    You are an expert ATS-Optimization AI. Your goal is to write a perfect, keyword-optimized resume and cover letter based on the user's background and the target job description.
+    You are an expert ATS-Optimization AI. Your goal is to write a perfect, keyword-optimized resume based on the user's background and the target job description.
     
     CRITICAL INPUT HANDLING:
     - The user's resume has been parsed from a PDF and may contain "parsing artifacts".
@@ -553,7 +522,7 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
             systemPrompt,
             {
               temperature: 0.4, // Lower for more consistent, professional output
-              maxOutputTokens: 8000, // Increased significantly for complete, comprehensive resumes
+              maxOutputTokens: 15000, // Maximized for PERFECTION and detail
             }
           ),
         {
@@ -584,115 +553,6 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
       );
     }
 
-    // Premium cover letter generation
-    const candidateName = structuredResume.name || resumeSections.name || "The Candidate";
-    const candidateEmail = structuredResume.email || resumeSections.email || "";
-    const candidatePhone = structuredResume.phone || resumeSections.phone || "";
-
-    const coverLetterPrompt = `You are a master cover letter writer.
-    
-TASK: Write a COMPLETE, premium cover letter.
-- Address it to: ${coverLetterAddressee}
-- Candidate Name: ${candidateName}
-- Position: ${displayTitle}
-- Company: ${displayCompany}
-
-CRITICAL INSTRUCTIONS:
-1. **OCR CORRECTION**: If the Job Title in the resume has OCR typos (e.g. "Technicaior"), FIX THEM to standard English (e.g. "Technical").
-2. **NO PLACEHOLDERS**: Do NOT use "[Your Name]". Use "${candidateName}".
-3. **NO HEADERS**: Do NOT include a Name/Email/Address header. Start directly with the Salutation.
-4. **CONTENT**: Write 3 full paragraphs (Intro, Experience Match, Closing).
-
-CANDIDATE INFORMATION:
-${candidateName ? `Name: ${candidateName}` : ""}
-${candidateEmail ? `Email: ${candidateEmail}` : ""}
-${candidatePhone ? `Phone: ${candidatePhone}` : ""}
-Key Experience: ${resumeSections.sections["EXPERIENCE"]?.substring(0, 800) || finalResumeText.substring(0, 800) || "Experienced professional"}
-
-
-JOB DETAILS:
-Position: ${displayTitle}
-Company: ${displayCompany}
-${displayLocation ? `Location: ${displayLocation}` : ""}
-
-Full Job Description:
-${sanitizedJobDescription}
-
-Generate a COMPLETE, premium, personalized cover letter in markdown format. 
-
-CRITICAL FORMATTING RULES:
-1. **START DIRECTLY** with the Salutation (e.g., "Dear Hiring Manager,").
-2. **DO NOT** include a Header block.
-3. Output ONLY the markdown content.
-
-SIGN-OFF RULES:
-- End with "Sincerely,".
-- Print candidate's name: "${candidateName}".
-
-Generate now.`;
-
-    // Generate cover letter with retry logic
-    let generatedCoverLetter: string;
-    try {
-      generatedCoverLetter = await retry(
-        () =>
-          generateText(
-            coverLetterPrompt,
-            `You are an expert cover letter writer with a track record of helping candidates land interviews.
-            Your cover letters are personalized, compelling, and demonstrate genuine interest.
-            You avoid clichés and generic statements.Every sentence adds value.
-            Maintain authenticity and professionalism.`,
-            {
-              temperature: 0.5, // Lower for more consistent quality
-              maxOutputTokens: 2048, // Optimized for cover letter length (usually ~1 page)
-            }
-          ),
-        {
-          maxRetries: 2,
-          initialDelay: 2000,
-          retryableErrors: ["rate limit", "quota", "timeout"],
-        }
-      );
-    } catch (genError: any) {
-      console.error("Cover letter generation error:", genError);
-
-      // If cover letter fails but resume succeeded, return partial success
-      if (generatedResume) {
-        return NextResponse.json(
-          {
-            resume: generatedResume,
-            coverLetter: null,
-            error: "Failed to generate cover letter. Resume generated successfully.",
-            rateLimit: {
-              remaining: rateLimit.remaining,
-              resetAt: rateLimit.resetAt,
-            },
-          },
-          { status: 207 } // Multi-Status
-        );
-      }
-
-      if (genError.message?.includes("rate limit") || genError.message?.includes("quota")) {
-        return NextResponse.json(
-          {
-            error: "AI service is temporarily busy. Please try again in a few moments.",
-            retryAfter: 60,
-          },
-          { status: 503 }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          error: "Failed to generate cover letter. Please try again.",
-          details: process.env.NODE_ENV === "development" ? genError.message : undefined,
-        },
-        { status: 500 }
-      );
-    }
-
-    generatedCoverLetter = sanitizeCoverLetterLocal(generatedCoverLetter, candidateName);
-
     // Validate generated content
     if (!generatedResume || generatedResume.trim().length < 100) {
       return NextResponse.json(
@@ -701,24 +561,13 @@ Generate now.`;
       );
     }
 
-    // If cover letter is too short, log but don't fail - return with whatever we have
-    if (!generatedCoverLetter || generatedCoverLetter.trim().length < 50) {
-      console.warn("Cover letter too short or missing, continuing with resume only");
-      generatedCoverLetter = ""; // Set to empty string instead of failing
-    }
-
     // Clean generated content - remove code blocks if present
     let cleanResume = cleanMarkdownContent(generatedResume);
-    let cleanCoverLetter = cleanMarkdownContent(generatedCoverLetter);
 
-    // Remove all placeholders from both resume and cover letter
+    // Remove all placeholders
     cleanResume = removeAllPlaceholders(cleanResume);
-    cleanCoverLetter = removeAllPlaceholders(cleanCoverLetter);
 
-    // Additional cover letter placeholder sanitization
-    cleanCoverLetter = sanitizeCoverLetterLocal(cleanCoverLetter, candidateName);
-
-    if (hasGibberishLetters(cleanResume) || hasGibberishLetters(cleanCoverLetter)) {
+    if (hasGibberishLetters(cleanResume)) {
       return NextResponse.json(
         {
           error:
@@ -739,7 +588,6 @@ Generate now.`;
     try {
       setCachedResponse(finalResumeText, sanitizedJobDescription, {
         resume: cleanResume,
-        coverLetter: cleanCoverLetter,
       });
     } catch (cacheError) {
       // Cache failure is not critical, continue
@@ -748,7 +596,6 @@ Generate now.`;
 
     const response = NextResponse.json({
       resume: cleanResume,
-      coverLetter: cleanCoverLetter,
       meta: {
         ...structuredResume,
         name: normalizedResume.name || structuredResume.name,
@@ -780,7 +627,6 @@ Generate now.`;
       resumeData: structuredResume,
       jobDescription: parsedJob,
       generatedResume: cleanResume,
-      generatedCoverLetter: cleanCoverLetter,
       contactInfo: {
         name: normalizedResume.name,
         email: normalizedResume.email,

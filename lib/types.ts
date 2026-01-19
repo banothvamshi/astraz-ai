@@ -178,7 +178,7 @@ export interface GenerationInput {
  */
 export interface GenerationResult {
     resume: string;
-    coverLetter: string;
+    coverLetter?: string;
     parsedContact: ContactInfo;
     parsedJob: ParsedJobData;
     cached: boolean;

@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!type || (type !== "resume" && type !== "coverLetter")) {
+    if (!type || type !== "resume") {
       return NextResponse.json(
-        { error: "Invalid type. Must be 'resume' or 'coverLetter'" },
+        { error: "Invalid type. Only 'resume' is supported." },
         { status: 400 }
       );
     }
@@ -127,8 +127,7 @@ export async function POST(request: NextRequest) {
     const sanitizedName = name
       ? name.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 50)
       : "";
-    const filename = `${type === "resume" ? "Resume" : "CoverLetter"}${sanitizedName ? `_${sanitizedName}` : ""
-      }_${timestamp}.pdf`;
+    const filename = `Resume${sanitizedName ? `_${sanitizedName}` : ""}_${timestamp}.pdf`;
 
     return new NextResponse(pdfBuffer as any, {
       headers: {

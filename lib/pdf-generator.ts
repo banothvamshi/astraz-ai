@@ -2,7 +2,7 @@ import { jsPDF } from "jspdf";
 import { removeAllPlaceholders } from "./placeholder-detector";
 
 export interface PDFOptions {
-  type: "resume" | "coverLetter";
+  type: "resume";
   content: string;
   name?: string;
   email?: string;
@@ -188,33 +188,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   cursorY += 10;
 
   // COVER LETTER: ADD RECIPIENT BLOCK & DATE
-  if (type === "coverLetter") {
-    // Date
-    const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-    doc.setFont(FONT_BODY, "normal");
-    doc.setFontSize(SIZE_BODY);
-    doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-    doc.text(today, MARGIN, cursorY);
-    cursorY += 8;
 
-    // Recipient Block
-    if (options.company) {
-      checkPageBreak(25);
-      doc.setFont(FONT_HEADER, "bold");
-      doc.text("Hiring Manager", MARGIN, cursorY);
-      cursorY += 5;
-      doc.setFont(FONT_BODY, "normal");
-      doc.text(options.company, MARGIN, cursorY);
-      cursorY += 5;
-      // Optional: Add address placeholder or leave simplistic
-      // doc.text("Company Address", MARGIN, cursorY); 
-      // cursorY += 5;
-    } else {
-      doc.text("Hiring Manager", MARGIN, cursorY);
-      cursorY += 5;
-    }
-    cursorY += 10; // Space before salutation
-  }
 
   // 2. PARSE AND RENDER CONTENT
   const lines = cleanedContent.split("\n");
