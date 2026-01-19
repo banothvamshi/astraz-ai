@@ -498,6 +498,7 @@ Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
 Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable).
 
 CRITICAL FORMATTING RULES:
+0. **OCR CORRECTION**: If Job Titles or Company Names have typos (e.g. "Technicaior"), FIX them. Do not preserve errors.
 1. **DO NOT** include the candidate's Name, Email, Phone, or Location at the top. The system adds this automatically.
 2. **START DIRECTLY** with the first section header (e.g., \`# Professional Summary\`).
 3. Use \`#\` for Main Section Headers.
@@ -581,60 +582,62 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     }
 
     // Premium cover letter generation
-    const candidateName = structuredResume.name || resumeSections.name;
-    const candidateEmail = structuredResume.email || resumeSections.email;
-    const candidatePhone = structuredResume.phone || resumeSections.phone;
+    const candidateName = structuredResume.name || resumeSections.name || "The Candidate";
+    const candidateEmail = structuredResume.email || resumeSections.email || "";
+    const candidatePhone = structuredResume.phone || resumeSections.phone || "";
 
-    const coverLetterPrompt = `You are a master cover letter writer who crafts compelling, personalized letters that get candidates interviews.
-
-TASK: Write a COMPLETE, premium cover letter that:
-1. Opens with a strong, attention-grabbing hook
-2. Demonstrates understanding of the company and role
-3. Connects candidate's experience to job requirements
-4. Shows enthusiasm and cultural fit
-5. Ends with a confident call to action
-
-CRITICAL: Generate a COMPLETE cover letter. Do NOT use placeholders. Use actual information from the resume and job description.
-
-CRITICAL REQUIREMENTS:
+    const coverLetterPrompt = `You are a master cover letter writer.
+    
+TASK: Write a COMPLETE, premium cover letter.
 - Address it to: ${coverLetterAddressee}
-- Reference the position: ${displayTitle}
-- Use SPECIFIC examples from the resume (mention actual achievements, companies, projects)
-- Show knowledge of the company/industry from the job description
-- Professional but warm tone
-- 3-4 well-structured paragraphs (250-400 words total)
-- No generic phrases like "I am writing to apply" or "[Your Name]"
-- Be concise but impactful
-- Include candidate's actual name: ${candidateName || "the candidate"}
-- Include specific achievements and metrics from their experience
+- Candidate Name: ${candidateName}
+- Position: ${displayTitle}
+- Company: ${displayCompany}
+
+CRITICAL:
+1. If the Job Title in the resume has OCR typos (e.g. "Technicaior"), FIX THEM to standard English (e.g. "Technical").
+2. Write 3 full paragraphs (Intro, Experience Match, Closing).
+3. Do NOT use placeholders like "[Your Name]". Use "${candidateName}".
+4. Generate ONLY the body of the letter.
+
+Generate now.`;
+    - Reference the position: ${ displayTitle }
+    - Use SPECIFIC examples from the resume(mention actual achievements, companies, projects)
+      - Show knowledge of the company / industry from the job description
+        - Professional but warm tone
+          - 3 - 4 well - structured paragraphs(250 - 400 words total)
+            - No generic phrases like "I am writing to apply" or "[Your Name]"
+              - Be concise but impactful
+                - Include candidate's actual name: ${candidateName || "the candidate"}
+                  - Include specific achievements and metrics from their experience
 
 CANDIDATE INFORMATION:
-${candidateName ? `Name: ${candidateName}` : ""}
-${candidateEmail ? `Email: ${candidateEmail}` : ""}
-${candidatePhone ? `Phone: ${candidatePhone}` : ""}
-Key Experience: ${resumeSections.sections["EXPERIENCE"]?.substring(0, 500) || finalResumeText.substring(0, 500)}
+${ candidateName ? `Name: ${candidateName}` : "" }
+${ candidateEmail ? `Email: ${candidateEmail}` : "" }
+${ candidatePhone ? `Phone: ${candidatePhone}` : "" }
+Key Experience: ${ resumeSections.sections["EXPERIENCE"]?.substring(0, 500) || finalResumeText.substring(0, 500) }
 
 JOB DETAILS:
-Position: ${displayTitle}
-Company: ${displayCompany}
-${displayLocation ? `Location: ${displayLocation}` : ""}
+    Position: ${ displayTitle }
+    Company: ${ displayCompany }
+${ displayLocation ? `Location: ${displayLocation}` : "" }
 
 Full Job Description:
-${sanitizedJobDescription}
+${ sanitizedJobDescription }
 
 Generate a COMPLETE, premium, personalized cover letter in markdown format. 
 
 CRITICAL FORMATTING RULES:
-1. **DO NOT** include a Header (Name, Email, Date, Address). The system adds this automatically.
-2. **START DIRECTLY** with the Salutation (e.g., "Dear Hiring Manager,").
-3. **DO NOT** use placeholders.
+    1. ** DO NOT ** include a Header(Name, Email, Date, Address).The system adds this automatically.
+2. ** START DIRECTLY ** with the Salutation(e.g., "Dear Hiring Manager,").
+3. ** DO NOT ** use placeholders.
 
-CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers.
+      CRITICAL: Output ONLY the markdown content.Do NOT wrap it in code blocks.Output raw markdown text directly without any code block markers.
 
-SIGN-OFF RULES:
-- End the letter with "Sincerely," on its own line.
+        SIGN - OFF RULES:
+    - End the letter with "Sincerely," on its own line.
 - Then print the candidate's real name on the next line.
-- If candidate name is missing from the resume text, end with just "Sincerely," and do NOT add placeholders.
+      - If candidate name is missing from the resume text, end with just "Sincerely," and do NOT add placeholders.
 
 Generate the COMPLETE cover letter now.`;
 
@@ -647,7 +650,7 @@ Generate the COMPLETE cover letter now.`;
             coverLetterPrompt,
             `You are an expert cover letter writer with a track record of helping candidates land interviews.
             Your cover letters are personalized, compelling, and demonstrate genuine interest.
-            You avoid clichés and generic statements. Every sentence adds value.
+            You avoid clichés and generic statements.Every sentence adds value.
             Maintain authenticity and professionalism.`,
             {
               temperature: 0.5, // Lower for more consistent quality
