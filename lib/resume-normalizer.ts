@@ -72,32 +72,35 @@ function extractName(text: string): string {
 
   if (lines.length === 0) return '';
 
-  // Look for first line that's not a header/metadata
-  for (let i = 0; i < Math.min(10, lines.length); i++) {
-    const line = lines[i].trim();
+  // Look for first 5 lines
+  for (let i = 0; i < Math.min(5, lines.length); i++) {
+    let line = lines[i].trim();
 
-    // Skip if it looks like a header, metadata, or URL
-    if (line.match(/^(resume|cv|curriculum|vitae|contact|email|phone|location|http|www|page)/i)) {
+    // Skip technical headers only
+    if (line.match(/^(resume|cv|curriculum|vitae|page|summary)/i)) {
       continue;
     }
 
-    // Skip if it contains email or phone
-    if (line.match(PATTERNS.EMAIL) || line.match(PATTERNS.PHONE)) {
-      continue;
-    }
+    // Heuristic: Name is usually the first significant line that isn't an email/phone/url
+    // But sometimes Name IS on the same line as contact info in bad parsing.
+    // However, usually it's on its own line.
 
-    // Likely a name if it's short (2-4 words) and mostly letters
+    // Check if line is purely an email or phone
+    if (PATTERNS.EMAIL.test(line) && line.split('@').length === 2 && line.length < 50) continue;
+
+    // If line has < 5 words and is mostly letters, it's a strong candidate
     const words = line.split(/\s+/);
-    if (words.length >= 2 && words.length <= 4) {
-      const isMostlyLetters = words.every(w => /^[a-zA-Z\.\-]+$/.test(w));
-      if (isMostlyLetters) return line;
-    }
-
-    // Fallback: mostly capitalized words
-    if (line.length > 2 && line.length < 50 && !line.includes(':')) {
-      return line;
+    if (words.length >= 1 && words.length <= 4) {
+      // Clean noise
+      const cleanLine = line.replace(/[^a-zA-Z\s.-]/g, '');
+      if (cleanLine.length > 2) {
+        return cleanLine.trim();
+      }
     }
   }
+
+  // Fallback: Just return the first line if it's reasonably short
+  if (lines[0] && lines[0].length < 40) return lines[0].trim();
 
   return '';
 }
@@ -111,113 +114,58 @@ function extractContact(text: string): { email: string; phone: string; location:
   const email = emailMatch?.[0] || '';
 
   // 2. Phone Extraction
-  // We look for phone patterns, but iterate to find the most "phone-like" one
-  // (skipping things that might look like dates 2020-2021)
   const phoneMatcher = new RegExp(PATTERNS.PHONE, 'g');
   const possiblePhones = text.match(phoneMatcher) || [];
   let phone = '';
 
   for (const p of possiblePhones) {
     const digits = p.replace(/\D/g, '');
-    // Valid phones usually 10-15 digits
     if (digits.length >= 10 && digits.length <= 15) {
-      // Filter out common false positives like "2020-2021" (8 digits, but sometimes nearby text makes it longer)
-      // or ISO dates "2023-01-01"
       if (!p.match(/^\d{4}[-]\d{4}$/) && !p.match(/^\d{4}[-]\d{2}[-]\d{2}$/)) {
         phone = p.trim();
-        break; // Take first valid-looking phone
-      }
-    }
-  }
-
-  // 3. Location Extraction
-  // Heuristic:
-  // - Look for "City, State" or "City, Country"
-  // - Look for Zip Codes
-  // - Look for known countries/major cities if pattern matching fails
-
-  /* 
-     Regex explanation:
-     - ([A-Z][a-zA-Z\s\.]+)  -> City (needs Capital)
-     - [,\s\|•-]+            -> Separator 
-     - ([A-Z]{2,}|[A-Z][a-zA-Z\s]+) -> State/Country
-     - Excludes common false positives like "System Engineer" or "Jan 2020"
-  */
-  // We filter candidates later, but regex can be smarter
-  const locationRegex = /([A-Z][a-zA-Z\.\s]{2,15})[,\s\|•-]+([A-Z]{2,}|[A-Z][a-zA-Z\s]+)(?:\s+\d{5,6})?/g;
-
-  const BLACKLIST_LOCATIONS = [
-    'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december',
-    'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
-    'engineer', 'developer', 'manager', 'consultant', 'analyst', 'associate', 'resume', 'curriculum', 'vitae'
-  ];
-
-  // Filter candidates from the first 500 characters (header area)
-  const headerText = text.substring(0, 1000);
-  const lines = headerText.split('\n');
-  let location = '';
-
-  // Strategy A: Regex match on lines
-  for (const line of lines) {
-    if (line.match(PATTERNS.EMAIL) || line.match(PATTERNS.PHONE) || line.length > 60) continue;
-
-    const match = locationRegex.exec(line);
-    if (match) {
-      const candidate = match[0].trim();
-      const lowerCand = candidate.toLowerCase();
-
-      // Check blacklist
-      const isBlacklisted = BLACKLIST_LOCATIONS.some(bad => lowerCand.includes(bad));
-      if (!isBlacklisted) {
-        location = candidate;
         break;
       }
     }
   }
 
-  // Strategy B: Fallback for explicit country/city mentions if regex failed
-  if (!location) {
-    // Extensive list of common locations
-    const commonLocations = [
-      'India', 'USA', 'United States', 'Remote', 'London', 'New York', 'California', 'Texas',
-      'Bangalore', 'Bengaluru', 'Hyderabad', 'Mumbai', 'Delhi', 'Pune', 'Chennai', 'Gurgaon', 'Noida', 'Kolkata', 'Ahmedabad',
-      'Toronto', 'Vancouver', 'Canada', 'Germany', 'Berlin', 'Munich', 'UK', 'Singapore', 'Dubai', 'UAE', 'Australia', 'Sydney', 'Melbourne'
-    ];
+  // 3. Location Extraction
+  const BLACKLIST_LOCATIONS = [
+    'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december',
+    'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
+    'engineer', 'developer', 'manager', 'consultant', 'analyst', 'associate', 'resume', 'curriculum', 'vitae',
+    'summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'languages', 'interests',
+    'english', 'hindi', 'telugu', 'tamil', 'kannada', 'marathi', 'gujarati', 'urdu', 'punjabi', 'bengali', 'malayalam'
+  ];
 
-    // Check first 1000 chars for these words
-    const lowerHeader = headerText.toLowerCase();
+  const commonLocations = [
+    'India', 'USA', 'United States', 'Remote', 'London', 'New York', 'California', 'Texas',
+    'Bangalore', 'Bengaluru', 'Hyderabad', 'Mumbai', 'Delhi', 'Pune', 'Chennai', 'Gurgaon', 'Noida', 'Kolkata', 'Ahmedabad',
+    'Toronto', 'Vancouver', 'Canada', 'Germany', 'Berlin', 'Munich', 'UK', 'Singapore', 'Dubai', 'UAE', 'Australia', 'Sydney', 'Melbourne'
+  ];
 
-    for (const loc of commonLocations) {
-      if (lowerHeader.includes(loc.toLowerCase())) {
-        // Found a match! 
-        // Now we try to find the "Display" version from the original text to preserve casing
-        const regex = new RegExp(`\\b${loc}\\b`, 'i');
-        const match = headerText.match(regex);
-        if (match) {
-          // Check if it's part of a longer string like "Hyderabad, India"
-          // We grab a window around it
-          const idx = match.index!;
-          const windowStart = Math.max(0, idx - 15);
-          const windowEnd = Math.min(headerText.length, idx + 15 + match[0].length);
-          const window = headerText.substring(windowStart, windowEnd);
+  // Look at the first 1000 chars (Header Area)
+  const headerText = text.substring(0, 1000);
+  let location = '';
 
-          // Look for "City, Country" pattern in this window
-          // e.g. "Hyderabad, India" or "Hyderabad India"
-          if (window.includes(',')) {
-            const parts = window.split(/[,\n]/);
-            // Find the part containing our location
-            const part = parts.find(p => p.toLowerCase().includes(loc.toLowerCase()));
-            if (part && part.length < 30) {
-              location = part.trim();
-              // Should probably grab comma neighbor too if it looks like a location
-            } else {
-              location = match[0];
-            }
-          } else {
-            location = match[0];
-          }
-          break;
-        }
+  // Strategy A: Split by common delimiters (|, •, newline) and check each part
+  const tokens = headerText.split(/[\n|•]/);
+
+  for (const token of tokens) {
+    const cleanToken = token.trim();
+    if (cleanToken.length < 2 || cleanToken.length > 50) continue;
+
+    // Skip email/phone/url
+    if (PATTERNS.EMAIL.test(cleanToken) || PATTERNS.PHONE.test(cleanToken) || PATTERNS.URL.test(cleanToken)) continue;
+
+    const lowerToken = cleanToken.toLowerCase();
+
+    // Check if it matches a known location
+    const matchedLocation = commonLocations.find(loc => lowerToken.includes(loc.toLowerCase()));
+    if (matchedLocation) {
+      // Validate it's not a blacklist word
+      if (!BLACKLIST_LOCATIONS.some(bad => lowerToken.includes(bad))) {
+        location = cleanToken; // Take the full token (e.g. "Hyderabad, India")
+        break;
       }
     }
   }
