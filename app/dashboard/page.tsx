@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [resumeMeta, setResumeMeta] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedResume, setGeneratedResume] = useState<string | null>(null);
   const [generatedCoverLetter, setGeneratedCoverLetter] = useState<string | null>(null);
@@ -108,6 +109,7 @@ export default function Dashboard() {
 
       setGeneratedResume(data.resume);
       setGeneratedCoverLetter(data.coverLetter);
+      setResumeMeta(data.meta);
 
       // Mark trial as used
       if (canTrial) {
@@ -148,8 +150,8 @@ export default function Dashboard() {
         body: JSON.stringify({
           content,
           type,
-          name: nameMatch ? nameMatch[1].trim() : undefined,
-          email: emailMatch ? emailMatch[1] : undefined,
+          name: resumeMeta?.name || (nameMatch ? nameMatch[1].trim() : undefined),
+          email: resumeMeta?.email || (emailMatch ? emailMatch[1] : undefined),
           company: companyName || undefined,
         }),
       });

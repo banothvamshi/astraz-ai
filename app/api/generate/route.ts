@@ -757,6 +757,7 @@ Generate the COMPLETE cover letter now.`;
     return NextResponse.json({
       resume: cleanResume,
       coverLetter: cleanCoverLetter,
+      meta: structuredResume, // Return parsed metadata for frontend use
       cached: false,
       rateLimit: {
         remaining: rateLimit.remaining,
