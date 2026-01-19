@@ -697,11 +697,10 @@ Generate now.`;
       );
     }
 
+    // If cover letter is too short, log but don't fail - return with whatever we have
     if (!generatedCoverLetter || generatedCoverLetter.trim().length < 50) {
-      return NextResponse.json(
-        { error: "Generated cover letter is too short. Please try again." },
-        { status: 500 }
-      );
+      console.warn("Cover letter too short or missing, continuing with resume only");
+      generatedCoverLetter = ""; // Set to empty string instead of failing
     }
 
     // Clean generated content - remove code blocks if present
