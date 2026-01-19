@@ -116,44 +116,36 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     cursorY += 1.5; // Slight spacing between bullets
   };
 
-  // 1. RENDER HEADER (Name & Contact)
-  if (name) {
-    checkPageBreak(40);
+  // 1. RENDER HEADER (Name & Contact) - ALWAYS RENDER with fallbacks
+  const displayName = name || "Professional Resume";
+  const displayEmail = email || "";
 
-    // Name (Centered)
-    doc.setFont(FONT_HEADER, "bold");
-    doc.setFontSize(SIZE_NAME);
-    doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-    const nameWidth = doc.getTextWidth(name);
-    doc.text(name, (PAGE_WIDTH - nameWidth) / 2, cursorY);
-    cursorY += 10;
+  checkPageBreak(40);
 
-    // Contact (Centered)
-    if (email) {
-      doc.setFont(FONT_HEADER, "normal");
-      doc.setFontSize(SIZE_BODY);
-      doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
+  // Name (Centered)
+  doc.setFont(FONT_HEADER, "bold");
+  doc.setFontSize(SIZE_NAME);
+  doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+  const nameWidth = doc.getTextWidth(displayName);
+  doc.text(displayName, (PAGE_WIDTH - nameWidth) / 2, cursorY);
+  cursorY += 10;
 
-      let contactLine = email;
-      // For Resume: Name | Phone | Location etc. (Already in contactLine if provided, but we only have email here mostly)
-      // If type is Cover Letter, we add Date here? No, standard format puts date below header or left aligned.
-      // Let's keep the centered header style for consistency.
-      if (type === "coverLetter") {
-        // Just the email in the header
-      }
-
-      const emailWidth = doc.getTextWidth(contactLine);
-      doc.text(contactLine, (PAGE_WIDTH - emailWidth) / 2, cursorY);
-      cursorY += 5;
-    }
-
-    // Divider Line
-    cursorY += 3;
-    doc.setLineWidth(0.5);
-    doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]); // Indigo Accent
-    doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
-    cursorY += 10;
+  // Contact (Centered) - Only if we have email
+  if (displayEmail) {
+    doc.setFont(FONT_HEADER, "normal");
+    doc.setFontSize(SIZE_BODY);
+    doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
+    const emailWidth = doc.getTextWidth(displayEmail);
+    doc.text(displayEmail, (PAGE_WIDTH - emailWidth) / 2, cursorY);
+    cursorY += 5;
   }
+
+  // Divider Line
+  cursorY += 3;
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
+  doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
+  cursorY += 10;
 
   // COVER LETTER: ADD RECIPIENT BLOCK & DATE
   if (type === "coverLetter") {

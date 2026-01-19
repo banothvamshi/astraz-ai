@@ -25,7 +25,7 @@ function PaymentPageContent() {
     }
   }, [searchParams]);
 
-  const handlePayment = async () => {
+  const handlePayment = async (amount: number = 29900) => {
     setIsProcessing(true);
 
     try {
@@ -36,7 +36,7 @@ function PaymentPageContent() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: 29900, // ₹299 in paise
+          amount: amount,
         }),
       });
 
@@ -44,7 +44,7 @@ function PaymentPageContent() {
         throw new Error("Failed to create order");
       }
 
-      const { orderId, amount, currency } = await response.json();
+      const { orderId, amount: orderAmount, currency } = await response.json();
 
       // Wait for Razorpay to be loaded
       if (!window.Razorpay) {
@@ -56,7 +56,7 @@ function PaymentPageContent() {
       // Initialize Razorpay
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
-        amount: amount,
+        amount: orderAmount,
         currency: currency,
         name: "Astraz AI",
         description: "Lifetime Premium Access",
@@ -154,46 +154,114 @@ function PaymentPageContent() {
         </nav>
 
         <div className="container mx-auto px-4 py-20 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-md">
-            <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-lg dark:border-slate-800 dark:bg-slate-900">
-              <h1 className="mb-2 text-2xl font-bold text-slate-900 dark:text-slate-50">
-                Upgrade to Premium
+          <div className="mx-auto max-w-4xl">
+            {/* Header */}
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+                Choose Your Plan
               </h1>
-              <p className="mb-6 text-slate-600 dark:text-slate-400">
-                Get lifetime access to unlimited resume and cover letter generations.
-              </p>
-
-              <div className="mb-6 rounded-lg border border-slate-200 bg-gradient-to-br from-blue-50 to-slate-50 p-6 dark:border-slate-800 dark:from-blue-950/20 dark:to-slate-900">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-slate-900 dark:text-slate-50">
-                    ₹299
-                  </div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400">
-                    One-time payment • Lifetime access
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                onClick={handlePayment}
-                disabled={isProcessing}
-                className="w-full bg-gradient-to-r from-blue-600 to-slate-900 hover:from-blue-700 hover:to-slate-800"
-                size="lg"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  "Pay ₹299"
-                )}
-              </Button>
-
-              <p className="mt-4 text-center text-xs text-slate-500 dark:text-slate-400">
-                Secure payment via Razorpay • UPI, Cards, Net Banking supported
+              <p className="text-lg text-slate-600 dark:text-slate-400">
+                Invest in your career. Get unlimited access to AI-powered resume optimization.
               </p>
             </div>
+
+            {/* Pricing Grid */}
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Basic Plan */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-2">Basic</h3>
+                <p className="text-sm text-slate-500 mb-4">Perfect for quick job applications</p>
+                <div className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-6">
+                  ₹99 <span className="text-sm font-normal text-slate-500">/one-time</span>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Check className="h-4 w-4 text-emerald-500" /> 3 Resume Generations
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Check className="h-4 w-4 text-emerald-500" /> 3 Cover Letters
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Check className="h-4 w-4 text-emerald-500" /> PDF Export
+                  </li>
+                </ul>
+                <Button
+                  onClick={() => handlePayment(9900)}
+                  disabled={isProcessing}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Get Started
+                </Button>
+              </div>
+
+              {/* Pro Plan - Recommended */}
+              <div className="relative rounded-2xl border-2 border-indigo-500 bg-white p-6 shadow-xl dark:bg-slate-900">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white">
+                  MOST POPULAR
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-2">Pro</h3>
+                <p className="text-sm text-slate-500 mb-4">Best value for active job seekers</p>
+                <div className="text-3xl font-bold text-indigo-600 mb-6">
+                  ₹299 <span className="text-sm font-normal text-slate-500">/one-time</span>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Check className="h-4 w-4 text-emerald-500" /> 25 Resume Generations
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Check className="h-4 w-4 text-emerald-500" /> 25 Cover Letters
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Check className="h-4 w-4 text-emerald-500" /> Premium Templates
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Check className="h-4 w-4 text-emerald-500" /> Priority Processing
+                  </li>
+                </ul>
+                <Button
+                  onClick={() => handlePayment(29900)}
+                  disabled={isProcessing}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : "Get Pro"}
+                </Button>
+              </div>
+
+              {/* Unlimited Plan */}
+              <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-6 shadow-sm text-white">
+                <h3 className="text-lg font-semibold mb-2">Unlimited</h3>
+                <p className="text-sm text-slate-400 mb-4">For career professionals</p>
+                <div className="text-3xl font-bold mb-6">
+                  ₹499 <span className="text-sm font-normal text-slate-400">/lifetime</span>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-center gap-2 text-sm text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400" /> Unlimited Generations
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400" /> All Premium Templates
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400" /> LinkedIn Optimization
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-300">
+                    <Check className="h-4 w-4 text-emerald-400" /> Priority Support
+                  </li>
+                </ul>
+                <Button
+                  onClick={() => handlePayment(49900)}
+                  disabled={isProcessing}
+                  className="w-full bg-white text-slate-900 hover:bg-slate-100"
+                >
+                  Go Unlimited
+                </Button>
+              </div>
+            </div>
+
+            <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+              Secure payment via Razorpay • UPI, Cards, Net Banking supported
+            </p>
           </div>
         </div>
       </div>
