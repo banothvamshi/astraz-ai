@@ -594,52 +594,38 @@ TASK: Write a COMPLETE, premium cover letter.
 - Position: ${displayTitle}
 - Company: ${displayCompany}
 
-CRITICAL:
-1. If the Job Title in the resume has OCR typos (e.g. "Technicaior"), FIX THEM to standard English (e.g. "Technical").
-2. Write 3 full paragraphs (Intro, Experience Match, Closing).
-3. Do NOT use placeholders like "[Your Name]". Use "${candidateName}".
-4. Generate ONLY the body of the letter.
-
-Generate now.`;
-    - Reference the position: ${ displayTitle }
-    - Use SPECIFIC examples from the resume(mention actual achievements, companies, projects)
-      - Show knowledge of the company / industry from the job description
-        - Professional but warm tone
-          - 3 - 4 well - structured paragraphs(250 - 400 words total)
-            - No generic phrases like "I am writing to apply" or "[Your Name]"
-              - Be concise but impactful
-                - Include candidate's actual name: ${candidateName || "the candidate"}
-                  - Include specific achievements and metrics from their experience
+CRITICAL INSTRUCTIONS:
+1. **OCR CORRECTION**: If the Job Title in the resume has OCR typos (e.g. "Technicaior"), FIX THEM to standard English (e.g. "Technical").
+2. **NO PLACEHOLDERS**: Do NOT use "[Your Name]". Use "${candidateName}".
+3. **NO HEADERS**: Do NOT include a Name/Email/Address header. Start directly with the Salutation.
+4. **CONTENT**: Write 3 full paragraphs (Intro, Experience Match, Closing).
 
 CANDIDATE INFORMATION:
-${ candidateName ? `Name: ${candidateName}` : "" }
-${ candidateEmail ? `Email: ${candidateEmail}` : "" }
-${ candidatePhone ? `Phone: ${candidatePhone}` : "" }
-Key Experience: ${ resumeSections.sections["EXPERIENCE"]?.substring(0, 500) || finalResumeText.substring(0, 500) }
+${candidateName ? `Name: ${candidateName}` : ""}
+${candidateEmail ? `Email: ${candidateEmail}` : ""}
+${candidatePhone ? `Phone: ${candidatePhone}` : ""}
+Key Experience: ${resumeSections.sections["EXPERIENCE"]?.substring(0, 500) || finalResumeText.substring(0, 500)}
 
 JOB DETAILS:
-    Position: ${ displayTitle }
-    Company: ${ displayCompany }
-${ displayLocation ? `Location: ${displayLocation}` : "" }
+Position: ${displayTitle}
+Company: ${displayCompany}
+${displayLocation ? `Location: ${displayLocation}` : ""}
 
 Full Job Description:
-${ sanitizedJobDescription }
+${sanitizedJobDescription}
 
 Generate a COMPLETE, premium, personalized cover letter in markdown format. 
 
 CRITICAL FORMATTING RULES:
-    1. ** DO NOT ** include a Header(Name, Email, Date, Address).The system adds this automatically.
-2. ** START DIRECTLY ** with the Salutation(e.g., "Dear Hiring Manager,").
-3. ** DO NOT ** use placeholders.
+1. **START DIRECTLY** with the Salutation (e.g., "Dear Hiring Manager,").
+2. **DO NOT** include a Header block.
+3. Output ONLY the markdown content.
 
-      CRITICAL: Output ONLY the markdown content.Do NOT wrap it in code blocks.Output raw markdown text directly without any code block markers.
+SIGN-OFF RULES:
+- End with "Sincerely,".
+- Print candidate's name: "${candidateName}".
 
-        SIGN - OFF RULES:
-    - End the letter with "Sincerely," on its own line.
-- Then print the candidate's real name on the next line.
-      - If candidate name is missing from the resume text, end with just "Sincerely," and do NOT add placeholders.
-
-Generate the COMPLETE cover letter now.`;
+Generate now.`;
 
     // Generate cover letter with retry logic
     let generatedCoverLetter: string;
