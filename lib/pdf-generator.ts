@@ -8,14 +8,13 @@ export interface PDFOptions {
   email?: string;
 }
 
-// Professional ATS-friendly grayscale palette
+// Enterprise-Grade Palette (Stark & Professional)
 const COLORS = {
-  primary: [18, 18, 18],
-  secondary: [70, 70, 70],
-  accent: [60, 60, 60],
-  divider: [210, 210, 210],
-  text: [28, 28, 28],
-  lightText: [110, 110, 110],
+  primary: [0, 0, 0], // Pure Black for headers
+  secondary: [40, 40, 40], // Dark Grey for subheaders
+  text: [30, 30, 30], // Almost Black for body
+  accent: [0, 0, 0], // Black accents (most professional)
+  divider: [200, 200, 200], // Light grey dividers
 };
 
 /**
@@ -29,7 +28,6 @@ function stripCodeBlocks(content: string): string {
     .trim();
 
   cleaned = cleaned.replace(/```[\s\S]*?```/g, "");
-
   return cleaned;
 }
 
@@ -39,503 +37,209 @@ function stripCodeBlocks(content: string): string {
  */
 export async function generateProfessionalPDF(options: PDFOptions): Promise<Buffer> {
   const { type, content, name, email } = options;
-
-  // Strip code blocks and clean content
   const cleanedContent = removeAllPlaceholders(stripCodeBlocks(content));
 
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
     format: "a4",
-    compress: true, // Enable compression for smaller file size
+    compress: true,
   });
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 18; // Professional margins
-  const maxWidth = pageWidth - 2 * margin;
-  let y = margin;
-  const lineHeight = 5.2;
-  const paragraphSpacing = 3.5;
-  const sectionSpacing = 9;
-  const headingLineHeight = 7;
-  const MIN_SPACE_BOTTOM = 15; // Ensure minimum space before new page
+  // PROFESSIONAL LAYOUT CONSTANTS
+  const PAGE_HEIGHT = doc.internal.pageSize.getHeight();
+  const PAGE_WIDTH = doc.internal.pageSize.getWidth();
+  const MARGIN = 20; // ~0.8 inch Standard Professional Margin
+  const CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
+  const BOTTOM_THRESHOLD = PAGE_HEIGHT - MARGIN;
 
-  // Set professional fonts
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10.2);
+  let cursorY = MARGIN;
 
-  // Add premium header for resume
-  if (type === "resume" && name && email) {
-    y = addEnterpriseResumeHeader(doc, name, email, margin, pageWidth);
-    y += sectionSpacing;
-  } else if (type === "coverLetter" && name && email) {
-    // Cover letter header
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
+  // Typographic Scale
+  const FONT_BODY = "times"; // Serif is strictly professional
+  const FONT_HEADER = "helvetica"; // Sans-serif for headers
+  const SIZE_NAME = 22;
+  const SIZE_H1 = 14;
+  const SIZE_H2 = 12;
+  const SIZE_BODY = 10.5;
+  const LINE_HEIGHT_BODY = 5.5;
+
+  // Helper: Check Page Break and Add Page if Needed
+  const checkPageBreak = (heightNeeded: number) => {
+    if (cursorY + heightNeeded > BOTTOM_THRESHOLD) {
+      doc.addPage();
+      cursorY = MARGIN;
+      // Re-add Header (Name Only) on subsequent pages?
+      // Optional: For now, we prefer clean pages.
+    }
+  };
+
+  // Helper: Render Text Block with Wrapping
+  const renderTextParagraph = (text: string, fontSize: number, fontName: string, fontStyle: string, color: number[], spacingAfter: number = 2) => {
+    doc.setFont(fontName, fontStyle);
+    doc.setFontSize(fontSize);
+    doc.setTextColor(color[0], color[1], color[2]);
+
+    const lines = doc.splitTextToSize(text, CONTENT_WIDTH);
+    checkPageBreak(lines.length * LINE_HEIGHT_BODY + spacingAfter);
+
+    lines.forEach((line: string) => {
+      doc.text(line, MARGIN, cursorY);
+      cursorY += LINE_HEIGHT_BODY;
+    });
+
+    cursorY += spacingAfter;
+  };
+
+  // Helper: Render Bullet Point
+  const renderBullet = (text: string) => {
+    doc.setFont(FONT_BODY, "normal");
+    doc.setFontSize(SIZE_BODY);
+    doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
+
+    const bulletIndent = 5;
+    const textWidth = CONTENT_WIDTH - bulletIndent;
+    const lines = doc.splitTextToSize(text, textWidth);
+
+    checkPageBreak(lines.length * LINE_HEIGHT_BODY + 2);
+
+    // Draw Bullet
+    doc.circle(MARGIN + 2, cursorY - 1.5, 0.8, "F");
+
+    lines.forEach((line: string) => {
+      doc.text(line, MARGIN + bulletIndent, cursorY);
+      cursorY += LINE_HEIGHT_BODY;
+    });
+
+    cursorY += 1.5; // Slight spacing between bullets
+  };
+
+  // 1. RENDER HEADER (Name & Contact)
+  if (name) {
+    checkPageBreak(40);
+
+    // Name (Centered)
+    doc.setFont(FONT_HEADER, "bold");
+    doc.setFontSize(SIZE_NAME);
     doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-    doc.text(name, margin, y);
-    y += lineHeight + 2;
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
-    doc.text(email, margin, y);
-    y += sectionSpacing + 3;
+    const nameWidth = doc.getTextWidth(name);
+    doc.text(name, (PAGE_WIDTH - nameWidth) / 2, cursorY);
+    cursorY += 10;
 
-    // Date
-    const today = new Date();
-    const dateStr = today.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-    doc.text(dateStr, margin, y);
-    y += sectionSpacing + 6;
-  } else {
-    y += 10;
-  }
+    // Contact (Centered)
+    if (email) {
+      doc.setFont(FONT_HEADER, "normal");
+      doc.setFontSize(SIZE_BODY);
+      doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
 
-  const parsedSections = parseMarkdownContent(cleanedContent);
-
-  const addPageWithHeader = () => {
-    doc.addPage();
-    y = margin;
-    if (type === "resume" && name && email) {
-      y = addEnterpriseResumeHeader(doc, name, email, margin, pageWidth);
-      y += sectionSpacing;
-    }
-  };
-
-  const ensureSpace = (heightNeeded: number) => {
-    // Improved page break logic - more conservative to avoid cutting off content
-    const spaceAvailable = pageHeight - margin - MIN_SPACE_BOTTOM;
-    if (y + heightNeeded > spaceAvailable) {
-      addPageWithHeader();
-    }
-  };
-
-  const renderLines = (lines: string[], x: number, extraSpacing = 0) => {
-    lines.forEach((line) => {
-      // Better check for when we need a new page
-      if (y + lineHeight > pageHeight - MIN_SPACE_BOTTOM) {
-        addPageWithHeader();
+      // Add Date for Cover Letter
+      let contactLine = email;
+      if (type === "coverLetter") {
+        const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+        contactLine += ` | ${today}`;
       }
-      doc.text(line, x, y);
-      y += lineHeight;
-    });
-    y += extraSpacing;
-  };
 
-  for (const section of parsedSections) {
-
-    if (section.type === "heading") {
-      const level = section.level ?? 1;
-      const headingSize = level === 1 ? 13 : 11.5;
-      const headingOffset = level === 1 ? headingLineHeight + 9 : headingLineHeight + 7;
-      ensureSpace(headingOffset);
-      // Main section heading with professional accent bar
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(headingSize);
-      doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-
-      const headingText = stripMarkdown(section.content.trim());
-
-      doc.text(headingText, margin, y + 3);
-      y += headingLineHeight + (level === 1 ? 2.5 : 1.5);
-
-      // Add subtle divider line
-      doc.setLineWidth(0.25);
-      doc.setDrawColor(COLORS.divider[0], COLORS.divider[1], COLORS.divider[2]);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += level === 1 ? 4.5 : 3.5;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-    } else if (section.type === "paragraph") {
-      const text = stripMarkdown(section.content);
-      const lines = doc.splitTextToSize(text, maxWidth);
-      ensureSpace(lines.length * lineHeight + paragraphSpacing);
-      doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-      renderLines(lines, margin, paragraphSpacing);
-    } else if (section.type === "list") {
-      section.items!.forEach((item) => {
-        const itemText = stripMarkdown(item.trim());
-        const itemLines = doc.splitTextToSize(itemText, maxWidth - 8);
-        ensureSpace(itemLines.length * lineHeight + 3);
-        itemLines.forEach((line: string, index: number) => {
-          if (y + lineHeight > pageHeight - MIN_SPACE_BOTTOM) {
-            addPageWithHeader();
-          }
-          doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-          if (index === 0) {
-            doc.text("•", margin, y);
-          }
-          doc.text(line, margin + 6, y);
-          y += lineHeight;
-        });
-        y += 2;
-      });
-      y += paragraphSpacing;
-    } else if (section.type === "experience") {
-      // Handle experience entries with better formatting
-      const experienceHeight = estimateExperienceHeight(section, doc, maxWidth, lineHeight);
-      ensureSpace(experienceHeight + paragraphSpacing);
-      y = addExperienceEntry(doc, section, margin, maxWidth, y, pageHeight, margin, MIN_SPACE_BOTTOM, type === "resume" && name && email ? { name, email } : undefined);
+      const emailWidth = doc.getTextWidth(contactLine);
+      doc.text(contactLine, (PAGE_WIDTH - emailWidth) / 2, cursorY);
+      cursorY += 5;
     }
+
+    // Divider Line
+    cursorY += 3;
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]); // Black Line
+    doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
+    cursorY += 10;
   }
 
-  // Add page numbers
-  addPageNumbers(doc, pageHeight, pageWidth);
-
-  // Generate PDF buffer
-  return Buffer.from(doc.output("arraybuffer"));
-}
-
-interface ParsedSection {
-  type: "heading" | "paragraph" | "list" | "experience";
-  content: string;
-  items?: string[];
-  level?: number;
-}
-
-/**
- * Strip markdown formatting from text
- */
-function stripMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, "$1") // Bold
-    .replace(/\*(.+?)\*/g, "$1") // Italic
-    .replace(/`(.+?)`/g, "$1") // Code
-    .replace(/\[(.+?)\]\(.+?\)/g, "$1") // Links
-    .trim();
-}
-
-function parseMarkdownContent(content: string): ParsedSection[] {
-  const sections: ParsedSection[] = [];
-  const lines = content.split("\n");
-  let currentList: string[] = [];
-  let currentParagraph: string[] = [];
+  // 2. PARSE AND RENDER CONTENT
+  const lines = cleanedContent.split("\n");
   let i = 0;
 
   while (i < lines.length) {
-    const line = lines[i].trim();
-    const nextLine = i < lines.length - 1 ? lines[i + 1].trim() : "";
-
-    // Handle headings
-    if (line.startsWith("#")) {
-      // Flush current content
-      if (currentList.length > 0) {
-        sections.push({ type: "list", items: [...currentList], content: "" });
-        currentList = [];
-      }
-      if (currentParagraph.length > 0) {
-        sections.push({ type: "paragraph", content: currentParagraph.join(" ") });
-        currentParagraph = [];
-      }
-
-      const level = (line.match(/^#+/) || [""])[0].length;
-      const headingText = line.replace(/^#+\s*/, "").trim();
-      sections.push({ type: "heading", content: headingText, level });
+    let line = lines[i].trim();
+    if (!line) {
       i++;
+      continue;
     }
-    // Handle list items (bullet points)
-    else if (line.match(/^[-*•]\s/) || /^\d+\.\s/.test(line)) {
-      // Flush current paragraph
-      if (currentParagraph.length > 0) {
-        sections.push({ type: "paragraph", content: currentParagraph.join(" ") });
-        currentParagraph = [];
-      }
 
-      const itemText = line.replace(/^[-*•]\s*/, "").replace(/^\d+\.\s*/, "").trim();
-      if (itemText.length > 0) {
-        currentList.push(itemText);
-      }
+    // SECTION HEADER (e.g., # Professional Experience)
+    if (line.startsWith("# ")) {
+      const headerText = line.replace(/^#\s+/, "").toUpperCase(); // Force Uppercase for Professional Look
+      checkPageBreak(25);
+
+      if (cursorY > MARGIN + 20) cursorY += 5; // Extra space before new section
+
+      doc.setFont(FONT_HEADER, "bold");
+      doc.setFontSize(SIZE_H1);
+      doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+      doc.text(headerText, MARGIN, cursorY);
+      cursorY += 7;
+
+      // Section Underline (Thicker)
+      doc.setLineWidth(0.7);
+      doc.setDrawColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
+      doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
+      cursorY += 8;
+
       i++;
+      continue;
     }
-    // Handle experience entries (bold job title followed by company and dates)
-    else if (line.includes("**") && (line.includes("|") || line.match(/\d{2}\/\d{4}/))) {
-      // Flush current content
-      if (currentList.length > 0) {
-        sections.push({ type: "list", items: [...currentList], content: "" });
-        currentList = [];
-      }
-      if (currentParagraph.length > 0) {
-        sections.push({ type: "paragraph", content: currentParagraph.join(" ") });
-        currentParagraph = [];
-      }
 
-      // Parse experience entry
-      const experienceResult = parseExperienceEntry(lines, i);
-      if (experienceResult) {
-        sections.push(experienceResult.entry);
-        i = experienceResult.endIndex;
-      } else {
-        currentParagraph.push(line);
-        i++;
-      }
-    }
-    // Handle empty lines
-    else if (line.length === 0) {
-      // Flush current content
-      if (currentList.length > 0) {
-        sections.push({ type: "list", items: [...currentList], content: "" });
-        currentList = [];
-      }
-      if (currentParagraph.length > 0) {
-        sections.push({ type: "paragraph", content: currentParagraph.join(" ") });
-        currentParagraph = [];
-      }
+    // SUB-HEADER / JOB TITLE (e.g., ### Senior Engineer)
+    // Supports both `### Title` and `## Title`
+    if (line.startsWith("##") || line.startsWith("###")) {
+      const subHeaderText = line.replace(/^#+\s+/, "");
+      checkPageBreak(20);
+
+      if (cursorY > MARGIN) cursorY += 4;
+
+      doc.setFont(FONT_HEADER, "bold");
+      doc.setFontSize(SIZE_H2);
+      doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+      doc.text(subHeaderText, MARGIN, cursorY);
+      cursorY += 6;
       i++;
+      continue;
     }
-    // Handle regular text
-    else {
-      // Flush current list
-      if (currentList.length > 0) {
-        sections.push({ type: "list", items: [...currentList], content: "" });
-        currentList = [];
-      }
-      currentParagraph.push(line);
+
+    // METADATA LINE (Company | Date | Location)
+    // Detects lines starting with ** or containing | and date patterns
+    if (line.startsWith("**") || (line.includes("|") && /\d{4}/.test(line))) {
+      const metaText = line.replace(/\*\*/g, "").trim(); // Strip bold markers for clean text
+      checkPageBreak(10);
+
+      doc.setFont(FONT_HEADER, "normal"); // Sans-serif for metadata looks cleaner
+      doc.setFontSize(SIZE_BODY - 0.5);
+      doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]); // Dark Grey
+      doc.text(metaText, MARGIN, cursorY);
+      cursorY += 6;
       i++;
+      continue;
     }
-  }
 
-  // Flush remaining content
-  if (currentList.length > 0) {
-    sections.push({ type: "list", items: currentList, content: "" });
-  }
-  if (currentParagraph.length > 0) {
-    sections.push({ type: "paragraph", content: currentParagraph.join(" ") });
-  }
-
-  return sections;
-}
-
-/**
- * Parse experience entry (job title, company, dates, bullets)
- */
-function parseExperienceEntry(lines: string[], startIndex: number): { entry: ParsedSection; endIndex: number } | null {
-  if (startIndex >= lines.length) return null;
-
-  const titleLine = lines[startIndex].trim();
-  const titleMatch = titleLine.match(/\*\*(.+?)\*\*/);
-  if (!titleMatch) return null;
-
-  const jobTitle = titleMatch[1];
-  const restOfLine = titleLine.replace(/\*\*(.+?)\*\*/, "").trim();
-
-  // Extract company, location, dates
-  const parts = restOfLine.split("|").map(p => p.trim());
-  let company = "";
-  let location = "";
-  let dates = "";
-
-  if (parts.length >= 2) {
-    company = parts[0];
-    if (parts.length >= 3) {
-      location = parts[1];
-      dates = parts.slice(2).join(" | ");
-    } else {
-      dates = parts[1];
-    }
-  } else {
-    // Try to extract dates from the line
-    const dateMatch = restOfLine.match(/(\d{2}\/\d{4}\s*-\s*\d{2}\/\d{4}|\d{2}\/\d{4}\s*-\s*Present)/);
-    if (dateMatch) {
-      dates = dateMatch[1];
-      company = restOfLine.replace(dateMatch[0], "").trim();
-    } else {
-      company = restOfLine;
-    }
-  }
-
-  // Collect bullet points
-  const bullets: string[] = [];
-  let i = startIndex + 1;
-  while (i < lines.length) {
-    const line = lines[i].trim();
-    if (line.match(/^[-*•]\s/)) {
-      const bullet = line.replace(/^[-*•]\s*/, "").trim();
-      if (bullet.length > 0) {
-        bullets.push(bullet);
-      }
+    // BULLET POINTS
+    if (line.startsWith("- ") || line.startsWith("* ") || line.startsWith("• ")) {
+      const bulletText = line.replace(/^[-*•]\s+/, "");
+      renderBullet(bulletText);
       i++;
-    } else if (line.length === 0 || line.startsWith("#")) {
-      break;
-    } else {
-      i++;
+      continue;
     }
+
+    // REGULAR PARAGRAPH
+    renderTextParagraph(line, SIZE_BODY, FONT_BODY, "normal", COLORS.text);
+    i++;
   }
 
-  return {
-    entry: {
-      type: "experience",
-      content: `${jobTitle}|${company}|${location}|${dates}`,
-      items: bullets,
-      level: 0,
-    },
-    endIndex: i,
-  };
-}
-
-function estimateExperienceHeight(
-  section: ParsedSection,
-  doc: jsPDF,
-  maxWidth: number,
-  lineHeight: number
-): number {
-  const parts = section.content.split("|");
-  const jobTitle = parts[0] || "";
-  const company = parts[1] || "";
-  const location = parts[2] || "";
-  const dates = parts[3] || "";
-
-  const titleLines = doc.splitTextToSize(jobTitle, maxWidth);
-  const details = [company, location, dates].filter(Boolean).join(" | ");
-  const detailsLines = details ? doc.splitTextToSize(details, maxWidth) : [];
-  const bullets = section.items ?? [];
-  const bulletsHeight = bullets.reduce((sum, bullet) => {
-    const bulletLines = doc.splitTextToSize(stripMarkdown(bullet), maxWidth - 10);
-    return sum + bulletLines.length * lineHeight + 2;
-  }, 0);
-
-  return titleLines.length * 6.5 + 2 + detailsLines.length * 5.5 + 4 + bulletsHeight + 5;
-}
-
-/**
- * Add experience entry with enterprise-grade formatting
- */
-function addExperienceEntry(
-  doc: jsPDF,
-  section: ParsedSection,
-  margin: number,
-  maxWidth: number,
-  y: number,
-  pageHeight: number,
-  pageMargin: number,
-  minSpaceBottom: number,
-  header?: { name: string; email: string }
-): number {
-  const parts = section.content.split("|");
-  const jobTitle = parts[0] || "";
-  const company = parts[1] || "";
-  const location = parts[2] || "";
-  const dates = parts[3] || "";
-
-  // Job title - Bold, larger, primary color
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11.5);
-  doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-  const titleLines = doc.splitTextToSize(jobTitle, maxWidth);
-  doc.text(titleLines, margin, y);
-  y += titleLines.length * 6.5 + 2;
-
-  // Company, location, dates - Regular, smaller, light gray
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(COLORS.lightText[0], COLORS.lightText[1], COLORS.lightText[2]);
-
-  const details: string[] = [];
-  if (company) details.push(company);
-  if (location) details.push(location);
-  if (dates) details.push(dates);
-
-  if (details.length > 0) {
-    const detailsText = details.join(" | ");
-    const detailsLines = doc.splitTextToSize(detailsText, maxWidth);
-    doc.text(detailsLines, margin, y);
-    y += detailsLines.length * 5.5 + 4;
-  }
-
-  // Bullet points
-  doc.setFontSize(10);
-  doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-
-  if (section.items && section.items.length > 0) {
-    section.items.forEach((bullet) => {
-      // Better check for page break
-      if (y + 7 > pageHeight - minSpaceBottom) {
-        doc.addPage();
-        y = pageMargin;
-        if (header) {
-          y = addEnterpriseResumeHeader(doc, header.name, header.email, margin, doc.internal.pageSize.getWidth());
-          y += 10;
-        }
-      }
-
-      const bulletText = stripMarkdown(bullet);
-      const bulletLines = doc.splitTextToSize(bulletText, maxWidth - 10);
-
-      // Professional bullet point with accent color
-      doc.setFillColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-      doc.circle(margin + 3, y - 1.5, 1.3, "F");
-
-      // Text
-      doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-      doc.text(bulletLines, margin + 8, y);
-      y += bulletLines.length * 6 + 2;
-    });
-  }
-
-  y += 5; // Space after experience entry
-  return y;
-}
-
-function addEnterpriseResumeHeader(
-  doc: jsPDF,
-  name: string,
-  email: string,
-  margin: number,
-  pageWidth: number
-): number {
-  let y = margin;
-
-  // Name - Large, bold, centered, primary color
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(24);
-  doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-  const nameWidth = doc.getTextWidth(name);
-  doc.text(name, (pageWidth - nameWidth) / 2, y);
-  y += 11;
-
-  // Contact info - Smaller, centered, secondary color
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10.5);
-  doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
-
-  const emailWidth = doc.getTextWidth(email);
-  doc.text(email, (pageWidth - emailWidth) / 2, y);
-  y += 8;
-
-  // Add professional divider line with accent bar
-  doc.setLineWidth(0.5);
-  doc.setDrawColor(COLORS.divider[0], COLORS.divider[1], COLORS.divider[2]);
-  doc.line(margin, y, pageWidth - margin, y);
-
-  // Add accent bar
-  doc.setFillColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-  doc.rect(margin, y - 0.5, 25, 1, "F");
-
-  y += 8;
-
-  return y;
-}
-
-/**
- * Add page numbers
- */
-function addPageNumbers(doc: jsPDF, pageHeight: number, pageWidth: number): void {
+  // ADD PAGE NUMBERS
   const pageCount = doc.getNumberOfPages();
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(COLORS.lightText[0], COLORS.lightText[1], COLORS.lightText[2]);
-
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.text(
-      `Page ${i} of ${pageCount}`,
-      pageWidth / 2,
-      pageHeight - 8,
-      { align: "center" }
-    );
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Page ${p} of ${pageCount}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 10, { align: "center" });
   }
+
+  return Buffer.from(doc.output("arraybuffer"));
 }

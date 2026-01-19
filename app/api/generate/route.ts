@@ -495,14 +495,26 @@ Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
 - Shows quantifiable achievements (metrics everywhere)
 - Demonstrates value and impact (results-focused)
 
-Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable). Use clear markdown headers (# for main sections, ## for subsections).
+Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable).
+
+CRITICAL FORMATTING RULES:
+1. Use `#` for Main Section Headers (e.g. `# Professional Experience`)
+2. Use `###` for Job Titles (e.g. `### Senior Software Engineer`)
+3. On the line immediately below the Job Title, put: `** Company Name ** | Location | Dates`
+4. Use standard bullet points (`- `) for achievements.
+
+Example Experience Entry:
+### Senior Project Manager
+**TechCorp Inc.** | San Francisco, CA | Jan 2020 - Present
+- Led a team of 15...
+- Increased revenue by...
 
 CRITICAL REQUIREMENTS:
-- Generate a COMPLETE resume with ALL information filled in
+- Generate a COMPLETE resume with ALL information filled in (2 pages worth of content)
 - Use actual company names, job titles, dates, and achievements from the original resume
 - Do NOT leave any placeholders or empty sections
 - Include ALL relevant experience, education, and skills from the original resume
-- Make it comprehensive and complete - at least 1-2 pages of content
+- Make it comprehensive and complete
 - Every section must be fully populated with real information
 - If the original resume contains multiple roles or sections, include every one of them (do not summarize them away)
 
