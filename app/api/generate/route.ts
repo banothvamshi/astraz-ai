@@ -498,10 +498,10 @@ Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
 Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable).
 
 CRITICAL FORMATTING RULES:
-1. Use `#` for Main Section Headers (e.g. `# Professional Experience`)
-2. Use `###` for Job Titles (e.g. `### Senior Software Engineer`)
-3. On the line immediately below the Job Title, put: `** Company Name ** | Location | Dates`
-4. Use standard bullet points (`- `) for achievements.
+1. Use \`#\` for Main Section Headers (e.g. \`# Professional Experience\`)
+2. Use \`###\` for Job Titles (e.g. \`### Senior Software Engineer\`)
+3. On the line immediately below the Job Title, put: \`** Company Name ** | Location | Dates\`
+4. Use standard bullet points (\`-\`) for achievements.
 
 Example Experience Entry:
 ### Senior Project Manager
