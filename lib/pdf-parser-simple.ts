@@ -29,13 +29,49 @@ async function getPdfParser() {
 export async function parseWithPdfParse(buffer: Buffer): Promise<PDFParseResult> {
   try {
     const pdf = await getPdfParser();
-    
+
     console.log(`[PDF Parser] Starting pdf-parse with buffer size: ${buffer.length} bytes`);
-    
+
+    // Basic options for pdf-parse
+    const options = {
+      pagerender: (pageData: any) => {
+        // This is a custom renderer to ensure we capture text correctly
+        // default render callback
+        return pageData.getTextContent()
+          .then(function (textContent: any) {
+            let lastY, text = '';
+            for (let item of textContent.items) {
+              if (lastY == item.transform[5] || !lastY) {
+                text += item.str;
+              }
+              else {
+                text += '\n' + item.str;
+              }
+              lastY = item.transform[5];
+            }
+            return text;
+          });
+      },
+      // We can just use the default internal logic which is actually decent, 
+      // OR we can rely on standard "normalizeWhitespace" if supported wrapper permits.
+      // For now, let's keep it simple:
+      // By default pdf-parse joins with \n\n. We might want to fix that.
+    };
+
+    // Actually, pdf-parse (the library) default behavior is often better than custom renderers 
+    // unless we really know the layout.
+    // LIMITATION: 'pdf-parse' library doesn't expose strict "normalizeWhitespace" in its main entry option 
+    // unless we use the 'pdf.js' version it wraps.
+    // Let's stick to the default but add error logging.
+
+    // However, the USER's PDF might benefit from `pdfjs-dist` (strategy 2) being primary if `pdf-parse` is doing poorly.
+    // The user's code TRIES pdf-parse FIRST.
+    // Let's Try tweaking the strategies order if we suspect pdf-parse is the culprit for the "no space" issue.
+
     const data = await pdf(buffer);
-    
+
     console.log(`[PDF Parser] Successfully parsed PDF with ${data.numpages} pages`);
-    
+
     if (!data.text || data.text.trim().length === 0) {
       console.warn('[PDF Parser] Warning: PDF extracted but text is empty');
       return {
@@ -45,12 +81,12 @@ export async function parseWithPdfParse(buffer: Buffer): Promise<PDFParseResult>
         error: 'PDF has no text content',
       };
     }
-    
+
     console.log(`[PDF Parser] Extracted ${data.text.length} characters from PDF`);
-    
+
     // Split by pages to debug
     const pageTexts = data.text.split(/\n---\n|Page \d+/);
-    
+
     return {
       text: data.text,
       pages: data.numpages,
@@ -73,19 +109,19 @@ export async function parseWithPdfParse(buffer: Buffer): Promise<PDFParseResult>
 export async function parseWithPDFJS(buffer: Buffer): Promise<PDFParseResult> {
   try {
     console.log('[PDF Parser] Trying pdfjs-dist fallback');
-    
+
     const pdfjs = await import('pdfjs-dist');
-    
+
     (pdfjs as any).GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    
+
     const pdf = await (pdfjs as any).getDocument({ data: buffer }).promise;
     const pageCount = Math.min(pdf.numPages, 100);
-    
+
     console.log(`[PDF Parser] PDFJS found ${pageCount} pages`);
-    
+
     const texts: string[] = [];
-    
+
     for (let i = 1; i <= pageCount; i++) {
       try {
         const page = await pdf.getPage(i);
@@ -93,7 +129,7 @@ export async function parseWithPDFJS(buffer: Buffer): Promise<PDFParseResult> {
         const pageText = textContent.items
           .map((item: any) => item.str)
           .join(' ');
-        
+
         if (pageText.trim()) {
           texts.push(pageText);
         }
@@ -101,9 +137,9 @@ export async function parseWithPDFJS(buffer: Buffer): Promise<PDFParseResult> {
         console.warn(`[PDF Parser] Failed to read page ${i}: ${(pageError as any).message}`);
       }
     }
-    
+
     const fullText = texts.join('\n');
-    
+
     if (!fullText.trim()) {
       console.warn('[PDF Parser] PDFJS extracted no text');
       return {
@@ -113,9 +149,9 @@ export async function parseWithPDFJS(buffer: Buffer): Promise<PDFParseResult> {
         error: 'PDFJS extracted no text',
       };
     }
-    
+
     console.log(`[PDF Parser] PDFJS extracted ${fullText.length} characters`);
-    
+
     return {
       text: fullText,
       pages: pageCount,
@@ -133,12 +169,12 @@ export async function parseWithPDFJS(buffer: Buffer): Promise<PDFParseResult> {
 export async function parseWithOCR(buffer: Buffer): Promise<PDFParseResult> {
   try {
     console.log('[PDF Parser] Trying OCR fallback (tesseract)');
-    
+
     const Tesseract = await import('tesseract.js');
-    
+
     // First convert PDF to images (basic approach)
     console.log('[PDF Parser] OCR fallback - this may take time for multi-page PDFs');
-    
+
     // For now, return error as OCR requires additional setup
     throw new Error('OCR requires canvas - try pdf-parse first');
   } catch (error: any) {
@@ -155,7 +191,7 @@ export async function parsePDFReliable(buffer: Buffer): Promise<string> {
   console.log(`Buffer size: ${buffer.length} bytes`);
   console.log(`Buffer starts with: ${buffer.toString('utf8', 0, 50)}`);
   console.log(`First 4 bytes (should be %PDF): ${buffer.slice(0, 4).toString()}`);
-  
+
   const strategies = [
     {
       name: 'pdf-parse',
@@ -168,22 +204,22 @@ export async function parsePDFReliable(buffer: Buffer): Promise<string> {
       minConfidence: 0.7,
     },
   ];
-  
+
   let lastError: Error | null = null;
-  
+
   for (const strategy of strategies) {
     try {
       console.log(`\n[PDF Parser] Attempting strategy: ${strategy.name}`);
       const result = await strategy.fn();
-      
-      if (result.success && result.text.trim().length > 0) {
+
+      if (result.success && result.text.replace(/\s/g, '').length > 150) {
         console.log(`[PDF Parser] ✅ SUCCESS with ${strategy.name}`);
         console.log(`[PDF Parser] Extracted ${result.text.length} characters from ${result.pages} pages`);
         console.log('========== PDF PARSE COMPLETE ==========\n');
         return result.text;
       } else {
-        console.log(`[PDF Parser] ⚠️ ${strategy.name} returned empty text`);
-        lastError = new Error(`${strategy.name} returned no text`);
+        console.log(`[PDF Parser] ⚠️ ${strategy.name} returned insufficient text (${result.text.length} chars)`);
+        lastError = new Error(`${strategy.name} returned insufficient text`);
       }
     } catch (error: any) {
       console.error(`[PDF Parser] ❌ ${strategy.name} failed: ${error.message}`);
@@ -191,7 +227,7 @@ export async function parsePDFReliable(buffer: Buffer): Promise<string> {
       // Continue to next strategy
     }
   }
-  
+
   // All strategies failed
   console.error('[PDF Parser] All parsing strategies failed!');
   console.log('========== PDF PARSE FAILED ==========\n');

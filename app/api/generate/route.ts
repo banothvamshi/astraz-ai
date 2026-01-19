@@ -24,26 +24,26 @@ const MAX_EXECUTION_TIME = 25000;
  */
 function cleanMarkdownContent(content: string): string {
   if (!content) return content;
-  
+
   // Remove markdown code blocks
   let cleaned = content
     .replace(/^```markdown\s*\n?/gm, "")
     .replace(/^```\s*\n?/gm, "")
     .replace(/\n?```\s*$/gm, "")
     .trim();
-  
+
   // Remove inline code blocks
   cleaned = cleaned.replace(/```[\s\S]*?```/g, "");
-  
+
   // Clean up extra whitespace
   cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
-  
+
   return cleaned.trim();
 }
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     // Check billing guard - prevent API calls after credits expire
     if (!shouldAllowAPICall()) {
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     console.log("=".repeat(50));
     console.log("STAGE 0: Parsing PDF with Simple Reliable Parser");
     console.log("=".repeat(50));
-    
+
     let resumeText: string;
     try {
       // Check if it's a valid PDF
@@ -173,9 +173,9 @@ export async function POST(request: NextRequest) {
       } else {
         console.warn("⚠️ Buffer doesn't start with %PDF - might be corrupted");
       }
-      
+
       console.log(`Buffer size: ${pdfBuffer.length} bytes`);
-      
+
       // Use simple reliable parser first
       resumeText = await retry(
         () => parsePDFReliable(pdfBuffer),
@@ -185,16 +185,21 @@ export async function POST(request: NextRequest) {
           retryableErrors: ["timeout", "network"],
         }
       );
-      
+
+      // Verification: If text implies failure (too short), throw to trigger fallback
+      if (resumeText.length < 200) {
+        throw new Error("Parsed text insufficient");
+      }
+
       console.log(`✅ Successfully parsed PDF: ${resumeText.length} characters extracted`);
-      
+
       if (resumeText.trim().length === 0) {
         throw new Error("PDF parsed but returned empty text");
       }
     } catch (parseError: any) {
       console.error("❌ Simple PDF parser failed:", parseError.message);
       console.log("Falling back to universal parser...");
-      
+
       // Fallback to universal parser
       try {
         const parsedResume = await retry(
@@ -217,22 +222,22 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "Failed to read PDF. Please ensure it's a valid, readable PDF file. Try exporting as a new PDF from Word/Google Docs.",
-            details: process.env.NODE_ENV === "development" 
-              ? `Simple: ${parseError.message}, Universal: ${universalError.message}` 
+            details: process.env.NODE_ENV === "development"
+              ? `Simple: ${parseError.message}, Universal: ${universalError.message}`
               : undefined,
             debug: process.env.NODE_ENV === "development"
               ? {
-                  bufferSize: pdfBuffer.length,
-                  isValidPDF: isPDFBuffer(pdfBuffer),
-                  firstBytes: pdfBuffer.slice(0, 20).toString('utf8', 0, 10),
-                }
+                bufferSize: pdfBuffer.length,
+                isValidPDF: isPDFBuffer(pdfBuffer),
+                firstBytes: pdfBuffer.slice(0, 20).toString('utf8', 0, 10),
+              }
               : undefined,
           },
           { status: 400 }
         );
       }
     }
-    
+
     if (!resumeText || resumeText.trim().length < 50) {
       return NextResponse.json(
         {
@@ -242,16 +247,16 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // STAGE 1: Normalize raw resume to clean, structured format
     console.log("=".repeat(50));
     console.log("STAGE 1: Normalizing resume to clean format");
     console.log("=".repeat(50));
     console.log(`Input text length: ${resumeText.length} characters`);
-    
+
     let normalizedResume: NormalizedResume;
     let cleanResumeFormatted: string;
-    
+
     try {
       normalizedResume = await normalizeResume(resumeText);
       cleanResumeFormatted = formatNormalizedResume(normalizedResume);
@@ -266,7 +271,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Use the clean formatted resume for generation (now properly structured)
     const finalResumeText = cleanResumeFormatted;
     const resumeSections = extractResumeSections(finalResumeText);
@@ -343,14 +348,14 @@ export async function POST(request: NextRequest) {
           debug:
             process.env.NODE_ENV === "development"
               ? {
-                  extractedChars: finalResumeText.length,
-                  tokenCount: finalResumeText.split(/\s+/).filter(Boolean).length,
-                  singleLetterTokenCount: finalResumeText
-                    .split(/\s+/)
-                    .filter(Boolean)
-                    .filter((t: string) => /^[A-Za-z]$/.test(t)).length,
-                  preview: finalResumeText.slice(0, 300),
-                }
+                extractedChars: finalResumeText.length,
+                tokenCount: finalResumeText.split(/\s+/).filter(Boolean).length,
+                singleLetterTokenCount: finalResumeText
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .filter((t: string) => /^[A-Za-z]$/.test(t)).length,
+                preview: finalResumeText.slice(0, 300),
+              }
               : undefined,
         },
         { status: 400 }
@@ -449,11 +454,10 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Show career progression and increasing responsibility
 
 5. **Skills Section**:
-   - ONLY include skills that are explicitly mentioned in the ORIGINAL RESUME CONTENT
-   - DO NOT add skills from the job description if they are not in the original resume
+   - Include skills explicitly mentioned in the ORIGINAL RESUME
+   - You MAY also infer skills that are strongly implied by the candidate's experience (e.g. if they used "React", you can add "JavaScript" and "Frontend Development")
    - Categorize existing skills: Technical Skills, Tools & Technologies, Soft Skills
-   - Use exact terminology from the original resume
-   - You can reorder and reorganize skills, but DO NOT add new ones
+   - You can reorder and reorganize skills
 
 6. **Formatting & Style**:
    - Clean, professional, scannable layout
@@ -463,15 +467,13 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Proper capitalization (Title Case for headers, sentence case for content)
    - Use parallel structure in bullets
 
-7. **CRITICAL - NO HALLUCINATION POLICY**:
-   - ONLY use information that exists in the ORIGINAL RESUME CONTENT provided above
-   - DO NOT add any skills, experiences, achievements, or qualifications that are NOT in the original resume
-   - DO NOT invent companies, job titles, dates, or accomplishments
-   - DO NOT add certifications, education, or projects that are not in the original resume
-   - If a skill is mentioned in the job description but NOT in the original resume, DO NOT add it
-   - You can rephrase and reorganize existing content, but you CANNOT add new content
-   - If information is missing from the original resume, leave it out - do not invent it
-   - Every bullet point, skill, and achievement MUST be traceable to the original resume content
+7. **INTELLIGENT CONTENT UTILIZATION**:
+   - Use information from the ORIGINAL RESUME CONTENT provided below.
+   - You MAY rephrase, reorganize, and professionally polish the content.
+   - You MAY fill in missing details if they are obvious from context (e.g. if Company is "Google", Industry is "Technology").
+   - If the resume mentions a project but lacks details, you can expand on it based on standard industry practices for that role, BUT keep it grounded in reality.
+   - DO NOT invent completely new roles, companies, or degrees.
+   - If sections like "Skills" or "Projects" are missing in the structured data, LOOK IN THE "UNCLASSIFIED / OTHER INFORMATION" section.
 
 ORIGINAL RESUME CONTENT:
 ${finalResumeText}
@@ -509,22 +511,31 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     // Generate resume with retry logic
     let generatedResume: string;
     try {
+      const systemPrompt = `
+    You are an expert ATS-Optimization AI. Your goal is to write a perfect, keyword-optimized resume and cover letter based on the user's background and the target job description.
+    
+    CRITICAL INPUT HANDLING:
+    - The user's resume has been parsed from a PDF and may contain "parsing artifacts".
+    - **Merged Words**: You might see text like "DataScience" or "ProjectManagement". PLEASE READ THESE AS "Data Science" and "Project Management".
+    - **Spaced Text**: You might see "S U M M A R Y". Read this as "SUMMARY".
+    - **Missing Sections**: If a section (like Skills) is empty in the structured data, LOOK AT THE "RAW TEXT" or "UNCLASSIFIED CONTENT" to find it.
+    - **Inference**: If the resume says "Google", infer "Tech" industry / high standards. If "React", infer "Frontend".
+    
+    STRICT RULES:
+    1. **NO HALLUCINATION**: Do not invent jobs, degrees, or companies. You MAY rephrase/polish descriptions, but do not make up facts.
+    2. **ATS OPTIMIZATION**: Use keywords from the Job Description naturally.
+    3. **Professional Tone**: Use active voice, strong action verbs, and quantify results (e.g. "Increased sales by 20%").
+    
+    Structure your response EXACTLY as the logical structure requested.
+    `;
       generatedResume = await retry(
         () =>
           generateText(
             resumePrompt,
-            `You are an elite resume writer specializing in ATS optimization and executive-level resume writing. 
-            Your resumes consistently help candidates secure positions at Fortune 500 companies.
-            You understand both ATS systems and human recruiter psychology.
-            Generate resumes that are both machine-readable and human-appealing.
-            
-            CRITICAL RULE: You MUST ONLY use information from the original resume provided. 
-            DO NOT add, invent, or hallucinate any skills, experiences, achievements, companies, 
-            dates, certifications, or qualifications that are not explicitly stated in the original resume.
-            Your job is to reorganize and rephrase existing content for maximum impact, NOT to add new content.`,
+            systemPrompt,
             {
               temperature: 0.4, // Lower for more consistent, professional output
-              maxOutputTokens: 6000, // Increased significantly for complete, comprehensive resumes
+              maxOutputTokens: 8000, // Increased significantly for complete, comprehensive resumes
             }
           ),
         {
@@ -535,7 +546,7 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
       );
     } catch (genError: any) {
       console.error("Resume generation error:", genError);
-      
+
       if (genError.message?.includes("rate limit") || genError.message?.includes("quota")) {
         return NextResponse.json(
           {
@@ -700,7 +711,7 @@ Generate the COMPLETE cover letter now.`;
     // Remove all placeholders from both resume and cover letter
     cleanResume = removeAllPlaceholders(cleanResume);
     cleanCoverLetter = removeAllPlaceholders(cleanCoverLetter);
-    
+
     // Additional cover letter placeholder sanitization
     cleanCoverLetter = sanitizeCoverLetterLocal(cleanCoverLetter, candidateName);
 

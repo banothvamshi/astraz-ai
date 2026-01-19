@@ -387,13 +387,51 @@ async function extractPDFPagesToImages(
 
 async function renderPDFPageToBuffer(page: any, viewport: any): Promise<Buffer | null> {
   try {
-    // Canvas is optional - will gracefully skip rendering if not available
-    // In production, you might want to install 'canvas' for better performance
-    console.warn("Canvas not available for PDF page rendering. Install 'canvas' for better OCR results.");
-    return null;
+    // Dynamically require canvas to avoid build issues if it's missing in some environments
+    const { createCanvas } = require("canvas");
+
+    // Create canvas of the size of the viewport
+    const canvas = createCanvas(viewport.width, viewport.height);
+    const context = canvas.getContext("2d");
+
+    // Render PDF page to canvas context
+    await page.render({
+      canvasContext: context,
+      viewport: viewport,
+    }).promise;
+
+    // Convert canvas to buffer
+    return canvas.toBuffer("image/png");
   } catch (error: any) {
     console.warn("PDF page rendering failed:", error.message);
+    // If canvas fails, we might still want to try other methods or just return null
     return null;
+  }
+}
+
+// ============================================================================
+// STRATEGY 6: PDF2JSON Parser (node-only, robust)
+// ============================================================================
+
+async function parsePdf2JsonStrategy(buffer: Buffer): Promise<string> {
+  try {
+    const PDFParser = require("pdf2json");
+    const pdfParser = new PDFParser(null, 1); // 1 = text content only
+
+    return new Promise((resolve, reject) => {
+      pdfParser.on("pdfParser_dataError", (errData: any) => {
+        reject(new Error(errData.parserError));
+      });
+
+      pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+        const rawText = pdfParser.getRawTextContent();
+        resolve(rawText);
+      });
+
+      pdfParser.parseBuffer(buffer);
+    });
+  } catch (error: any) {
+    throw new Error(`pdf2json parsing failed: ${error.message}`);
   }
 }
 
@@ -433,6 +471,7 @@ export async function parseUniversalDocument(
         // Try multiple PDF parsing strategies
         const strategies = [
           { name: "Text-based PDF", fn: () => parseTextPDFStrategy(buffer) },
+          { name: "PDF2JSON", fn: () => parsePdf2JsonStrategy(buffer) },
           { name: "Multi-page PDF", fn: () => parseMultiPagePDF(buffer, options) },
           { name: "Hybrid (Text + OCR)", fn: () => parseHybridPDF(buffer, options) },
           { name: "Pure OCR", fn: () => parseWithOCRStrategy(buffer, options) },
@@ -443,7 +482,7 @@ export async function parseUniversalDocument(
             console.log(`Trying strategy: ${strategy.name}`);
             extractedText = await strategy.fn();
 
-            if (extractedText && extractedText.trim().length > 50) {
+            if (extractedText && extractedText.trim().length > 150) {
               parseStrategy = strategy.name;
               console.log(`✓ Success with ${strategy.name}`);
               break;
@@ -455,7 +494,7 @@ export async function parseUniversalDocument(
           }
         }
 
-        if (!extractedText || extractedText.trim().length < 50) {
+        if (!extractedText || extractedText.trim().length < 150) {
           throw new Error("All PDF parsing strategies failed to extract meaningful text");
         }
         break;

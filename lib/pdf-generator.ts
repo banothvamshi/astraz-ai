@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { removeAllPlaceholders } from "./placeholder-detector";
 
 export interface PDFOptions {
   type: "resume" | "coverLetter";
@@ -26,9 +27,9 @@ function stripCodeBlocks(content: string): string {
     .replace(/^```\s*\n?/gm, "")
     .replace(/\n?```\s*$/gm, "")
     .trim();
-  
+
   cleaned = cleaned.replace(/```[\s\S]*?```/g, "");
-  
+
   return cleaned;
 }
 
@@ -40,7 +41,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   const { type, content, name, email } = options;
 
   // Strip code blocks and clean content
-  const cleanedContent = stripCodeBlocks(content);
+  const cleanedContent = removeAllPlaceholders(stripCodeBlocks(content));
 
   const doc = new jsPDF({
     orientation: "portrait",
@@ -79,7 +80,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
     doc.text(email, margin, y);
     y += sectionSpacing + 3;
-    
+
     // Date
     const today = new Date();
     const dateStr = today.toLocaleDateString("en-US", {
@@ -135,18 +136,18 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
       doc.setFont("helvetica", "bold");
       doc.setFontSize(headingSize);
       doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-      
+
       const headingText = stripMarkdown(section.content.trim());
-      
+
       doc.text(headingText, margin, y + 3);
       y += headingLineHeight + (level === 1 ? 2.5 : 1.5);
-      
+
       // Add subtle divider line
       doc.setLineWidth(0.25);
       doc.setDrawColor(COLORS.divider[0], COLORS.divider[1], COLORS.divider[2]);
       doc.line(margin, y, pageWidth - margin, y);
       y += level === 1 ? 4.5 : 3.5;
-      
+
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
@@ -321,7 +322,7 @@ function parseExperienceEntry(lines: string[], startIndex: number): { entry: Par
 
   const jobTitle = titleMatch[1];
   const restOfLine = titleLine.replace(/\*\*(.+?)\*\*/, "").trim();
-  
+
   // Extract company, location, dates
   const parts = restOfLine.split("|").map(p => p.trim());
   let company = "";
@@ -432,12 +433,12 @@ function addExperienceEntry(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(COLORS.lightText[0], COLORS.lightText[1], COLORS.lightText[2]);
-  
+
   const details: string[] = [];
   if (company) details.push(company);
   if (location) details.push(location);
   if (dates) details.push(dates);
-  
+
   if (details.length > 0) {
     const detailsText = details.join(" | ");
     const detailsLines = doc.splitTextToSize(detailsText, maxWidth);
@@ -448,7 +449,7 @@ function addExperienceEntry(
   // Bullet points
   doc.setFontSize(10);
   doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-  
+
   if (section.items && section.items.length > 0) {
     section.items.forEach((bullet) => {
       // Better check for page break
@@ -463,11 +464,11 @@ function addExperienceEntry(
 
       const bulletText = stripMarkdown(bullet);
       const bulletLines = doc.splitTextToSize(bulletText, maxWidth - 10);
-      
+
       // Professional bullet point with accent color
       doc.setFillColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
       doc.circle(margin + 3, y - 1.5, 1.3, "F");
-      
+
       // Text
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
       doc.text(bulletLines, margin + 8, y);
@@ -500,7 +501,7 @@ function addEnterpriseResumeHeader(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10.5);
   doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
-  
+
   const emailWidth = doc.getTextWidth(email);
   doc.text(email, (pageWidth - emailWidth) / 2, y);
   y += 8;
@@ -509,11 +510,11 @@ function addEnterpriseResumeHeader(
   doc.setLineWidth(0.5);
   doc.setDrawColor(COLORS.divider[0], COLORS.divider[1], COLORS.divider[2]);
   doc.line(margin, y, pageWidth - margin, y);
-  
+
   // Add accent bar
   doc.setFillColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
   doc.rect(margin, y - 0.5, 25, 1, "F");
-  
+
   y += 8;
 
   return y;
