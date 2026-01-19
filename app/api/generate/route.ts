@@ -521,6 +521,8 @@ CRITICAL REQUIREMENTS:
 - Make it comprehensive and complete
 - Every section must be fully populated with real information
 - If the original resume contains multiple roles or sections, include every one of them (do not summarize them away)
+- **CRITICAL: DO NOT DUPLICATE ROLES**. If the candidate held the same role at the same company during the same period, merge them into one entry. Do not list identical roles twice.
+- If a role implies multiple projects, listed them as bullet points under ONE role entry.
 
 CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers. Generate the COMPLETE resume now.`;
 
@@ -605,7 +607,8 @@ CANDIDATE INFORMATION:
 ${candidateName ? `Name: ${candidateName}` : ""}
 ${candidateEmail ? `Email: ${candidateEmail}` : ""}
 ${candidatePhone ? `Phone: ${candidatePhone}` : ""}
-Key Experience: ${resumeSections.sections["EXPERIENCE"]?.substring(0, 500) || finalResumeText.substring(0, 500)}
+Key Experience: ${resumeSections.sections["EXPERIENCE"]?.substring(0, 800) || finalResumeText.substring(0, 800) || "Experienced professional"}
+
 
 JOB DETAILS:
 Position: ${displayTitle}
@@ -641,7 +644,7 @@ Generate now.`;
             Maintain authenticity and professionalism.`,
             {
               temperature: 0.5, // Lower for more consistent quality
-              maxOutputTokens: 3500, // Increased for complete, compelling cover letters
+              maxOutputTokens: 2048, // Optimized for cover letter length (usually ~1 page)
             }
           ),
         {
