@@ -15,6 +15,7 @@ import { retry } from "@/lib/retry";
 import { shouldAllowAPICall, getBillingStatusMessage } from "@/lib/billing-guard";
 import { estimateCost, getCostOptimizationTips } from "@/lib/cost-optimizer";
 import { validateGeneratedContent } from "@/lib/content-validator";
+import { logGenerationData } from "@/lib/data-logger";
 
 // Maximum execution time (25 seconds for Vercel)
 const MAX_EXECUTION_TIME = 25000;
@@ -742,7 +743,7 @@ Generate now.`;
       console.error("Cache error:", cacheError);
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       resume: cleanResume,
       coverLetter: cleanCoverLetter,
       meta: {
@@ -767,6 +768,26 @@ Generate now.`;
         resetAt: rateLimit.resetAt,
       },
     });
+
+    // Log the successful generation data
+    // Intentionally not awaiting to avoid delaying response
+    logGenerationData({
+      clientId,
+      isPremium,
+      resumeData: structuredResume,
+      jobDescription: parsedJob,
+      generatedResume: cleanResume,
+      generatedCoverLetter: cleanCoverLetter,
+      contactInfo: {
+        name: normalizedResume.name,
+        email: normalizedResume.email,
+        phone: normalizedResume.phone,
+        linkedin: normalizedResume.linkedin,
+        location: normalizedResume.location
+      }
+    });
+
+    return response;
   } catch (error: any) {
     console.error("Generation error:", {
       error: error.message,

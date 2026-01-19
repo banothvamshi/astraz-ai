@@ -37,6 +37,21 @@ function stripCodeBlocks(content: string): string {
 }
 
 /**
+ * Strips markdown bold/italic formatting from text
+ * Converts **bold** and *italic* to plain text
+ */
+function stripMarkdownFormatting(text: string): string {
+  return text
+    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')  // ***bold italic*** -> text
+    .replace(/\*\*(.+?)\*\*/g, '$1')       // **bold** -> text
+    .replace(/\*(?!\s)(.+?)(?<!\s)\*/g, '$1')  // *italic* -> text (not bullet)
+    .replace(/__(.+?)__/g, '$1')           // __underline__ -> text
+    .replace(/_(.+?)_/g, '$1')             // _italic_ -> text
+    .replace(/\*\*/g, '')                  // Stray ** markers
+    .trim();
+}
+
+/**
  * Generates an ENTERPRISE-GRADE, premium-quality PDF from markdown content.
  * Optimized for ATS compatibility and human readability with professional design.
  */
@@ -281,14 +296,15 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
     // BULLET POINTS
     if (line.startsWith("- ") || line.startsWith("* ") || line.startsWith("• ")) {
-      const bulletText = line.replace(/^[-*•]\s+/, "");
+      const bulletText = stripMarkdownFormatting(line.replace(/^[-*•]\s+/, ""));
       renderBullet(bulletText);
       i++;
       continue;
     }
 
     // REGULAR PARAGRAPH
-    renderTextParagraph(line, SIZE_BODY, FONT_BODY, "normal", COLORS.text);
+    const cleanedLine = stripMarkdownFormatting(line);
+    renderTextParagraph(cleanedLine, SIZE_BODY, FONT_BODY, "normal", COLORS.text);
     i++;
   }
 

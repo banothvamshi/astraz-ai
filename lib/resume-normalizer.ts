@@ -504,7 +504,21 @@ function extractExperience(lines: string[]): Experience[] {
     experiences.push(currentExp as Experience);
   }
 
-  return experiences;
+  // Deduplicate experiences
+  const uniqueExperiences: Experience[] = [];
+  const seen = new Set<string>();
+
+  for (const exp of experiences) {
+    // Create a unique key for each experience
+    const key = `${exp.title?.toLowerCase()}|${exp.company?.toLowerCase()}|${exp.duration?.toLowerCase()}`;
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueExperiences.push(exp);
+    }
+  }
+
+  return uniqueExperiences;
 }
 
 /**
