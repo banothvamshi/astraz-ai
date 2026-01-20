@@ -62,14 +62,14 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <Button
-              onClick={handleGetStarted}
+              onClick={() => router.push("/login")}
               variant="ghost"
               className="hidden sm:flex hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               Sign In
             </Button>
             <Button
-              onClick={handleGetStarted}
+              onClick={() => router.push("/signup")}
               className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105"
             >
               Get Started
