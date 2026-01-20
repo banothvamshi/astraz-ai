@@ -155,7 +155,7 @@ function PaymentPageContent() {
         <nav className="border-b border-slate-200/80 bg-white/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/80">
           <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             <Button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/")}
               variant="ghost"
               size="sm"
             >
