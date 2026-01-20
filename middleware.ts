@@ -1,30 +1,37 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { logMetric } from "@/lib/monitoring";
 
 /**
  * Middleware for request monitoring, security, and route protection
  */
-export function middleware(request: NextRequest) {
-  const startTime = Date.now();
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  let response = NextResponse.next();
 
-  // Admin route protection - check for admin key in cookie/header
+  // Admin route protection
   if (pathname.startsWith("/admin")) {
     const adminKey = request.cookies.get("astraz_admin_key")?.value;
     const headerKey = request.headers.get("x-admin-key");
     const validKey = process.env.ADMIN_SECRET_KEY || "astraz-admin-2024";
 
     if (adminKey !== validKey && headerKey !== validKey) {
-      // Redirect to dashboard if not admin
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
+  // Dashboard protection - simplified (detailed check happens on client side)
+  if (pathname.startsWith("/dashboard") && !pathname.includes("/dashboard/debug-parser")) {
+    // Check if user is authenticated (has session cookie)
+    const hasSession = request.cookies.has("sb-access-token") ||
+      request.cookies.has("supabase-auth-token") ||
+      request.cookies.getAll().some(cookie => cookie.name.startsWith("sb-"));
+
+    if (!hasSession) {
+      return NextResponse.redirect(new URL("/login", request.url));
     }
   }
 
   // Security headers
-  const response = NextResponse.next();
-
-  // Core security headers
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
@@ -33,7 +40,7 @@ export function middleware(request: NextRequest) {
   response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
-  // Content Security Policy (allows Razorpay and Supabase)
+  // Content Security Policy
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com",
@@ -52,7 +59,6 @@ export function middleware(request: NextRequest) {
     response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
 
-  // Log metrics after response
   response.headers.set("X-Request-ID", crypto.randomUUID());
 
   return response;
@@ -67,4 +73,3 @@ export const config = {
     "/user-portal/:path*",
   ],
 };
-

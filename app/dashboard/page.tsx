@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2 } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadArea } from "@/components/upload-area";
 import { PaywallModal } from "@/components/paywall-modal";
 import { ResumeEditor } from "@/components/resume-editor";
 import { canUseFreeTrial, markTrialUsed, hasUsedTrial } from "@/lib/storage";
+import { getSupabaseBrowserClient } from "@/lib/auth";
 
 interface ContactInfo {
   fullName: string;
@@ -36,7 +37,12 @@ export default function Dashboard() {
   const [isPremium, setIsPremium] = useState(false);
   const [editingResume, setEditingResume] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
-  const [isPreviewLoading, setIsPreviewLoading] = useState(false); // Loading state for PDF generation
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
+  // Credits system states
+  const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
+  const [totalGenerations, setTotalGenerations] = useState(0);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   // New: Contact info state
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
@@ -56,16 +62,56 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    setCanTrial(canUseFreeTrial());
-    setIsPremium(localStorage.getItem("astraz_premium") === "true");
+    const initDashboard = async () => {
+      setCanTrial(canUseFreeTrial());
+      setIsPremium(localStorage.getItem("astraz_premium") === "true");
 
-    // Check URL params for premium status
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("premium") === "true") {
-      setIsPremium(true);
-      localStorage.setItem("astraz_premium", "true");
-    }
-  }, []);
+      // Check URL params for premium status
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("premium") === "true") {
+        setIsPremium(true);
+        localStorage.setItem("astraz_premium", "true");
+      }
+
+      // Fetch user profile and credits from Supabase
+      const supabase = getSupabaseBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_admin, is_premium, credits_remaining, total_generations, free_generations_used")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          // Redirect admins to admin panel
+          if (profile.is_admin) {
+            router.push("/admin");
+            return;
+          }
+
+          setIsPremium(profile.is_premium || false);
+          setCreditsRemaining(profile.credits_remaining ?? 0);
+          setTotalGenerations(profile.total_generations || 0);
+
+          // Access control: Check if user can access dashboard
+          const hasUnusedTrial = (profile.free_generations_used || 0) === 0;
+          const hasCredits = (profile.credits_remaining || 0) > 0 || profile.credits_remaining === -1;
+
+          if (!profile.is_premium && !hasUnusedTrial && !hasCredits) {
+            // No access - redirect to payment
+            router.push("/payment");
+            return;
+          }
+        }
+      }
+
+      setIsLoadingProfile(false);
+    };
+
+    initDashboard();
+  }, [router]);
 
   // Update contact info from parsed resume meta
   useEffect(() => {
@@ -274,7 +320,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50">
 
       {/* Premium Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-indigo-100/50 bg-white/80 backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-950/80">
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-amber-100/50 bg-white/80 backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-950/80">
         <div className="container mx-auto flex h-full items-center justify-between px-6">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push("/")}>
             <img src="/logo.png" alt="Astraz AI" className="h-9 w-9" />
@@ -282,11 +328,31 @@ export default function Dashboard() {
               Astraz AI
             </span>
           </div>
+
+          {/* Credits Display */}
+          {!isLoadingProfile && creditsRemaining !== null && (
+            <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+              {creditsRemaining === -1 ? (
+                <>
+                  <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Unlimited</span>
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                    {creditsRemaining} {creditsRemaining === 1 ? 'credit' : 'credits'}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center gap-4">
             <Button
               onClick={() => router.push("/dashboard/debug-parser")}
               variant="ghost"
-              className="hidden sm:flex text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-indigo-400"
+              className="hidden sm:flex text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400"
             >
               Debug Tools
             </Button>

@@ -398,9 +398,7 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-600">
-                <Sparkles className="h-4 w-4 text-white" />
-              </div>
+              <img src="/logo.png" alt="Astraz AI" className="h-8 w-8" />
               <span className="text-lg font-bold">Astraz AI</span>
             </div>
             <p className="text-sm text-slate-500">
