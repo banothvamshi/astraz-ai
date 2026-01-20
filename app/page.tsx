@@ -108,7 +108,7 @@ export default function Home() {
             </motion.h1>
 
             <motion.p variants={fadeIn} className="mb-10 text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Stop guessing keywords. Our advanced AI analyzes job descriptions and engineers your resume to structurally pass 99% of Applicant Tracking Systems.
+              Stop guessing keywords. Our advanced AI analyzes job descriptions and engineers your resume to structurally pass 95% of Applicant Tracking Systems.
             </motion.p>
 
             <motion.div variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -155,7 +155,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              <div className="text-4xl font-bold text-emerald-600">94%</div>
+              <div className="text-4xl font-bold text-emerald-600">95%</div>
               <div className="text-sm text-slate-500 mt-1">ATS Pass Rate</div>
             </motion.div>
             <motion.div
@@ -173,7 +173,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
-              <div className="text-4xl font-bold text-cyan-600">5 sec</div>
+              <div className="text-4xl font-bold text-cyan-600">~15 sec</div>
               <div className="text-sm text-slate-500 mt-1">Generation Time</div>
             </motion.div>
           </div>
