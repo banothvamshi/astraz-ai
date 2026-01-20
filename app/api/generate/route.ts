@@ -675,6 +675,21 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
       }
     });
 
+    // Save generation to database (fire-and-forget)
+    fetch(`${request.nextUrl.origin}/api/save-generation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jobTitle: parsedJob.title,
+        companyName: parsedJob.company,
+        jobLocation: parsedJob.location,
+        resumeContent: cleanResume,
+        originalResumeText: finalResumeText?.substring(0, 5000), // Truncate for storage
+        jobDescriptionText: jobDescription?.substring(0, 5000),
+        isFreeGeneration: !isPremium,
+      }),
+    }).catch(() => { }); // Ignore errors, don't block response
+
     return response;
   } catch (error: any) {
     console.error("Generation error:", {
