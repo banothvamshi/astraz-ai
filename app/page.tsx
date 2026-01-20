@@ -401,6 +401,10 @@ export default function Home() {
               <img src="/logo.png" alt="Astraz AI" className="h-8 w-8" />
               <span className="text-lg font-bold">Astraz AI</span>
             </div>
+            <div className="flex items-center gap-6 text-sm text-slate-500">
+              <a href="/terms" className="hover:text-amber-600 transition-colors">Terms of Service</a>
+              <a href="/privacy" className="hover:text-amber-600 transition-colors">Privacy Policy</a>
+            </div>
             <p className="text-sm text-slate-500">
               © 2026 Astraz AI. Engineered for Excellence.
             </p>

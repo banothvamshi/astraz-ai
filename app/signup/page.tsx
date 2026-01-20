@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Loader2, Sparkles, Mail, Lock, Eye, EyeOff, User, Phone, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowserClient, validatePassword } from "@/lib/auth";
+import { LegalModal } from "@/components/legal-modal";
 
 export default function SignupPage() {
     const router = useRouter();
@@ -247,9 +248,9 @@ export default function SignupPage() {
                             />
                             <label htmlFor="terms" className="text-sm text-slate-600 dark:text-slate-400">
                                 I agree to the{" "}
-                                <Link href="/terms" className="text-amber-600 hover:underline">Terms of Service</Link>
+                                <LegalModal type="terms" trigger={<span className="text-amber-600 hover:underline">Terms of Service</span>} />
                                 {" "}and{" "}
-                                <Link href="/privacy" className="text-amber-600 hover:underline">Privacy Policy</Link>
+                                <LegalModal type="privacy" trigger={<span className="text-amber-600 hover:underline">Privacy Policy</span>} />
                             </label>
                         </div>
 
