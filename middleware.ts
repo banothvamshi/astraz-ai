@@ -24,11 +24,26 @@ export function middleware(request: NextRequest) {
   // Security headers
   const response = NextResponse.next();
 
-  // Add security headers
+  // Core security headers
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("X-DNS-Prefetch-Control", "off");
+  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+
+  // Content Security Policy (allows Razorpay and Supabase)
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https: blob:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.razorpay.com",
+    "frame-src https://api.razorpay.com https://checkout.razorpay.com",
+  ].join("; ");
+  response.headers.set("Content-Security-Policy", csp);
 
   // CORS headers for API routes
   if (pathname.startsWith("/api")) {

@@ -15,12 +15,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email TEXT UNIQUE,
   full_name TEXT,
   avatar_url TEXT,
+  phone TEXT,
   is_admin BOOLEAN DEFAULT FALSE,
   is_premium BOOLEAN DEFAULT FALSE,
   premium_type TEXT, -- 'basic', 'pro', 'unlimited'
   premium_until TIMESTAMP WITH TIME ZONE, -- NULL for lifetime
   free_generations_used INTEGER DEFAULT 0,
   total_generations INTEGER DEFAULT 0,
+  first_login_completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
