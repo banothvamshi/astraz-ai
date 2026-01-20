@@ -68,7 +68,7 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
             </div>
             <ul className="space-y-2 mb-4 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                <Check className="h-4 w-4 text-emerald-500" /> 3 Generations
+                <Check className="h-4 w-4 text-emerald-500" /> 5 Generations
               </li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                 <Check className="h-4 w-4 text-emerald-500" /> PDF Downloads
@@ -124,10 +124,7 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
                 <Zap className="h-4 w-4 text-yellow-400" /> Unlimited
               </li>
               <li className="flex items-center gap-2 text-slate-300">
-                <Zap className="h-4 w-4 text-yellow-400" /> LinkedIn Optimization
-              </li>
-              <li className="flex items-center gap-2 text-slate-300">
-                <Zap className="h-4 w-4 text-yellow-400" /> Lifetime Access
+                <Zap className="h-4 w-4 text-yellow-400" /> Priority Support
               </li>
             </ul>
             <Button
@@ -144,6 +141,6 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
           Secure payment via Razorpay • UPI, Cards, Net Banking
         </p>
       </DialogContent>
-    </Dialog>
+    </Dialog >
   );
 }

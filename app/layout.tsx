@@ -14,14 +14,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Astraz AI - Beat ATS with AI-Powered Resumes | Premium Resume Generator",
-  description: "Generate ATS-optimized resumes and cover letters that pass Applicant Tracking Systems. Upload your resume, paste the job description, and get perfectly tailored application materials. Professional quality, better than paid services.",
-  keywords: "ATS resume builder, resume optimizer, cover letter generator, ATS-friendly resume, job application, resume writer, AI resume builder, professional resume, resume generator",
+  description: "Generate ATS-optimized resumes that pass Applicant Tracking Systems. Upload your resume, paste the job description, and get perfectly tailored resumes. Professional quality, AI-powered.",
+  keywords: "ATS resume builder, resume optimizer, ATS-friendly resume, job application, resume writer, AI resume builder, professional resume, resume generator",
   authors: [{ name: "Astraz AI" }],
   creator: "Astraz AI",
   publisher: "Astraz AI",
   openGraph: {
     title: "Astraz AI - Beat ATS with AI-Powered Resumes",
-    description: "Generate ATS-optimized resumes and cover letters that pass Applicant Tracking Systems",
+    description: "Generate ATS-optimized resumes that pass Applicant Tracking Systems",
     url: "https://astrazai.com",
     siteName: "Astraz AI",
     type: "website",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Astraz AI - Beat ATS with AI-Powered Resumes",
-    description: "Generate ATS-optimized resumes and cover letters",
+    description: "Generate ATS-optimized resumes that pass 99% of ATS systems",
   },
   robots: {
     index: true,

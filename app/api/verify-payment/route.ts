@@ -13,7 +13,11 @@ export async function POST(request: NextRequest) {
       amount,
       currency,
       plan_type,
+      credits,
     } = await request.json();
+
+    // Determine credits based on plan
+    const planCredits = credits || (plan_type === 'unlimited' ? -1 : plan_type === 'pro' ? 25 : 5);
 
     // Verify signature
     const text = `${razorpay_order_id}|${razorpay_payment_id}`;
@@ -58,14 +62,25 @@ export async function POST(request: NextRequest) {
     let isNewUser = false;
 
     if (userExists) {
-      // User exists - just update to premium
+      // User exists - update to premium and add credits
       userId = userExists.id;
+
+      // Get current credits
+      const { data: currentProfile } = await supabase
+        .from("profiles")
+        .select("credits_remaining")
+        .eq("id", userId)
+        .single();
+
+      const currentCredits = currentProfile?.credits_remaining || 0;
+      const newCredits = planCredits === -1 ? -1 : currentCredits + planCredits;
 
       await supabase
         .from("profiles")
         .update({
           is_premium: true,
           premium_type: plan_type || "premium",
+          credits_remaining: newCredits,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -88,7 +103,7 @@ export async function POST(request: NextRequest) {
       } else if (newUser?.user) {
         userId = newUser.user.id;
 
-        // Create/update profile
+        // Create/update profile with credits
         await supabase
           .from("profiles")
           .upsert({
@@ -97,6 +112,7 @@ export async function POST(request: NextRequest) {
             phone: phone || null,
             is_premium: true,
             premium_type: plan_type || "premium",
+            credits_remaining: planCredits,
             first_login_completed: false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),

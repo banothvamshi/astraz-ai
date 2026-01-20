@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   premium_until TIMESTAMP WITH TIME ZONE, -- NULL for lifetime
   free_generations_used INTEGER DEFAULT 0,
   total_generations INTEGER DEFAULT 0,
+  credits_remaining INTEGER DEFAULT 0, -- -1 for unlimited
   first_login_completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
