@@ -67,7 +67,7 @@ export default function LoginPage() {
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <Link href="/" className="inline-flex items-center gap-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 shadow-lg shadow-indigo-500/20">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 shadow-lg shadow-amber-500/20">
                             <Sparkles className="h-5 w-5 text-white" />
                         </div>
                         <span className="text-2xl font-bold text-slate-900 dark:text-white">Astraz AI</span>
@@ -103,7 +103,7 @@ export default function LoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="you@example.com"
                                     required
-                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                                 />
                             </div>
                         </div>
@@ -114,7 +114,7 @@ export default function LoginPage() {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                     Password
                                 </label>
-                                <Link href="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                                <Link href="/forgot-password" className="text-sm text-amber-600 hover:text-amber-700 dark:text-indigo-400">
                                     Forgot password?
                                 </Link>
                             </div>
@@ -126,7 +126,7 @@ export default function LoginPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     required
-                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                                 />
                                 <button
                                     type="button"
@@ -142,7 +142,7 @@ export default function LoginPage() {
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                            className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white font-semibold"
                         >
                             {isLoading ? (
                                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...</>
@@ -154,7 +154,7 @@ export default function LoginPage() {
 
                     <div className="mt-6 text-center text-sm text-slate-500">
                         Don't have an account?{" "}
-                        <Link href="/signup" className="text-indigo-600 hover:text-indigo-700 font-medium">
+                        <Link href="/signup" className="text-amber-600 hover:text-amber-700 font-medium">
                             Sign Up
                         </Link>
                     </div>

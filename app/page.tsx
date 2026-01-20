@@ -43,14 +43,14 @@ export default function Home() {
   // Background Aurora Effect
   const AuroraBackground = () => (
     <div className="absolute inset-0 -z-10 overflow-hidden">
-      <div className="absolute -top-[40%] -left-[20%] w-[70%] h-[70%] rounded-full bg-indigo-500/20 blur-[120px] mix-blend-screen animate-aurora" />
+      <div className="absolute -top-[40%] -left-[20%] w-[70%] h-[70%] rounded-full bg-amber-500/20 blur-[120px] mix-blend-screen animate-aurora" />
       <div className="absolute -top-[40%] -right-[20%] w-[70%] h-[70%] rounded-full bg-cyan-500/20 blur-[120px] mix-blend-screen animate-aurora delay-1000" />
       <div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] rounded-full bg-purple-500/20 blur-[100px] mix-blend-screen animate-aurora delay-2000" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 selection:bg-amber-500/30">
 
       {/* Navbar */}
       <motion.nav
@@ -60,9 +60,7 @@ export default function Home() {
       >
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 shadow-lg shadow-indigo-500/20">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
+            <img src="/logo.png" alt="Astraz AI" className="h-9 w-9" />
             <span className="text-xl font-bold tracking-tight">Astraz AI</span>
           </div>
           <div className="flex items-center gap-4">
@@ -75,7 +73,7 @@ export default function Home() {
             </Button>
             <Button
               onClick={() => router.push("/signup")}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105"
+              className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
             >
               Get Started
             </Button>
@@ -94,17 +92,17 @@ export default function Home() {
             variants={stagger}
             className="mx-auto max-w-4xl text-center"
           >
-            <motion.div variants={fadeIn} className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/50 px-4 py-1.5 text-sm font-medium text-indigo-700 backdrop-blur-md dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 mb-8">
+            <motion.div variants={fadeIn} className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/50 px-4 py-1.5 text-sm font-medium text-amber-700 backdrop-blur-md dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 mb-8">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
               </span>
               AI-Powered Resume Engineering v2.0
             </motion.div>
 
             <motion.h1 variants={fadeIn} className="mb-6 text-5xl font-extrabold tracking-tight sm:text-7xl">
               Beat the ATS. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-purple-500 to-cyan-500">
                 Land the Interview.
               </span>
             </motion.h1>
@@ -148,7 +146,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <div className="text-4xl font-bold text-indigo-600">10K+</div>
+              <div className="text-4xl font-bold text-amber-600">10K+</div>
               <div className="text-sm text-slate-500 mt-1">Resumes Optimized</div>
             </motion.div>
             <motion.div
@@ -202,7 +200,7 @@ export default function Home() {
                 <Cpu className="w-48 h-48" />
               </div>
               <div className="relative z-10">
-                <div className="h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-6 text-indigo-600 dark:text-indigo-400">
+                <div className="h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-6 text-amber-600 dark:text-amber-400">
                   <Zap className="w-6 h-6" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3">Deep ATS Analysis</h3>
@@ -292,7 +290,7 @@ export default function Home() {
                 "Applied to 5 jobs with my old resume - nothing. Used Astraz AI once, got 3 interviews in a week. The ATS optimization is real."
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 font-bold">R</div>
+                <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-amber-600 font-bold">R</div>
                 <div>
                   <p className="font-semibold text-sm">Rahul M.</p>
                   <p className="text-xs text-slate-500">Software Engineer</p>
@@ -358,7 +356,7 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 bg-gradient-to-br from-indigo-600 to-purple-700 text-white">
+      <section className="py-24 bg-gradient-to-br from-amber-600 to-purple-700 text-white">
         <div className="container mx-auto px-6 text-center">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -386,7 +384,7 @@ export default function Home() {
             <Button
               onClick={handleGetStarted}
               size="lg"
-              className="h-14 px-10 text-lg bg-white text-indigo-700 hover:bg-slate-100 transition-all rounded-full font-semibold"
+              className="h-14 px-10 text-lg bg-white text-amber-700 hover:bg-slate-100 transition-all rounded-full font-semibold"
             >
               Start Optimizing for Free
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -400,7 +398,7 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-600">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <span className="text-lg font-bold">Astraz AI</span>

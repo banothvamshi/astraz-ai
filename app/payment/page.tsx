@@ -161,7 +161,7 @@ function PaymentPageContent() {
           </p>
           <Button
             onClick={() => router.push("/dashboard")}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+            className="w-full bg-gradient-to-r from-amber-600 to-purple-600 hover:from-amber-700 hover:to-purple-700"
           >
             Go to Dashboard
           </Button>
@@ -252,14 +252,14 @@ function PaymentPageContent() {
               </div>
 
               {/* Pro Plan */}
-              <div className="relative rounded-2xl border-2 border-indigo-500 bg-white p-6 shadow-xl dark:bg-slate-900">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white">
+              <div className="relative rounded-2xl border-2 border-amber-500 bg-white p-6 shadow-xl dark:bg-slate-900">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-600 px-4 py-1 text-xs font-semibold text-white">
                   MOST POPULAR
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-1">{PLANS.pro.name}</h3>
                 <p className="text-sm text-slate-500 mb-4">{PLANS.pro.tagline}</p>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-indigo-600">
+                  <span className="text-4xl font-bold text-amber-600">
                     {prices[currency].pro.display}
                   </span>
                   <span className="text-sm text-slate-500 ml-1">/one-time</span>
@@ -274,7 +274,7 @@ function PaymentPageContent() {
                 <Button
                   onClick={() => handlePayment("pro", prices[currency].pro.value)}
                   disabled={isProcessing}
-                  className="w-full h-11 bg-indigo-600 hover:bg-indigo-700"
+                  className="w-full h-11 bg-amber-600 hover:bg-amber-700"
                 >
                   {isProcessing && selectedPlan === "pro" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>

@@ -1,29 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  /* Premium Light Theme */
+  /* Gold/Amber Theme - Light Mode */
   --background: #ffffff;
-  --foreground: #020617;
-  /* slate-950 */
+  --foreground: #1a1a1a;
   --card: #ffffff;
-  --card-foreground: #020617;
+  --card-foreground: #1a1a1a;
   --popover: #ffffff;
-  --popover-foreground: #020617;
-  --primary: #4f46e5;
-  /* indigo-600 */
+  --popover-foreground: #1a1a1a;
+  --primary: #C9A227;
+  /* Gold - from logo */
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  /* slate-100 */
-  --secondary-foreground: #0f172a;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
+  --secondary: #faf5e6;
+  /* Light gold tint */
+  --secondary-foreground: #1a1a1a;
+  --muted: #f9f6ed;
+  --muted-foreground: #6b6b6b;
+  --accent: #D4AF37;
+  /* Metallic gold */
+  --accent-foreground: #1a1a1a;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #4f46e5;
+  --border: #e5e0d0;
+  --input: #e5e0d0;
+  --ring: #C9A227;
   --radius: 0.75rem;
 }
 
@@ -33,40 +33,41 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Extended Colors for Gradients */
-  --color-brand-primary: #4f46e5;
-  --color-brand-secondary: #06b6d4;
-  /* cyan-500 */
-  --color-brand-accent: #8b5cf6;
-  /* violet-500 */
+  /* Brand Colors - Gold Palette */
+  --color-brand-primary: #C9A227;
+  /* Gold */
+  --color-brand-secondary: #B8860B;
+  /* Dark Goldenrod */
+  --color-brand-accent: #D4AF37;
+  /* Metallic Gold */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Premium "Cosmic" Dark Mode */
-    --background: #020617;
-    /* slate-950 (Deep Space) */
-    --foreground: #f8fafc;
-    --card: #0f172a;
-    /* slate-900 */
-    --card-foreground: #f8fafc;
-    --popover: #0f172a;
-    --popover-foreground: #f8fafc;
-    --primary: #6366f1;
-    /* indigo-500 */
-    --primary-foreground: #ffffff;
-    --secondary: #1e293b;
-    /* slate-800 */
-    --secondary-foreground: #f8fafc;
-    --muted: #0f172a;
-    --muted-foreground: #94a3b8;
-    --accent: #1e293b;
-    --accent-foreground: #f8fafc;
+    /* Gold Theme - Dark Mode */
+    --background: #0a0a0a;
+    /* Near black */
+    --foreground: #fafafa;
+    --card: #141414;
+    /* Dark charcoal */
+    --card-foreground: #fafafa;
+    --popover: #141414;
+    --popover-foreground: #fafafa;
+    --primary: #D4AF37;
+    /* Metallic Gold */
+    --primary-foreground: #0a0a0a;
+    --secondary: #1f1f1f;
+    /* Dark gray */
+    --secondary-foreground: #fafafa;
+    --muted: #171717;
+    --muted-foreground: #a3a3a3;
+    --accent: #C9A227;
+    --accent-foreground: #0a0a0a;
     --destructive: #7f1d1d;
-    --destructive-foreground: #f8fafc;
-    --border: #1e293b;
-    --input: #1e293b;
-    --ring: #6366f1;
+    --destructive-foreground: #fafafa;
+    --border: #262626;
+    --input: #262626;
+    --ring: #D4AF37;
   }
 }
 
