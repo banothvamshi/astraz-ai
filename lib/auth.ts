@@ -1,10 +1,18 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-// Browser client for client-side auth
+// Singleton instance for browser client
+let browserClient: SupabaseClient | null = null;
+
+// Browser client for client-side auth (Singleton)
 export function getSupabaseBrowserClient() {
+    if (browserClient) {
+        return browserClient;
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-    return createClient(supabaseUrl, supabaseAnonKey);
+    browserClient = createClient(supabaseUrl, supabaseAnonKey);
+    return browserClient;
 }
 
 // Admin client for server-side operations
