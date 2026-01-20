@@ -118,9 +118,7 @@ function ConfirmContent() {
                     transition={{ delay: 0.8 }}
                     className="mt-12 flex items-center justify-center gap-2 text-slate-400"
                 >
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600">
-                        <Sparkles className="h-3 w-3 text-white" />
-                    </div>
+                    <img src="/logo.png" alt="Astraz AI" className="h-6 w-6" />
                     <span className="text-sm font-medium">Astraz AI</span>
                 </motion.div>
             </motion.div>

@@ -10,9 +10,7 @@ export default function TermsPage() {
             <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
                 <div className="container mx-auto flex h-16 items-center justify-between px-6">
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700">
-                            <Sparkles className="h-5 w-5 text-white" />
-                        </div>
+                        <img src="/logo.png" alt="Astraz AI" className="h-9 w-9" />
                         <span className="text-xl font-bold">Astraz AI</span>
                     </Link>
                     <Link href="/" className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1">

@@ -102,9 +102,7 @@ export default function SignupPage() {
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <Link href="/" className="inline-flex items-center gap-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 shadow-lg shadow-amber-500/20">
-                            <Sparkles className="h-5 w-5 text-white" />
-                        </div>
+                        <img src="/logo.png" alt="Astraz AI" className="h-10 w-10" />
                         <span className="text-2xl font-bold text-slate-900 dark:text-white">Astraz AI</span>
                     </Link>
                 </div>

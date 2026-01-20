@@ -277,9 +277,7 @@ export default function Dashboard() {
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-indigo-100/50 bg-white/80 backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-950/80">
         <div className="container mx-auto flex h-full items-center justify-between px-6">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push("/")}>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 shadow-lg shadow-amber-500/20">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
+            <img src="/logo.png" alt="Astraz AI" className="h-9 w-9" />
             <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
               Astraz AI
             </span>
