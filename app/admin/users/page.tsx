@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Trash2, Search, MoreVertical, Shield, ShieldAlert, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Trash2, Search, MoreVertical, Shield, ShieldAlert, CheckCircle, XCircle, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowserClient } from "@/lib/auth";
 import {
@@ -11,10 +11,13 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+const USERS_PER_PAGE = 20;
+
 export default function UsersPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         fetchUsers();
@@ -66,6 +69,36 @@ export default function UsersPage() {
         user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+    const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
+
+    // Reset to page 1 when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
+
+    // CSV Export function
+    const handleExportCSV = () => {
+        const headers = ["Email", "Name", "Role", "Premium", "Credits", "Joined"];
+        const rows = filteredUsers.map(user => [
+            user.email || "",
+            user.full_name || "",
+            user.is_admin ? "Admin" : "User",
+            user.is_premium ? "Yes" : "No",
+            user.credits_remaining === -1 ? "Unlimited" : (user.credits_remaining || 0),
+            new Date(user.created_at).toLocaleDateString()
+        ]);
+
+        const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `astraz-users-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -104,7 +137,7 @@ export default function UsersPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {filteredUsers.map((user) => (
+                                {paginatedUsers.map((user) => (
                                     <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
@@ -166,6 +199,36 @@ export default function UsersPage() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* Pagination Controls */}
+                {!isLoading && totalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <p className="text-sm text-slate-500">
+                            Showing {startIndex + 1} - {Math.min(startIndex + USERS_PER_PAGE, filteredUsers.length)} of {filteredUsers.length} users
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <span className="text-sm text-slate-600 dark:text-slate-400">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 )}
             </div>

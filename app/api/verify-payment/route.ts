@@ -16,8 +16,12 @@ export async function POST(request: NextRequest) {
       credits,
     } = await request.json();
 
-    // Determine credits based on plan
-    const planCredits = credits || (plan_type === 'unlimited' ? -1 : plan_type === 'pro' ? 25 : 5);
+    // Determine credits based on plan (monthly subscription)
+    const planCredits = credits || (
+      plan_type === 'enterprise' ? 100 :
+        plan_type === 'professional' ? 30 :
+          10 // starter default
+    );
 
     // Verify signature
     const text = `${razorpay_order_id}|${razorpay_payment_id}`;

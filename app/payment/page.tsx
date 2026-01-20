@@ -12,26 +12,29 @@ declare global {
   }
 }
 
-// Plan definitions with credits
+// Plan definitions with monthly subscription credits
 const PLANS = {
-  basic: {
-    name: "Basic",
-    credits: 5,
-    tagline: "Perfect for quick job applications",
-    features: ["5 Resume Generations", "ATS Optimization", "PDF Export", "Email Support"]
+  starter: {
+    name: "Starter",
+    credits: 10,
+    tagline: "For active job seekers",
+    features: ["10 Generations/month", "ATS Optimization", "PDF Export", "Email Support"],
+    billing: "monthly"
   },
-  pro: {
-    name: "Pro",
-    credits: 25,
-    tagline: "Best value for active job seekers",
-    features: ["25 Resume Generations", "ATS Optimization", "Premium Templates", "Priority Processing", "Email Support"],
-    popular: true
+  professional: {
+    name: "Professional",
+    credits: 30,
+    tagline: "Best value for serious applicants",
+    features: ["30 Generations/month", "ATS Optimization", "Premium Templates", "Priority Processing", "Cover Letters"],
+    popular: true,
+    billing: "monthly"
   },
-  unlimited: {
-    name: "Unlimited",
-    credits: -1, // -1 means unlimited
-    tagline: "For career professionals",
-    features: ["Unlimited Generations", "All Premium Templates", "Priority Support", "Lifetime Access"]
+  enterprise: {
+    name: "Enterprise",
+    credits: 100,
+    tagline: "For career professionals & recruiters",
+    features: ["100 Generations/month", "All Premium Features", "Priority Support", "Early Access to New Features"],
+    billing: "monthly"
   }
 };
 
@@ -56,14 +59,14 @@ function PaymentPageContent() {
 
   const prices = {
     INR: {
-      basic: { display: "₹99", value: 9900 },
-      pro: { display: "₹299", value: 29900 },
-      unlimited: { display: "₹499", value: 49900 }
+      starter: { display: "₹199", value: 19900 },
+      professional: { display: "₹499", value: 49900 },
+      enterprise: { display: "₹999", value: 99900 }
     },
     USD: {
-      basic: { display: "$4.99", value: 499 },
-      pro: { display: "$9.99", value: 999 },
-      unlimited: { display: "$19.99", value: 1999 }
+      starter: { display: "$4.99", value: 499 },
+      professional: { display: "$9.99", value: 999 },
+      enterprise: { display: "$19.99", value: 1999 }
     }
   };
 
@@ -189,8 +192,8 @@ function PaymentPageContent() {
               <button
                 onClick={() => setCurrency("INR")}
                 className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${currency === "INR"
-                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
-                    : "text-slate-500 hover:text-slate-700"
+                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                  : "text-slate-500 hover:text-slate-700"
                   }`}
               >
                 🇮🇳 INR
@@ -198,8 +201,8 @@ function PaymentPageContent() {
               <button
                 onClick={() => setCurrency("USD")}
                 className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${currency === "USD"
-                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
-                    : "text-slate-500 hover:text-slate-700"
+                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                  : "text-slate-500 hover:text-slate-700"
                   }`}
               >
                 🌍 USD
@@ -222,91 +225,91 @@ function PaymentPageContent() {
 
             {/* Pricing Grid */}
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Basic Plan */}
+              {/* Starter Plan */}
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg transition-shadow dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-1">{PLANS.basic.name}</h3>
-                <p className="text-sm text-slate-500 mb-4">{PLANS.basic.tagline}</p>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-1">{PLANS.starter.name}</h3>
+                <p className="text-sm text-slate-500 mb-4">{PLANS.starter.tagline}</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-slate-900 dark:text-slate-50">
-                    {prices[currency].basic.display}
+                    {prices[currency].starter.display}
                   </span>
-                  <span className="text-sm text-slate-500 ml-1">/one-time</span>
+                  <span className="text-sm text-slate-500 ml-1">/month</span>
                 </div>
                 <ul className="space-y-3 mb-6">
-                  {PLANS.basic.features.map((feature, i) => (
+                  {PLANS.starter.features.map((feature: string, i: number) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                       <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" /> {feature}
                     </li>
                   ))}
                 </ul>
                 <Button
-                  onClick={() => handlePayment("basic", prices[currency].basic.value)}
+                  onClick={() => handlePayment("starter", prices[currency].starter.value)}
                   disabled={isProcessing}
                   variant="outline"
                   className="w-full h-11"
                 >
-                  {isProcessing && selectedPlan === "basic" ? (
+                  {isProcessing && selectedPlan === "starter" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
-                  ) : "Get Basic"}
+                  ) : "Get Starter"}
                 </Button>
               </div>
 
-              {/* Pro Plan */}
+              {/* Professional Plan */}
               <div className="relative rounded-2xl border-2 border-amber-500 bg-white p-6 shadow-xl dark:bg-slate-900">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-600 px-4 py-1 text-xs font-semibold text-white">
                   MOST POPULAR
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-1">{PLANS.pro.name}</h3>
-                <p className="text-sm text-slate-500 mb-4">{PLANS.pro.tagline}</p>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-1">{PLANS.professional.name}</h3>
+                <p className="text-sm text-slate-500 mb-4">{PLANS.professional.tagline}</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-amber-600">
-                    {prices[currency].pro.display}
+                    {prices[currency].professional.display}
                   </span>
-                  <span className="text-sm text-slate-500 ml-1">/one-time</span>
+                  <span className="text-sm text-slate-500 ml-1">/month</span>
                 </div>
                 <ul className="space-y-3 mb-6">
-                  {PLANS.pro.features.map((feature, i) => (
+                  {PLANS.professional.features.map((feature: string, i: number) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                       <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" /> {feature}
                     </li>
                   ))}
                 </ul>
                 <Button
-                  onClick={() => handlePayment("pro", prices[currency].pro.value)}
+                  onClick={() => handlePayment("professional", prices[currency].professional.value)}
                   disabled={isProcessing}
                   className="w-full h-11 bg-amber-600 hover:bg-amber-700"
                 >
-                  {isProcessing && selectedPlan === "pro" ? (
+                  {isProcessing && selectedPlan === "professional" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
-                  ) : "Get Pro"}
+                  ) : "Get Professional"}
                 </Button>
               </div>
 
-              {/* Unlimited Plan */}
+              {/* Enterprise Plan */}
               <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 shadow-xl text-white">
-                <h3 className="text-xl font-bold mb-1">{PLANS.unlimited.name}</h3>
-                <p className="text-sm text-slate-400 mb-4">{PLANS.unlimited.tagline}</p>
+                <h3 className="text-xl font-bold mb-1">{PLANS.enterprise.name}</h3>
+                <p className="text-sm text-slate-400 mb-4">{PLANS.enterprise.tagline}</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold">
-                    {prices[currency].unlimited.display}
+                    {prices[currency].enterprise.display}
                   </span>
-                  <span className="text-sm text-slate-400 ml-1">/lifetime</span>
+                  <span className="text-sm text-slate-400 ml-1">/month</span>
                 </div>
                 <ul className="space-y-3 mb-6">
-                  {PLANS.unlimited.features.map((feature, i) => (
+                  {PLANS.enterprise.features.map((feature: string, i: number) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-slate-300">
                       <Check className="h-4 w-4 text-emerald-400 flex-shrink-0" /> {feature}
                     </li>
                   ))}
                 </ul>
                 <Button
-                  onClick={() => handlePayment("unlimited", prices[currency].unlimited.value)}
+                  onClick={() => handlePayment("enterprise", prices[currency].enterprise.value)}
                   disabled={isProcessing}
                   className="w-full h-11 bg-white text-slate-900 hover:bg-slate-100"
                 >
-                  {isProcessing && selectedPlan === "unlimited" ? (
+                  {isProcessing && selectedPlan === "enterprise" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
-                  ) : "Go Unlimited"}
+                  ) : "Get Enterprise"}
                 </Button>
               </div>
             </div>
