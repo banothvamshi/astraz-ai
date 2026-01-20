@@ -66,6 +66,7 @@ export default function AdminLayout({
     const navItems = [
         { icon: LayoutDashboard, label: "Overview", href: "/admin" },
         { icon: Users, label: "Users", href: "/admin/users" },
+        { icon: Activity, label: "Analytics", href: "/admin/analytics" },
         { icon: Activity, label: "System Health", href: "/admin/system" },
         { icon: Settings, label: "Settings", href: "/admin/settings" },
     ];
@@ -99,8 +100,8 @@ export default function AdminLayout({
                                 key={item.href}
                                 href={item.href}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                        ? "bg-indigo-600 text-white"
-                                        : "text-slate-400 hover:text-white hover:bg-slate-800"
+                                    ? "bg-indigo-600 text-white"
+                                    : "text-slate-400 hover:text-white hover:bg-slate-800"
                                     }`}
                             >
                                 <Icon className="h-5 w-5" />

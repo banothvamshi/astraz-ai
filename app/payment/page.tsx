@@ -224,21 +224,21 @@ function PaymentPageContent() {
             </div>
 
             {/* Pricing Grid */}
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-8 items-stretch">
               {/* Starter Plan */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg transition-shadow dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-1">{PLANS.starter.name}</h3>
-                <p className="text-sm text-slate-500 mb-4">{PLANS.starter.tagline}</p>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-slate-900 dark:text-slate-50">
+              <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-8 shadow-sm hover:shadow-lg transition-shadow dark:border-slate-800 dark:bg-slate-900">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-2">{PLANS.starter.name}</h3>
+                <p className="text-sm text-slate-500 mb-6">{PLANS.starter.tagline}</p>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold text-slate-900 dark:text-slate-50">
                     {prices[currency].starter.display}
                   </span>
-                  <span className="text-sm text-slate-500 ml-1">/month</span>
+                  <span className="text-base text-slate-500 ml-1">/month</span>
                 </div>
-                <ul className="space-y-3 mb-6">
+                <ul className="space-y-4 mb-8 flex-grow">
                   {PLANS.starter.features.map((feature: string, i: number) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                      <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" /> {feature}
+                    <li key={i} className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                      <Check className="h-5 w-5 text-emerald-500 flex-shrink-0" /> {feature}
                     </li>
                   ))}
                 </ul>
@@ -246,7 +246,7 @@ function PaymentPageContent() {
                   onClick={() => handlePayment("starter", prices[currency].starter.value)}
                   disabled={isProcessing}
                   variant="outline"
-                  className="w-full h-11"
+                  className="w-full h-12 mt-auto text-base font-semibold"
                 >
                   {isProcessing && selectedPlan === "starter" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
@@ -255,29 +255,29 @@ function PaymentPageContent() {
               </div>
 
               {/* Professional Plan */}
-              <div className="relative rounded-2xl border-2 border-amber-500 bg-white p-6 shadow-xl dark:bg-slate-900">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-600 px-4 py-1 text-xs font-semibold text-white">
+              <div className="flex flex-col relative rounded-2xl border-2 border-amber-500 bg-white p-8 shadow-xl dark:bg-slate-900">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-amber-600 px-5 py-1.5 text-sm font-semibold text-white shadow-lg">
                   MOST POPULAR
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-1">{PLANS.professional.name}</h3>
-                <p className="text-sm text-slate-500 mb-4">{PLANS.professional.tagline}</p>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-amber-600">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-2 mt-2">{PLANS.professional.name}</h3>
+                <p className="text-sm text-slate-500 mb-6">{PLANS.professional.tagline}</p>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold text-amber-600">
                     {prices[currency].professional.display}
                   </span>
-                  <span className="text-sm text-slate-500 ml-1">/month</span>
+                  <span className="text-base text-slate-500 ml-1">/month</span>
                 </div>
-                <ul className="space-y-3 mb-6">
+                <ul className="space-y-4 mb-8 flex-grow">
                   {PLANS.professional.features.map((feature: string, i: number) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                      <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" /> {feature}
+                    <li key={i} className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                      <Check className="h-5 w-5 text-emerald-500 flex-shrink-0" /> {feature}
                     </li>
                   ))}
                 </ul>
                 <Button
                   onClick={() => handlePayment("professional", prices[currency].professional.value)}
                   disabled={isProcessing}
-                  className="w-full h-11 bg-amber-600 hover:bg-amber-700"
+                  className="w-full h-12 mt-auto bg-amber-600 hover:bg-amber-700 text-base font-semibold"
                 >
                   {isProcessing && selectedPlan === "professional" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
@@ -286,26 +286,26 @@ function PaymentPageContent() {
               </div>
 
               {/* Enterprise Plan */}
-              <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 shadow-xl text-white">
-                <h3 className="text-xl font-bold mb-1">{PLANS.enterprise.name}</h3>
-                <p className="text-sm text-slate-400 mb-4">{PLANS.enterprise.tagline}</p>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">
+              <div className="flex flex-col rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-8 shadow-xl text-white">
+                <h3 className="text-xl font-bold mb-2">{PLANS.enterprise.name}</h3>
+                <p className="text-sm text-slate-400 mb-6">{PLANS.enterprise.tagline}</p>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold">
                     {prices[currency].enterprise.display}
                   </span>
-                  <span className="text-sm text-slate-400 ml-1">/month</span>
+                  <span className="text-base text-slate-400 ml-1">/month</span>
                 </div>
-                <ul className="space-y-3 mb-6">
+                <ul className="space-y-4 mb-8 flex-grow">
                   {PLANS.enterprise.features.map((feature: string, i: number) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-slate-300">
-                      <Check className="h-4 w-4 text-emerald-400 flex-shrink-0" /> {feature}
+                    <li key={i} className="flex items-center gap-3 text-sm text-slate-300">
+                      <Check className="h-5 w-5 text-emerald-400 flex-shrink-0" /> {feature}
                     </li>
                   ))}
                 </ul>
                 <Button
                   onClick={() => handlePayment("enterprise", prices[currency].enterprise.value)}
                   disabled={isProcessing}
-                  className="w-full h-11 bg-white text-slate-900 hover:bg-slate-100"
+                  className="w-full h-12 mt-auto bg-white text-slate-900 hover:bg-slate-100 text-base font-semibold"
                 >
                   {isProcessing && selectedPlan === "enterprise" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
@@ -315,12 +315,12 @@ function PaymentPageContent() {
             </div>
 
             {/* Footer */}
-            <div className="mt-10 text-center">
+            <div className="mt-12 text-center">
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 Secure payment via Razorpay • UPI, Cards, Net Banking supported
               </p>
               <p className="mt-2 text-xs text-slate-400">
-                All plans include instant access. No recurring charges.
+                Monthly subscription • Cancel anytime • Instant access
               </p>
             </div>
           </div>
