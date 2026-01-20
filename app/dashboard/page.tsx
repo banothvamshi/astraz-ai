@@ -26,6 +26,7 @@ interface JobDetails {
 
 export default function Dashboard() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<string>("builder");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [resumeMeta, setResumeMeta] = useState<any>(null);
@@ -44,6 +45,11 @@ export default function Dashboard() {
   const [totalGenerations, setTotalGenerations] = useState(0);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
+  // History states
+  const [payments, setPayments] = useState<any[]>([]);
+  const [generations, setGenerations] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
   // New: Contact info state
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
     fullName: "",
@@ -60,6 +66,17 @@ export default function Dashboard() {
     jobTitle: "",
     location: "",
   });
+
+  // Sync activeTab with URL params (client-side only)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const initDashboard = async () => {
@@ -105,6 +122,29 @@ export default function Dashboard() {
             return;
           }
         }
+
+        // Fetch History Data
+        setIsLoadingHistory(true);
+
+        // 1. Payments
+        const { data: paymentsData } = await supabase
+          .from("payments")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (paymentsData) setPayments(paymentsData);
+
+        // 2. Generations
+        const { data: generationsData } = await supabase
+          .from("generations")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (generationsData) setGenerations(generationsData);
+
+        setIsLoadingHistory(false);
       }
 
       setIsLoadingProfile(false);
@@ -376,11 +416,10 @@ export default function Dashboard() {
           <div className="flex border-b border-slate-200 dark:border-slate-800 mb-8">
             <button
               onClick={() => {
-                const url = new URL(window.location.href);
-                url.searchParams.set("tab", "builder");
-                router.push(url.pathname + url.search);
+                setActiveTab("builder");
+                router.push("/dashboard?tab=builder");
               }}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${(new URLSearchParams(window.location.search).get("tab") || "builder") === "builder"
+              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "builder"
                 ? "border-amber-500 text-amber-600 dark:text-amber-400"
                 : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300"
                 }`}
@@ -389,11 +428,10 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => {
-                const url = new URL(window.location.href);
-                url.searchParams.set("tab", "account");
-                router.push(url.pathname + url.search);
+                setActiveTab("account");
+                router.push("/dashboard?tab=account");
               }}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${new URLSearchParams(window.location.search).get("tab") === "account"
+              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "account"
                 ? "border-amber-500 text-amber-600 dark:text-amber-400"
                 : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300"
                 }`}
@@ -402,11 +440,10 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => {
-                const url = new URL(window.location.href);
-                url.searchParams.set("tab", "history");
-                router.push(url.pathname + url.search);
+                setActiveTab("history");
+                router.push("/dashboard?tab=history");
               }}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${new URLSearchParams(window.location.search).get("tab") === "history"
+              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "history"
                 ? "border-amber-500 text-amber-600 dark:text-amber-400"
                 : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300"
                 }`}
@@ -415,7 +452,7 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {(new URLSearchParams(window.location.search).get("tab") || "builder") === "builder" && (
+          {activeTab === "builder" && (
             <>
               {/* Header Section */}
               <div className="mb-10 text-center">
@@ -445,7 +482,7 @@ export default function Dashboard() {
             </>
           )}
 
-          {new URLSearchParams(window.location.search).get("tab") === "account" && (
+          {activeTab === "account" && (
             <div className="max-w-4xl mx-auto space-y-6">
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Account Overview</h2>
@@ -485,33 +522,117 @@ export default function Dashboard() {
 
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Payment History</h2>
-                <div className="text-center py-8 text-slate-500">
-                  No payment history available yet.
-                </div>
+                {isLoadingHistory ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-amber-600" />
+                  </div>
+                ) : payments.length > 0 ? (
+                  <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-slate-50 dark:bg-slate-900">
+                        <tr>
+                          <th className="px-4 py-3 font-medium text-slate-500">Date</th>
+                          <th className="px-4 py-3 font-medium text-slate-500">Amount</th>
+                          <th className="px-4 py-3 font-medium text-slate-500">Plan</th>
+                          <th className="px-4 py-3 font-medium text-slate-500">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {payments.map((payment) => (
+                          <tr key={payment.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                            <td className="px-4 py-3 text-slate-900 dark:text-white">
+                              {new Date(payment.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3 text-slate-900 dark:text-white">
+                              ₹{payment.amount}
+                            </td>
+                            <td className="px-4 py-3 capitalize text-slate-600 dark:text-slate-400">
+                              {payment.plan_type}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                {payment.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    No payment history available yet.
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {new URLSearchParams(window.location.search).get("tab") === "history" && (
+          {activeTab === "history" && (
             <div className="max-w-4xl mx-auto">
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                   <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Generation History</h2>
                 </div>
-                <div className="p-12 text-center text-slate-500">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                  <p>No resumes generated yet.</p>
-                  <Button onClick={() => router.push("/dashboard?tab=builder")} variant="ghost" className="mt-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50">
-                    Create your first resume
-                  </Button>
-                </div>
+
+                {isLoadingHistory ? (
+                  <div className="p-12 text-center">
+                    <Loader2 className="h-10 w-10 animate-spin mx-auto text-amber-600" />
+                  </div>
+                ) : generations.length > 0 ? (
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {generations.map((gen) => (
+                      <div key={gen.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                          <div className="h-10 w-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mt-1">
+                            <FileText className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-slate-900 dark:text-white">
+                              {gen.job_title || "Untitled Resume"}
+                            </h3>
+                            <p className="text-sm text-slate-500">{gen.company_name || "No Company Specified"}</p>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                              <span>{new Date(gen.created_at).toLocaleDateString()}</span>
+                              <span>•</span>
+                              <span>{gen.job_location || "Remote/Unknown"}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setGeneratedResume(gen.resume_content);
+                              const url = new URL(window.location.href);
+                              url.searchParams.set("tab", "builder");
+                              router.push(url.pathname + url.search);
+                            }}
+                          >
+                            <Edit2 className="h-3.5 w-3.5 mr-1.5" />
+                            Load to Editor
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-12 text-center text-slate-500">
+                    <FileText className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                    <p>No resumes generated yet.</p>
+                    <Button onClick={() => router.push("/dashboard?tab=builder")} variant="ghost" className="mt-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50">
+                      Create your first resume
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {(new URLSearchParams(window.location.search).get("tab") || "builder") === "builder" && (
+      {activeTab === "builder" && (
         <div className="grid gap-8 lg:grid-cols-12">
 
           {/* LEFT COLUMN: Inputs */}

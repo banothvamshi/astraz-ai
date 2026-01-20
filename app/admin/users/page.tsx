@@ -44,6 +44,23 @@ export default function UsersPage() {
         }
     };
 
+    const handleDeleteUser = async (userId: string) => {
+        if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+
+        const supabase = getSupabaseBrowserClient();
+        const { error } = await supabase
+            .from("profiles")
+            .delete()
+            .eq("id", userId);
+
+        if (!error) {
+            setUsers(users.filter(u => u.id !== userId));
+        } else {
+            alert("Failed to delete user. You may not have sufficient permissions.");
+            console.error("Delete error:", error);
+        }
+    };
+
     const filteredUsers = users.filter(user =>
         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -139,7 +156,7 @@ export default function UsersPage() {
                                                     <DropdownMenuItem onClick={() => handleToggleAdmin(user.id, user.is_admin)}>
                                                         {user.is_admin ? 'Remove Admin' : 'Make Admin'}
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-red-600">
+                                                    <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={() => handleDeleteUser(user.id)}>
                                                         Delete User
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
