@@ -9,16 +9,8 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   let response = NextResponse.next();
 
-  // Admin route protection
-  if (pathname.startsWith("/admin")) {
-    const adminKey = request.cookies.get("astraz_admin_key")?.value;
-    const headerKey = request.headers.get("x-admin-key");
-    const validKey = process.env.ADMIN_SECRET_KEY || "astraz-admin-2024";
-
-    if (adminKey !== validKey && headerKey !== validKey) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-  }
+  // Note: Admin access is now verified client-side via database is_admin field
+  // in app/admin/layout.tsx. This is more secure and doesn't rely on cookies.
 
   // Dashboard: Allow access for free trial users (client-side handles access control)
   // Authenticated users get redirected by client-side logic based on credits/premium status
