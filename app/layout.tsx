@@ -137,7 +137,7 @@ export const metadata: Metadata = {
   },
 
   verification: {
-    google: "your-google-verification-code",
+    google: "rDPoz0SsOONDkX6V7zZ5qULymzB7X8mKMQbJWM9A9vA",
     // yandex: "your-yandex-code",
     // bing: "your-bing-code",
   },
