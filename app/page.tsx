@@ -18,7 +18,12 @@ export default function Home() {
   }, []);
 
   const handleGetStarted = () => {
-    router.push("/dashboard");
+    // If user has used their trial, redirect to payment page
+    if (hasTrial) {
+      router.push("/payment");
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   const fadeIn = {
@@ -114,7 +119,7 @@ export default function Home() {
                 size="lg"
                 className="h-14 px-8 text-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-all rounded-full"
               >
-                {hasTrial ? "Go to Dashboard" : "Optimize My Resume Free"}
+                {hasTrial ? "View Plans" : "Optimize My Resume Free"}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </motion.div>
