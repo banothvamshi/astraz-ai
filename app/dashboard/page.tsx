@@ -344,8 +344,35 @@ export default function Dashboard() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
+
+      // Generate a descriptive filename
       const timestamp = new Date().toISOString().split("T")[0];
-      a.download = `${type === "resume" ? "Resume" : "CoverLetter"}_${timestamp}.pdf`;
+      const userName = (contactInfo.fullName || resumeMeta?.name || "Resume")
+        .replace(/[^a-zA-Z\s]/g, "")
+        .split(" ")
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join("");
+      const targetJob = (jobDetails.jobTitle || "")
+        .replace(/[^a-zA-Z\s]/g, "")
+        .split(" ")
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join("")
+        .slice(0, 30);
+      const targetCompany = (jobDetails.companyName || "")
+        .replace(/[^a-zA-Z\s]/g, "")
+        .split(" ")
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join("")
+        .slice(0, 20);
+
+      // Format: Name_JobTitle_Company_Resume_Date.pdf or Name_Resume_Date.pdf
+      const namePart = userName || "Resume";
+      const jobPart = targetJob ? `_${targetJob}` : "";
+      const companyPart = targetCompany ? `_${targetCompany}` : "";
+      const docType = type === "resume" ? "Resume" : "CoverLetter";
+
+      a.download = `${namePart}${jobPart}${companyPart}_${docType}_${timestamp}.pdf`;
+
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

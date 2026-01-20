@@ -470,7 +470,10 @@ Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
 Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable).
 
 CRITICAL FORMATTING RULES:
-0. **OCR CORRECTION**: If Job Titles or Company Names have typos (e.g. "Technicaior"), FIX them. Do not preserve errors.
+0. **OCR & SPACING CORRECTION**: 
+   - If Job Titles or Company Names have typos (e.g. "Technicaior"), FIX them.
+   - If Company Names are missing spaces (e.g. "HighbrowTechnologyInc"), ADD SPACES to make them readable (e.g. "Highbrow Technology Inc").
+   - If Company Names are in camelCase or PascalCase, convert to proper Title Case with spaces.
 1. **DO NOT** include the candidate's Name, Email, Phone, or Location at the top. The system adds this automatically.
 2. **START DIRECTLY** with the first section header (e.g., \`# Professional Summary\`).
 3. Use \`#\` for Main Section Headers.
@@ -493,8 +496,16 @@ CRITICAL REQUIREMENTS:
 - Make it comprehensive and complete
 - Every section must be fully populated with real information
 - If the original resume contains multiple roles or sections, include every one of them (do not summarize them away)
-- **CRITICAL: DO NOT DUPLICATE ROLES**. If the candidate held the same role at the same company during the same period, merge them into one entry. Do not list identical roles twice.
-- If a role implies multiple projects, listed them as bullet points under ONE role entry.
+
+**CRITICAL: ABSOLUTELY NO DUPLICATE ROLES**:
+- BEFORE generating, scan the entire original resume to identify unique roles.
+- Each unique combination of (Role Title + Company + Date Range) must appear EXACTLY ONCE.
+- If the same role appears multiple times in the input (due to OCR/parsing issues), MERGE all bullet points into ONE entry.
+- NEVER output "### Video Annotator" twice for the same company.
+- If a role has incomplete info (no dates or bullets), MERGE it with the complete version.
+- Count your experience entries before outputting - each role should appear ONCE only.
+
+- If a role implies multiple projects, list them as bullet points under ONE role entry.
 
 CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Output raw markdown text directly without any code block markers. Generate the COMPLETE resume now.`;
 
