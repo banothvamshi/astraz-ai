@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 
 /**
  * Middleware for request monitoring, security, and route protection
+ * Note: Dashboard allows free trial access without authentication
  */
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -19,17 +20,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Dashboard protection - simplified (detailed check happens on client side)
-  if (pathname.startsWith("/dashboard") && !pathname.includes("/dashboard/debug-parser")) {
-    // Check if user is authenticated (has session cookie)
-    const hasSession = request.cookies.has("sb-access-token") ||
-      request.cookies.has("supabase-auth-token") ||
-      request.cookies.getAll().some(cookie => cookie.name.startsWith("sb-"));
-
-    if (!hasSession) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-  }
+  // Dashboard: Allow access for free trial users (client-side handles access control)
+  // Authenticated users get redirected by client-side logic based on credits/premium status
 
   // Security headers
   response.headers.set("X-Content-Type-Options", "nosniff");
