@@ -52,9 +52,15 @@ export default function LoginPage() {
 
                 if (profile?.is_admin) {
                     console.log("User is admin, setting cookie and redirecting...");
-                    // Set admin cookie for middleware
-                    document.cookie = `astraz_admin_key=${process.env.NEXT_PUBLIC_ADMIN_KEY || "astraz-admin-2024"}; path=/; max-age=86400`;
-                    router.push("/admin");
+                    // Set admin cookie for middleware with proper settings
+                    const adminKey = process.env.NEXT_PUBLIC_ADMIN_KEY || "astraz-admin-2024";
+                    document.cookie = `astraz_admin_key=${adminKey}; path=/; max-age=86400; SameSite=Lax`;
+
+                    // Small delay to ensure cookie is set
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    window.location.href = "/admin"; // Force page reload with cookie
+                    return;
                 } else if (profile && profile.first_login_completed === false) {
                     console.log("First login, redirecting to reset password...");
                     // Only for payment-created accounts (explicitly false, not null)

@@ -369,19 +369,19 @@ export default function Dashboard() {
             </span>
           </div>
 
-          {/* Credits Display */}
+          {/* Generations Display */}
           {!isLoadingProfile && creditsRemaining !== null && (
             <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
               {creditsRemaining === -1 ? (
                 <>
                   <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Unlimited</span>
+                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Unlimited Generations</span>
                 </>
               ) : (
                 <>
-                  <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
-                    {creditsRemaining} {creditsRemaining === 1 ? 'credit' : 'credits'}
+                    {creditsRemaining} {creditsRemaining === 1 ? 'generation' : 'generations'} left
                   </span>
                 </>
               )}
@@ -395,14 +395,6 @@ export default function Dashboard() {
               className="hidden sm:flex text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400"
             >
               Debug Tools
-            </Button>
-            <Button
-              onClick={() => router.push("/")}
-              variant="ghost"
-              size="sm"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
             </Button>
           </div>
         </div>
@@ -497,10 +489,10 @@ export default function Dashboard() {
                   </div>
 
                   <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                    <div className="text-sm text-slate-500 mb-1">Credits Remaining</div>
+                    <div className="text-sm text-slate-500 mb-1">Generations Remaining</div>
                     <div className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       {creditsRemaining === -1 ? "Unlimited" : creditsRemaining}
-                      <Zap className="h-4 w-4 text-amber-500" />
+                      <FileText className="h-4 w-4 text-amber-500" />
                     </div>
                   </div>
                 </div>
@@ -633,256 +625,258 @@ export default function Dashboard() {
       </div>
 
       {activeTab === "builder" && (
-        <div className="grid gap-8 lg:grid-cols-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid gap-8 lg:grid-cols-2">
 
-          {/* LEFT COLUMN: Inputs */}
-          <div className="lg:col-span-5 space-y-6">
+            {/* LEFT COLUMN: Inputs */}
+            <div className="space-y-6">
 
-            {/* 1. Resume Upload */}
-            <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-amber-600 dark:text-indigo-400">
-                    <UploadCloud className="h-5 w-5" />
-                  </div>
-                  <h2 className="font-semibold text-lg">Upload Resume</h2>
-                </div>
-                <UploadArea
-                  onFileSelect={setResumeFile}
-                  selectedFile={resumeFile}
-                  onRemove={() => setResumeFile(null)}
-                />
-              </div>
-            </div>
-
-            {/* 2. Contact Info (Collapsible) */}
-            <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
-              <div
-                className="p-4 flex items-center justify-between cursor-pointer"
-                onClick={() => setShowContactInfo(!showContactInfo)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                    <User className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="font-semibold text-lg">Contact Information</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Optional: Override parsed contact info</p>
-                  </div>
-                </div>
-                {showContactInfo ? (
-                  <ChevronUp className="h-5 w-5 text-slate-400" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-slate-400" />
-                )}
-              </div>
-
-              {showContactInfo && (
-                <div className="px-6 pb-6 space-y-3">
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                      value={contactInfo.fullName}
-                      onChange={(e) => setContactInfo(prev => ({ ...prev, fullName: e.target.value }))}
-                      placeholder="Full Name"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                      value={contactInfo.email}
-                      onChange={(e) => setContactInfo(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="Email Address"
-                      type="email"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                      value={contactInfo.phone}
-                      onChange={(e) => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="Phone Number"
-                      type="tel"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                      value={contactInfo.linkedin}
-                      onChange={(e) => setContactInfo(prev => ({ ...prev, linkedin: e.target.value }))}
-                      placeholder="LinkedIn URL (e.g. linkedin.com/in/yourname)"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
-                    />
-                  </div>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                      value={contactInfo.location}
-                      onChange={(e) => setContactInfo(prev => ({ ...prev, location: e.target.value }))}
-                      placeholder="Location (e.g. San Francisco, CA)"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 3. Job Description & Details */}
-            <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
-                    <Briefcase className="h-5 w-5" />
-                  </div>
-                  <h2 className="font-semibold text-lg">Target Role Details</h2>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <input
-                        value={jobDetails.companyName}
-                        onChange={(e) => setJobDetails(prev => ({ ...prev, companyName: e.target.value }))}
-                        placeholder="Company Name"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
-                      />
+              {/* 1. Resume Upload */}
+              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-10 w-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-amber-600 dark:text-indigo-400">
+                      <UploadCloud className="h-5 w-5" />
                     </div>
-                    <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <input
-                        value={jobDetails.jobTitle}
-                        onChange={(e) => setJobDetails(prev => ({ ...prev, jobTitle: e.target.value }))}
-                        placeholder="Job Title"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
-                      />
-                    </div>
+                    <h2 className="font-semibold text-lg">Upload Resume</h2>
                   </div>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                      value={jobDetails.location}
-                      onChange={(e) => setJobDetails(prev => ({ ...prev, location: e.target.value }))}
-                      placeholder="Job Location (e.g. Remote, New York, NY)"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
-                    />
-                  </div>
-                  <textarea
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    placeholder="Paste the complete job description here..."
-                    className="w-full min-h-[180px] rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all resize-none"
+                  <UploadArea
+                    onFileSelect={setResumeFile}
+                    selectedFile={resumeFile}
+                    onRemove={() => setResumeFile(null)}
                   />
                 </div>
               </div>
-            </div>
 
-            <Button
-              onClick={handleGenerate}
-              disabled={isGenerating || !resumeFile || !jobDescription.trim()}
-              size="lg"
-              className="w-full h-14 bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Optimizing Profile...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-5 w-5" />
-                  Generate Application Kit
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* RIGHT COLUMN: Results */}
-          <div className="lg:col-span-7">
-            {generatedResume ? (
-              <div className="space-y-6">
-                {/* Resume Card */}
-                {generatedResume && (
-                  <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
-                    <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-                      <div className="flex items-center gap-2 text-amber-600 dark:text-indigo-400 font-semibold">
-                        <FileText className="w-5 h-5" />
-                        Optimized Resume
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => setEditingResume(!editingResume)}
-                          size="sm"
-                          variant="outline"
-                          className="h-8 text-xs"
-                        >
-                          {editingResume ? "View Preview" : "Edit Mode"}
-                        </Button>
-                        <Button
-                          onClick={() => handleDownload("resume")}
-                          size="sm"
-                          className="h-8 text-xs bg-amber-600 hover:bg-amber-700"
-                        >
-                          <Download className="mr-1.5 h-3.5 w-3.5" />
-                          PDF
-                        </Button>
-                      </div>
+              {/* 2. Contact Info (Collapsible) */}
+              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
+                <div
+                  className="p-4 flex items-center justify-between cursor-pointer"
+                  onClick={() => setShowContactInfo(!showContactInfo)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                      <User className="h-5 w-5" />
                     </div>
-
-                    <div className="p-0">
-                      {editingResume ? (
-                        <ResumeEditor
-                          content={generatedResume}
-                          onSave={(edited) => {
-                            setGeneratedResume(edited);
-                            setEditingResume(false);
-                            // Regenerate preview on save
-                            generatePreviewPdf(edited, resumeMeta);
-                          }}
-                          onCancel={() => setEditingResume(false)}
-                        />
-                      ) : (
-                        <div className="h-[800px] w-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-4">
-                          {isPreviewLoading ? (
-                            <div className="flex flex-col items-center gap-3">
-                              <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
-                              <p className="text-sm text-slate-500">Generating PDF Preview...</p>
-                            </div>
-                          ) : pdfPreviewUrl ? (
-                            <iframe
-                              src={`${pdfPreviewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                              className="w-full h-full rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 bg-white"
-                              title="Resume Preview"
-                            />
-                          ) : (
-                            <div className="text-center text-slate-400">
-                              <p>Preview not available</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                    <div>
+                      <h2 className="font-semibold text-lg">Contact Information</h2>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Optional: Override parsed contact info</p>
                     </div>
                   </div>
-
-                )}
-
-
-              </div>
-            ) : (
-              // Empty State / Placeholder
-              <div className="h-full min-h-[400px] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 dark:bg-slate-900/50">
-                <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-400">
-                  <Sparkles className="h-8 w-8 opacity-50" />
+                  {showContactInfo ? (
+                    <ChevronUp className="h-5 w-5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-slate-400" />
+                  )}
                 </div>
-                <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">Ready to Engineer</h3>
-                <p className="text-slate-500 max-w-sm">
-                  Your generated documents will appear here with a live preview and editing capabilities.
-                </p>
+
+                {showContactInfo && (
+                  <div className="px-6 pb-6 space-y-3">
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.fullName}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, fullName: e.target.value }))}
+                        placeholder="Full Name"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.email}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Email Address"
+                        type="email"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.phone}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder="Phone Number"
+                        type="tel"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.linkedin}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, linkedin: e.target.value }))}
+                        placeholder="LinkedIn URL (e.g. linkedin.com/in/yourname)"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={contactInfo.location}
+                        onChange={(e) => setContactInfo(prev => ({ ...prev, location: e.target.value }))}
+                        placeholder="Location (e.g. San Francisco, CA)"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* 3. Job Description & Details */}
+              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-10 w-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                      <Briefcase className="h-5 w-5" />
+                    </div>
+                    <h2 className="font-semibold text-lg">Target Role Details</h2>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                          value={jobDetails.companyName}
+                          onChange={(e) => setJobDetails(prev => ({ ...prev, companyName: e.target.value }))}
+                          placeholder="Company Name"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        />
+                      </div>
+                      <div className="relative">
+                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                          value={jobDetails.jobTitle}
+                          onChange={(e) => setJobDetails(prev => ({ ...prev, jobTitle: e.target.value }))}
+                          placeholder="Job Title"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        value={jobDetails.location}
+                        onChange={(e) => setJobDetails(prev => ({ ...prev, location: e.target.value }))}
+                        placeholder="Job Location (e.g. Remote, New York, NY)"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                      />
+                    </div>
+                    <textarea
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      placeholder="Paste the complete job description here..."
+                      className="w-full min-h-[180px] rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleGenerate}
+                disabled={isGenerating || !resumeFile || !jobDescription.trim()}
+                size="lg"
+                className="w-full h-14 bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Optimizing Profile...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Generate Application Kit
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* RIGHT COLUMN: Results */}
+            <div className="space-y-6">
+              {generatedResume ? (
+                <div className="space-y-6">
+                  {/* Resume Card */}
+                  {generatedResume && (
+                    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+                      <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+                        <div className="flex items-center gap-2 text-amber-600 dark:text-indigo-400 font-semibold">
+                          <FileText className="w-5 h-5" />
+                          Optimized Resume
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => setEditingResume(!editingResume)}
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs"
+                          >
+                            {editingResume ? "View Preview" : "Edit Mode"}
+                          </Button>
+                          <Button
+                            onClick={() => handleDownload("resume")}
+                            size="sm"
+                            className="h-8 text-xs bg-amber-600 hover:bg-amber-700"
+                          >
+                            <Download className="mr-1.5 h-3.5 w-3.5" />
+                            PDF
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="p-0">
+                        {editingResume ? (
+                          <ResumeEditor
+                            content={generatedResume}
+                            onSave={(edited) => {
+                              setGeneratedResume(edited);
+                              setEditingResume(false);
+                              // Regenerate preview on save
+                              generatePreviewPdf(edited, resumeMeta);
+                            }}
+                            onCancel={() => setEditingResume(false)}
+                          />
+                        ) : (
+                          <div className="h-[800px] w-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-4">
+                            {isPreviewLoading ? (
+                              <div className="flex flex-col items-center gap-3">
+                                <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+                                <p className="text-sm text-slate-500">Generating PDF Preview...</p>
+                              </div>
+                            ) : pdfPreviewUrl ? (
+                              <iframe
+                                src={`${pdfPreviewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                                className="w-full h-full rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 bg-white"
+                                title="Resume Preview"
+                              />
+                            ) : (
+                              <div className="text-center text-slate-400">
+                                <p>Preview not available</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                  )}
+
+
+                </div>
+              ) : (
+                // Empty State / Placeholder
+                <div className="h-full min-h-[400px] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-400">
+                    <Sparkles className="h-8 w-8 opacity-50" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">Ready to Engineer</h3>
+                  <p className="text-slate-500 max-w-sm">
+                    Your generated documents will appear here with a live preview and editing capabilities.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
