@@ -389,6 +389,16 @@ export default function Dashboard() {
           )}
 
           <div className="flex items-center gap-4">
+            {/* Upgrade Button for non-premium users */}
+            {!isPremium && (
+              <Button
+                onClick={() => router.push("/payment")}
+                className="hidden sm:flex bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                Upgrade Plan
+              </Button>
+            )}
             <Button
               onClick={() => router.push("/dashboard/debug-parser")}
               variant="ghost"
@@ -510,6 +520,25 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
+
+                {/* Upgrade CTA for non-premium users */}
+                {!isPremium && (
+                  <div className="mt-8 p-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div>
+                        <h3 className="text-xl font-bold mb-1">Upgrade to Premium</h3>
+                        <p className="text-amber-100 text-sm">Get more generations, premium templates, and priority support.</p>
+                      </div>
+                      <Button
+                        onClick={() => router.push("/payment")}
+                        className="bg-white text-amber-600 hover:bg-amber-50 font-semibold"
+                      >
+                        <Zap className="mr-2 h-4 w-4" />
+                        View Plans
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
