@@ -35,7 +35,7 @@ export default function LoginPage() {
             }
 
             if (data.user) {
-                // Check if first login (needs password reset)
+                // Check user profile for admin status
                 const { data: profile } = await supabase
                     .from("profiles")
                     .select("first_login_completed, is_admin")
@@ -46,10 +46,11 @@ export default function LoginPage() {
                     // Set admin cookie for middleware
                     document.cookie = `astraz_admin_key=${process.env.NEXT_PUBLIC_ADMIN_KEY || "astraz-admin-2024"}; path=/; max-age=86400`;
                     router.push("/admin");
-                } else if (!profile?.first_login_completed) {
-                    // First login - redirect to password reset
+                } else if (profile && profile.first_login_completed === false) {
+                    // Only for payment-created accounts (explicitly false, not null)
                     router.push("/reset-password?first=true");
                 } else {
+                    // Normal users go to dashboard
                     router.push("/dashboard");
                 }
             }

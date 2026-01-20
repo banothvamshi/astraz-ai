@@ -1,0 +1,25 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /reset-password
+Disallow: /auth/
+
+# Sitemaps
+Sitemap: https://astrazai.com/sitemap.xml
+
+# Crawl-delay (optional, for politeness)
+Crawl-delay: 1
+
+# Google specific
+User-agent: Googlebot
+Allow: /
+
+# Bing specific  
+User-agent: Bingbot
+Allow: /
+
+# Block AI scrapers if desired (optional)
+# User-agent: GPTBot
+# Disallow: /
