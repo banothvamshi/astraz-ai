@@ -42,10 +42,14 @@ export async function POST(
             user: updatedUser
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Plan upgrade error:", error);
         return NextResponse.json(
-            { error: "Failed to update plan" },
+            {
+                error: "Failed to update plan",
+                details: error?.message || String(error),
+                stack: process.env.NODE_ENV === "development" ? error?.stack : undefined
+            },
             { status: 500 }
         );
     }
