@@ -529,11 +529,41 @@ function extractExperience(lines: string[]): Experience[] {
     experiences.push(currentExp as Experience);
   }
 
-  // Deduplicate experiences
+  // Deduplicate and clean experiences
   const uniqueExperiences: Experience[] = [];
   const seen = new Set<string>();
 
+  // Helper to clean fragmented text (e.g., "a l  d e v" -> "al dev")
+  const cleanFragmentedText = (text: string | undefined): string => {
+    if (!text) return "";
+
+    // Check if text has suspicious spacing (many single chars separated by spaces)
+    const tokens = text.trim().split(/\s+/);
+    const singleCharCount = tokens.filter(t => t.length === 1).length;
+
+    if (singleCharCount > tokens.length * 0.4 && tokens.length > 3) {
+      // This looks fragmented, try to collapse
+      // First, preserve double spaces as word boundaries
+      let cleaned = text
+        .replace(/\s{2,}/g, '{{SPACE}}')
+        .replace(/ /g, '')
+        .replace(/{{SPACE}}/g, ' ')
+        .trim();
+      return cleaned;
+    }
+
+    return text.trim();
+  };
+
   for (const exp of experiences) {
+    // Clean up fragmented text in title and company
+    if (exp.title) {
+      exp.title = cleanFragmentedText(exp.title);
+    }
+    if (exp.company) {
+      exp.company = cleanFragmentedText(exp.company);
+    }
+
     // Create a unique key for each experience
     const key = `${exp.title?.toLowerCase()}|${exp.company?.toLowerCase()}|${exp.duration?.toLowerCase()}`;
 

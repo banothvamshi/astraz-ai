@@ -31,26 +31,49 @@ export function parseJobDescription(jobDescription: string): ParsedJobDescriptio
     /(?:Job\s*Title|Position|Role|Title)\s*[:|-]?\s*([^\n]+)/i,
     /^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(?:Engineer|Developer|Designer|Manager|Director|Analyst|Architect|Specialist|Scientist|Consultant|Lead|Senior|Junior|Staff))/i,
     /^((?:Senior|Lead|Staff|Principal|Junior)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i,
+    // Additional patterns for common job posting formats
+    /^([\w\s]+(?:Representative|Coordinator|Administrator|Specialist|Associate|Officer))/i,
+    /^(.+?)\s*[-–|]\s*(?:Full\s*Time|Part\s*Time|Contract|Remote|Hybrid)/i,
   ];
   for (const pattern of titlePatterns) {
     const match = text.match(pattern);
     if (match && match[1]) {
-      title = match[1].trim().replace(/[:|].*$/, '').trim();
-      if (title.length > 5 && title.length < 80) break;
+      const candidate = match[1].trim().replace(/[:|].*$/, '').trim();
+      if (candidate.length > 5 && candidate.length < 80) {
+        title = candidate;
+        break;
+      }
     }
   }
+
+  // Fallback: Check first 5 lines for short, capitalized lines that look like titles
   if (!title) {
     const titleHints = [
       "Engineer", "Developer", "Designer", "Manager", "Director", "Analyst",
       "Architect", "Specialist", "Scientist", "Consultant", "Lead", "Administrator",
       "Coordinator", "Associate", "Executive", "Officer", "Representative",
+      "CSR", "Contact", "Center", "Support", "Customer", "Service"
     ];
-    const candidateLine = lines.slice(0, 5).find((line) =>
-      titleHints.some((hint) => line.toLowerCase().includes(hint.toLowerCase()))
+    const candidateLine = lines.slice(0, 7).find((line) =>
+      titleHints.some((hint) => line.toLowerCase().includes(hint.toLowerCase())) &&
+      line.length < 100
     );
     if (candidateLine) {
       title = candidateLine.replace(/\s+at\s+.+$/i, "").replace(/[|-].*$/, "").trim();
     }
+  }
+
+  // Ultimate fallback: Use first line if it's reasonably short
+  if (!title && lines.length > 0) {
+    const firstLine = lines[0];
+    if (firstLine.length < 60 && !firstLine.match(/^\d/) && !firstLine.includes("@")) {
+      title = firstLine.replace(/[:|].*$/, "").trim();
+    }
+  }
+
+  // Enforce max length - truncate if too long
+  if (title && title.length > 60) {
+    title = title.substring(0, 55).trim() + "...";
   }
 
   // Extract company name - enhanced patterns
@@ -61,18 +84,26 @@ export function parseJobDescription(jobDescription: string): ParsedJobDescriptio
     /(?:Join|Work\s+(?:at|with|for))\s+([A-Z][A-Za-z0-9\s&]+)/i,
     /(?:About\s+)?([A-Z][A-Za-z0-9]+(?:\s+[A-Z][A-Za-z0-9]+)*)\s+is\s+(?:looking|seeking|hiring)/i,
     /^([A-Z][A-Za-z0-9\s&]+)\s+[-|]\s+/,
+    // Additional patterns
+    /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:Inc|LLC|Ltd|Corp|Corporation|Limited|Co\.|Company)/i,
+    /\b([A-Z][a-z]+(?:[A-Z][a-z]+)*)\s+(?:Technologies|Solutions|Services|Systems|Group)/i,
   ];
   for (const pattern of companyPatterns) {
     const match = text.match(pattern);
     if (match && match[1]) {
       const candidate = match[1].trim();
       // Validate it's not a title or common word
-      const blacklist = ['engineer', 'developer', 'manager', 'senior', 'junior', 'lead', 'we', 'are', 'the'];
-      if (!blacklist.includes(candidate.toLowerCase()) && candidate.length > 2 && candidate.length < 50) {
+      const blacklist = ['engineer', 'developer', 'manager', 'senior', 'junior', 'lead', 'we', 'are', 'the', 'this', 'is', 'a'];
+      if (!blacklist.includes(candidate.toLowerCase()) && candidate.length > 2 && candidate.length < 60) {
         company = candidate;
         break;
       }
     }
+  }
+
+  // Enforce max length for company
+  if (company && company.length > 50) {
+    company = company.substring(0, 45).trim() + "...";
   }
 
   // Extract location - enhanced with city/state detection
