@@ -448,19 +448,19 @@ export default function Dashboard() {
       </nav>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 pt-24 pb-12">
-        <div className="mx-auto max-w-6xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        <div className="mx-auto max-w-7xl">
 
-          {/* New Tab Navigation */}
-          <div className="flex border-b border-slate-200 dark:border-slate-800 mb-8">
+          {/* Tab Navigation */}
+          <div className="flex gap-1 border-b border-slate-200 dark:border-slate-800 mb-10">
             <button
               onClick={() => {
                 setActiveTab("builder");
                 router.push("/dashboard?tab=builder");
               }}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "builder"
-                ? "border-amber-500 text-amber-600 dark:text-amber-400"
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300"
+              className={`px-8 py-4 text-sm font-semibold border-b-2 transition-all ${activeTab === "builder"
+                ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800/50"
                 }`}
             >
               Resume Builder
@@ -470,9 +470,9 @@ export default function Dashboard() {
                 setActiveTab("account");
                 router.push("/dashboard?tab=account");
               }}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "account"
-                ? "border-amber-500 text-amber-600 dark:text-amber-400"
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300"
+              className={`px-8 py-4 text-sm font-semibold border-b-2 transition-all ${activeTab === "account"
+                ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800/50"
                 }`}
             >
               My Account
@@ -482,27 +482,27 @@ export default function Dashboard() {
                 setActiveTab("history");
                 router.push("/dashboard?tab=history");
               }}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "history"
-                ? "border-amber-500 text-amber-600 dark:text-amber-400"
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300"
+              className={`px-8 py-4 text-sm font-semibold border-b-2 transition-all ${activeTab === "history"
+                ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800/50"
                 }`}
             >
-              Generation History
+              History
             </button>
           </div>
 
           {activeTab === "builder" && (
             <>
               {/* Header Section */}
-              <div className="mb-10 text-center">
-                <div className="inline-flex items-center justify-center p-2 mb-4 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-amber-700 dark:text-indigo-300">
-                  <Sparkles className="w-5 h-5" />
+              <div className="mb-12 text-center">
+                <div className="inline-flex items-center justify-center p-3 mb-5 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
+                  <Sparkles className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                 </div>
-                <h1 className="mb-3 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                  Application Engineer
+                <h1 className="mb-4 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                  Resume Builder
                 </h1>
-                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                  Upload your resume and the job description to generate a tailored, ATS-optimized application kit.
+                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                  Upload your resume and paste the job description to generate a tailored, ATS-optimized application.
                 </p>
               </div>
 
@@ -692,19 +692,22 @@ export default function Dashboard() {
 
       {activeTab === "builder" && (
         <div className="max-w-7xl mx-auto">
-          <div className="grid gap-8 lg:grid-cols-2">
+          <div className="grid gap-10 lg:grid-cols-2">
 
             {/* LEFT COLUMN: Inputs */}
-            <div className="space-y-6">
+            <div className="space-y-8">
 
               {/* 1. Resume Upload */}
-              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-10 w-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-amber-600 dark:text-indigo-400">
-                      <UploadCloud className="h-5 w-5" />
+              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 transition-all hover:shadow-xl hover:border-amber-500/40">
+                <div className="p-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm">
+                      <UploadCloud className="h-6 w-6" />
                     </div>
-                    <h2 className="font-semibold text-lg">Upload Resume</h2>
+                    <div>
+                      <h2 className="font-bold text-xl text-slate-900 dark:text-white">Upload Resume</h2>
+                      <p className="text-sm text-slate-500">PDF format recommended</p>
+                    </div>
                   </div>
                   <UploadArea
                     onFileSelect={setResumeFile}
@@ -715,29 +718,27 @@ export default function Dashboard() {
               </div>
 
               {/* 2. Contact Info (Collapsible) */}
-              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
+              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 transition-all hover:shadow-xl">
                 <div
-                  className="p-4 flex items-center justify-between cursor-pointer"
+                  className="p-6 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
                   onClick={() => setShowContactInfo(!showContactInfo)}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                      <User className="h-5 w-5" />
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm">
+                      <User className="h-6 w-6" />
                     </div>
                     <div>
-                      <h2 className="font-semibold text-lg">Contact Information</h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Optional: Override parsed contact info</p>
+                      <h2 className="font-bold text-xl text-slate-900 dark:text-white">Contact Information</h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Optional: Override parsed contact info</p>
                     </div>
                   </div>
-                  {showContactInfo ? (
-                    <ChevronUp className="h-5 w-5 text-slate-400" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-slate-400" />
-                  )}
+                  <div className={`h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-transform ${showContactInfo ? 'rotate-180' : ''}`}>
+                    <ChevronDown className="h-5 w-5 text-slate-500" />
+                  </div>
                 </div>
 
                 {showContactInfo && (
-                  <div className="px-6 pb-6 space-y-3">
+                  <div className="px-8 pb-8 space-y-4 border-t border-slate-100 dark:border-slate-800 pt-6">
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <input
@@ -790,17 +791,20 @@ export default function Dashboard() {
               </div>
 
               {/* 3. Job Description & Details */}
-              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-10 w-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
-                      <Briefcase className="h-5 w-5" />
+              <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 transition-all hover:shadow-xl">
+                <div className="p-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shadow-sm">
+                      <Briefcase className="h-6 w-6" />
                     </div>
-                    <h2 className="font-semibold text-lg">Target Role Details</h2>
+                    <div>
+                      <h2 className="font-bold text-xl text-slate-900 dark:text-white">Target Role Details</h2>
+                      <p className="text-sm text-slate-500">Company, position, and job description</p>
+                    </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="relative">
                         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <input
@@ -889,17 +893,17 @@ export default function Dashboard() {
                 onClick={handleGenerate}
                 disabled={isGenerating || !resumeFile || !jobDescription.trim()}
                 size="lg"
-                className="w-full h-14 bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
+                className="w-full h-16 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg font-bold rounded-2xl shadow-xl shadow-amber-500/30 transition-all hover:scale-[1.01] hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isGenerating ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Optimizing Profile...
+                    <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+                    Generating Your Application...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Generate Application Kit
+                    <Sparkles className="mr-3 h-6 w-6" />
+                    Generate ATS Resume
                   </>
                 )}
               </Button>
