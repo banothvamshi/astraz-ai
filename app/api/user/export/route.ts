@@ -13,9 +13,14 @@ export async function GET(request: NextRequest) {
             }
         );
 
-        // Get the session token from cookies
-        const token = request.cookies.get('sb-access-token')?.value ||
+        let token = request.cookies.get('sb-access-token')?.value ||
             request.cookies.get(`sb-${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_REF}-auth-token`)?.value;
+
+        // PRIORITIZE Authorization header (Standard pattern)
+        const authHeader = request.headers.get("Authorization");
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
 
         let userId = null;
 
@@ -24,10 +29,7 @@ export async function GET(request: NextRequest) {
             if (user) userId = user.id;
         }
 
-        // Fallback: Try to get user from Authorization header if cookie failed
         if (!userId) {
-            // Basic check - in a real app reliant on middleware, we might trust the header/cookie more
-            // For now, if no user, return 401
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

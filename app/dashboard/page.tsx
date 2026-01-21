@@ -1103,7 +1103,17 @@ export default function Dashboard() {
               <Button
                 onClick={async () => {
                   try {
-                    const res = await fetch("/api/user/export");
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const token = session?.access_token;
+
+                    if (!token) throw new Error("Authentication required");
+
+                    const res = await fetch("/api/user/export", {
+                      headers: {
+                        "Authorization": `Bearer ${token}`
+                      }
+                    });
+
                     if (!res.ok) throw new Error("Export failed");
                     const blob = await res.blob();
                     const url = window.URL.createObjectURL(blob);
@@ -1114,7 +1124,7 @@ export default function Dashboard() {
                     a.click();
                     a.remove();
                   } catch (err) {
-                    alert("Failed to export data. Please try again.");
+                    alert("Failed to export data. Please try logging in again.");
                   }
                 }}
                 variant="outline"
@@ -1146,7 +1156,18 @@ export default function Dashboard() {
                 onClick={async () => {
                   if (confirm("Are you strictly sure you want to delete your account? This action is permanent and cannot be undone.")) {
                     try {
-                      const res = await fetch("/api/user/delete", { method: "DELETE" });
+                      const { data: { session } } = await supabase.auth.getSession();
+                      const token = session?.access_token;
+
+                      if (!token) throw new Error("Authentication required");
+
+                      const res = await fetch("/api/user/delete", {
+                        method: "DELETE",
+                        headers: {
+                          "Authorization": `Bearer ${token}`
+                        }
+                      });
+
                       if (res.ok) {
                         alert("Account deleted.");
                         window.location.href = "/";
@@ -1154,7 +1175,7 @@ export default function Dashboard() {
                         throw new Error("Deletion failed");
                       }
                     } catch (err) {
-                      alert("Failed to delete account. Please try again.");
+                      alert("Failed to delete account. Please try logging in again.");
                     }
                   }
                 }}
