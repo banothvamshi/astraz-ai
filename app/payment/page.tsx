@@ -45,6 +45,10 @@ function PaymentPageContent() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [currency, setCurrency] = useState<"INR" | "USD">("INR");
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState("");
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   useEffect(() => {
     const success = searchParams.get("success");
@@ -70,6 +74,50 @@ function PaymentPageContent() {
     }
   };
 
+  const validateCoupon = async () => {
+    if (!promoCode) return;
+    setIsValidatingCoupon(true);
+    setCouponError("");
+    setAppliedCoupon(null);
+
+    try {
+      const res = await fetch("/api/validate-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode })
+      });
+      const data = await res.json();
+
+      if (data.valid) {
+        setAppliedCoupon(data);
+      } else {
+        setCouponError(data.message || "Invalid coupon");
+      }
+    } catch (error) {
+      setCouponError("Failed to validate");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const getDiscountedPrice = (planValue: number) => {
+    if (!appliedCoupon) return null;
+    let final = planValue;
+    if (appliedCoupon.discount_type === 'percent') {
+      const discount = Math.floor(planValue * (appliedCoupon.discount_value / 100));
+      final = Math.max(0, planValue - discount);
+    } else {
+      // Flat discount stored in major units, convert to cents/paise (x100)
+      const discount = appliedCoupon.discount_value * 100;
+      final = Math.max(0, planValue - discount);
+    }
+    return final;
+  };
+
+  const formatPrice = (value: number) => {
+    return currency === "INR" ? `₹${(value / 100)}` : `$${(value / 100)}`;
+  };
+
   const handlePayment = async (planKey: string, amount: number) => {
     setIsProcessing(true);
     setSelectedPlan(planKey);
@@ -77,14 +125,19 @@ function PaymentPageContent() {
     try {
       const plan = PLANS[planKey as keyof typeof PLANS];
 
+      // If coupon applied, use original amount for reference but send coupon code
+      // The API will calculate the final discounted amount.
+      // But for verify step, we need to know what we expect.
+
       const response = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: amount,
+          amount: amount, // Send original amount, let server apply discount
           currency: currency,
           plan_type: planKey,
-          credits: plan.credits
+          credits: plan.credits,
+          coupon_code: appliedCoupon?.code
         }),
       });
 
@@ -103,7 +156,7 @@ function PaymentPageContent() {
         amount: orderAmount,
         currency: orderCurrency,
         name: "Astraz AI",
-        description: `${plan.name} Plan - ${plan.credits === -1 ? 'Unlimited' : plan.credits} Resume Generations`,
+        description: `${plan.name} Plan ${appliedCoupon ? `(Coupon: ${appliedCoupon.code})` : ''}`,
         order_id: orderId,
         handler: async function (response: any) {
           const verifyResponse = await fetch("/api/verify-payment", {
@@ -115,8 +168,9 @@ function PaymentPageContent() {
               razorpay_signature: response.razorpay_signature,
               plan_type: planKey,
               credits: plan.credits,
-              amount: amount,
-              currency: currency
+              amount: orderAmount, // Verify with ACTUAL paid amount
+              currency: currency,
+              coupon_applied: appliedCoupon?.code // For tracking usage
             }),
           });
 
@@ -130,7 +184,7 @@ function PaymentPageContent() {
           }
         },
         prefill: { email: "", contact: "" },
-        theme: { color: "#6366f1" },
+        theme: { color: "#d97706" }, // Amber-600
         modal: {
           ondismiss: function () {
             setIsProcessing(false);
@@ -164,7 +218,7 @@ function PaymentPageContent() {
           </p>
           <Button
             onClick={() => router.push("/dashboard")}
-            className="w-full bg-gradient-to-r from-amber-600 to-purple-600 hover:from-amber-700 hover:to-purple-700"
+            className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
           >
             Go to Dashboard
           </Button>
@@ -214,13 +268,43 @@ function PaymentPageContent() {
         <div className="container mx-auto px-4 py-20 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl">
             {/* Header */}
-            <div className="text-center mb-16">
+            <div className="text-center mb-10">
               <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-slate-50 mb-5">
                 Choose Your <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Plan</span>
               </h1>
               <p className="text-lg text-slate-600 dark:text-slate-400">
                 Invest in your career. Get AI-powered resume optimization.
               </p>
+            </div>
+
+            {/* Promo Code Input */}
+            <div className="max-w-md mx-auto mb-16">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Have a promo code?"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-800 dark:bg-slate-900"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                />
+                <Button
+                  onClick={validateCoupon}
+                  disabled={isValidatingCoupon || !promoCode}
+                  className="bg-slate-900 text-white hover:bg-slate-800 rounded-xl px-6 h-auto"
+                >
+                  {isValidatingCoupon ? <Loader2 className="animate-spin h-4 w-4" /> : "Apply"}
+                </Button>
+              </div>
+              {couponError && <p className="text-red-500 text-sm mt-2 text-center">{couponError}</p>}
+              {appliedCoupon && (
+                <div className="mt-2 text-center bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg p-2">
+                  <p className="text-emerald-700 dark:text-emerald-400 text-sm font-semibold flex items-center justify-center gap-2">
+                    <Check className="h-4 w-4" />
+                    Code <span className="uppercase">{appliedCoupon.code}</span> applied:
+                    {appliedCoupon.discount_type === 'percent' ? ` ${appliedCoupon.discount_value}% OFF` : ` Flat ${appliedCoupon.discount_value} OFF`}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Pricing Grid */}
@@ -230,10 +314,21 @@ function PaymentPageContent() {
                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-2">{PLANS.starter.name}</h3>
                 <p className="text-sm text-slate-500 mb-6">{PLANS.starter.tagline}</p>
                 <div className="mb-8">
-                  <span className="text-5xl font-bold text-slate-900 dark:text-slate-50">
-                    {prices[currency].starter.display}
-                  </span>
-                  <span className="text-base text-slate-500 ml-1">/month</span>
+                  <div className="flex items-baseline gap-2">
+                    {appliedCoupon ? (
+                      <>
+                        <span className="text-xl text-slate-400 line-through decoration-slate-400">{prices[currency].starter.display}</span>
+                        <span className="text-5xl font-bold text-amber-600">
+                          {formatPrice(getDiscountedPrice(prices[currency].starter.value)!)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-5xl font-bold text-slate-900 dark:text-slate-50">
+                        {prices[currency].starter.display}
+                      </span>
+                    )}
+                    <span className="text-base text-slate-500">/month</span>
+                  </div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-grow">
                   {PLANS.starter.features.map((feature: string, i: number) => (
@@ -255,17 +350,28 @@ function PaymentPageContent() {
               </div>
 
               {/* Professional Plan */}
-              <div className="flex flex-col relative rounded-2xl border-2 border-amber-500 bg-white p-8 shadow-xl dark:bg-slate-900">
+              <div className="flex flex-col relative rounded-2xl border-2 border-amber-500 bg-white p-8 shadow-xl dark:bg-slate-900 transition-transform hover:scale-[1.02]">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-amber-600 px-5 py-1.5 text-sm font-semibold text-white shadow-lg">
                   MOST POPULAR
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-2 mt-2">{PLANS.professional.name}</h3>
                 <p className="text-sm text-slate-500 mb-6">{PLANS.professional.tagline}</p>
                 <div className="mb-8">
-                  <span className="text-5xl font-bold text-amber-600">
-                    {prices[currency].professional.display}
-                  </span>
-                  <span className="text-base text-slate-500 ml-1">/month</span>
+                  <div className="flex items-baseline gap-2">
+                    {appliedCoupon ? (
+                      <>
+                        <span className="text-xl text-slate-400 line-through decoration-slate-400">{prices[currency].professional.display}</span>
+                        <span className="text-5xl font-bold text-amber-600">
+                          {formatPrice(getDiscountedPrice(prices[currency].professional.value)!)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-5xl font-bold text-amber-600">
+                        {prices[currency].professional.display}
+                      </span>
+                    )}
+                    <span className="text-base text-slate-500">/month</span>
+                  </div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-grow">
                   {PLANS.professional.features.map((feature: string, i: number) => (
@@ -290,10 +396,21 @@ function PaymentPageContent() {
                 <h3 className="text-xl font-bold mb-2">{PLANS.enterprise.name}</h3>
                 <p className="text-sm text-slate-400 mb-6">{PLANS.enterprise.tagline}</p>
                 <div className="mb-8">
-                  <span className="text-5xl font-bold">
-                    {prices[currency].enterprise.display}
-                  </span>
-                  <span className="text-base text-slate-400 ml-1">/month</span>
+                  <div className="flex items-baseline gap-2">
+                    {appliedCoupon ? (
+                      <>
+                        <span className="text-xl text-slate-500 line-through decoration-slate-500">{prices[currency].enterprise.display}</span>
+                        <span className="text-5xl font-bold">
+                          {formatPrice(getDiscountedPrice(prices[currency].enterprise.value)!)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-5xl font-bold">
+                        {prices[currency].enterprise.display}
+                      </span>
+                    )}
+                    <span className="text-base text-slate-400">/month</span>
+                  </div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-grow">
                   {PLANS.enterprise.features.map((feature: string, i: number) => (

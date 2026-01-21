@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Loader2, Trash2, Search, MoreVertical, Shield, ShieldAlert, CheckCircle, XCircle, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowserClient } from "@/lib/auth";
@@ -146,7 +147,9 @@ export default function UsersPage() {
                                                     {user.email?.substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <div className="font-medium text-slate-900 dark:text-white">{user.full_name || 'User'}</div>
+                                                    <Link href={`/admin/users/${user.id}`} className="font-medium text-slate-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400">
+                                                        {user.full_name || 'User'}
+                                                    </Link>
                                                     <div className="text-sm text-slate-500">{user.email}</div>
                                                 </div>
                                             </div>

@@ -13,7 +13,8 @@ import {
     X,
     CreditCard,
     FileText,
-    Activity
+    Activity,
+    Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowserClient } from "@/lib/auth";
@@ -66,6 +67,7 @@ export default function AdminLayout({
     const navItems = [
         { icon: LayoutDashboard, label: "Overview", href: "/admin" },
         { icon: Users, label: "Users", href: "/admin/users" },
+        { icon: Tag, label: "Coupons", href: "/admin/coupons" },
         { icon: Activity, label: "Analytics", href: "/admin/analytics" },
         { icon: Settings, label: "Settings", href: "/admin/settings" },
     ];
