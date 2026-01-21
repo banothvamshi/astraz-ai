@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadArea } from "@/components/upload-area";
 import { canUseFreeTrial, markTrialUsed, hasUsedTrial } from "@/lib/storage";
@@ -755,41 +755,73 @@ export default function Dashboard() {
                   </div>
                 ) : generations.length > 0 ? (
                   <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {generations.map((gen) => (
-                      <div key={gen.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-start gap-4">
-                          <div className="h-10 w-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mt-1">
-                            <FileText className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-slate-900 dark:text-white">
-                              {gen.job_title || "Untitled Resume"}
-                            </h3>
-                            <p className="text-sm text-slate-500">{gen.company_name || "No Company Specified"}</p>
-                            <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
-                              <span>{new Date(gen.created_at).toLocaleDateString()}</span>
-                              <span>•</span>
-                              <span>{gen.job_location || "Remote/Unknown"}</span>
+                    {generations.map((gen) => {
+                      // Smart title extraction - if job_title looks like description text, extract first line
+                      let displayTitle = gen.job_title || "Untitled Resume";
+                      if (displayTitle.length > 60 || displayTitle.includes("position focused on")) {
+                        // This is probably the job description, not a title
+                        // Try to extract a better title from the first few words
+                        const firstLine = displayTitle.split(/[.!\n]/)[0];
+                        if (firstLine.length > 60) {
+                          displayTitle = firstLine.substring(0, 50).trim() + "...";
+                        } else {
+                          displayTitle = firstLine.trim() || "Resume Generation";
+                        }
+                      }
+
+                      // Smart company extraction
+                      let displayCompany = gen.company_name || "";
+                      if (displayCompany.length > 40) {
+                        displayCompany = displayCompany.substring(0, 35).trim() + "...";
+                      }
+
+                      return (
+                        <div key={gen.id} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                          <div className="flex items-start gap-4">
+                            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                              <FileText className="h-6 w-6" />
                             </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-slate-900 dark:text-white text-base truncate">
+                                {displayTitle}
+                              </h3>
+                              <p className="text-sm text-slate-500 truncate">
+                                {displayCompany || "Company not specified"}
+                              </p>
+                              <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {new Date(gen.created_at).toLocaleDateString()}
+                                </span>
+                                {gen.job_location && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="truncate max-w-[120px]">{gen.job_location}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setGeneratedResume(gen.resume_content);
+                                if (gen.cover_letter_content) {
+                                  setGeneratedCoverLetter(gen.cover_letter_content);
+                                }
+                                const url = new URL(window.location.href);
+                                url.searchParams.set("tab", "builder");
+                                router.push(url.pathname + url.search);
+                              }}
+                              className="shrink-0 text-amber-600 border-amber-200 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/20"
+                            >
+                              <Edit2 className="h-3.5 w-3.5 mr-1.5" />
+                              Load
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setGeneratedResume(gen.resume_content);
-                              const url = new URL(window.location.href);
-                              url.searchParams.set("tab", "builder");
-                              router.push(url.pathname + url.search);
-                            }}
-                          >
-                            <Edit2 className="h-3.5 w-3.5 mr-1.5" />
-                            Load to Editor
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="p-12 text-center text-slate-500">
@@ -1098,7 +1130,7 @@ export default function Dashboard() {
 
                   {/* Cover Letter Card */}
                   {generatedCoverLetter && (
-                    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+                    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden mb-8">
                       <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
                         <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
                           <FileText className="w-5 h-5" />
@@ -1110,16 +1142,19 @@ export default function Dashboard() {
                           className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
                         >
                           <Download className="mr-1.5 h-3.5 w-3.5" />
-                          PDF
+                          Download PDF
                         </Button>
                       </div>
-                      <div className="p-4 max-h-[400px] overflow-y-auto">
-                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-slate-700 dark:text-slate-300">
+                      <div className="p-6 max-h-[500px] overflow-y-auto">
+                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed">
                           {generatedCoverLetter}
                         </div>
                       </div>
                     </div>
                   )}
+
+                  {/* Bottom spacing */}
+                  <div className="h-12" />
 
                 </div>
               ) : (

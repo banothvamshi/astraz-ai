@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!type || type !== "resume") {
+    if (!type || !["resume", "coverLetter"].includes(type)) {
       return NextResponse.json(
-        { error: "Invalid type. Only 'resume' is supported." },
+        { error: "Invalid type. Supported types: 'resume', 'coverLetter'" },
         { status: 400 }
       );
     }

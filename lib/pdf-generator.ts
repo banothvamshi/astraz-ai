@@ -2,7 +2,7 @@ import { jsPDF } from "jspdf";
 import { removeAllPlaceholders } from "./placeholder-detector";
 
 export interface PDFOptions {
-  type: "resume";
+  type: "resume" | "coverLetter";
   content: string;
   name?: string;
   email?: string;
