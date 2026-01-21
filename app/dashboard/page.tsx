@@ -5,10 +5,8 @@ import { useRouter } from "next/navigation";
 import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadArea } from "@/components/upload-area";
-import { PaywallModal } from "@/components/paywall-modal";
-import { ResumeEditor } from "@/components/resume-editor";
-import { canUseFreeTrial, markTrialUsed, hasUsedTrial } from "@/lib/storage";
 import { getSupabaseBrowserClient } from "@/lib/auth";
+
 
 interface ContactInfo {
   fullName: string;
@@ -1103,6 +1101,7 @@ export default function Dashboard() {
               <Button
                 onClick={async () => {
                   try {
+                    const supabase = getSupabaseBrowserClient();
                     const { data: { session } } = await supabase.auth.getSession();
                     const token = session?.access_token;
 
@@ -1156,6 +1155,7 @@ export default function Dashboard() {
                 onClick={async () => {
                   if (confirm("Are you strictly sure you want to delete your account? This action is permanent and cannot be undone.")) {
                     try {
+                      const supabase = getSupabaseBrowserClient();
                       const { data: { session } } = await supabase.auth.getSession();
                       const token = session?.access_token;
 
