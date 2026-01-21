@@ -33,7 +33,7 @@ const PLANS = {
     name: "Enterprise",
     credits: 100,
     tagline: "For career professionals & recruiters",
-    features: ["100 Generations/month", "All Premium Features", "Priority Support", "Early Access to New Features"],
+    features: ["100 Generations/month", "Cover Letters", "All Premium Features", "Priority Support", "Early Access"],
     billing: "monthly"
   }
 };
