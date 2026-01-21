@@ -33,11 +33,17 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        // Use service role client for data fetching (bypasses RLS)
+        const supabaseAdmin = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
         // Fetch all user data
         const [profile, generations, history] = await Promise.all([
-            supabase.from("profiles").select("*").eq("id", userId).single(),
-            supabase.from("generations").select("*").eq("user_id", userId),
-            supabase.from("pdf_history").select("*").eq("user_id", userId)
+            supabaseAdmin.from("profiles").select("*").eq("id", userId).single(),
+            supabaseAdmin.from("generations").select("*").eq("user_id", userId),
+            supabaseAdmin.from("generations").select("*").eq("user_id", userId) // Using generations as history
         ]);
 
         const exportData = {
