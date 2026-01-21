@@ -101,7 +101,7 @@ export default function Dashboard() {
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin, is_premium, credits_remaining, total_generations, free_generations_used")
+          .select("is_admin, is_premium, credits_remaining, total_generations, free_generations_used, premium_type")
           .eq("id", user.id)
           .single();
 
@@ -116,12 +116,21 @@ export default function Dashboard() {
           if (profile.is_premium) {
             localStorage.setItem("astraz_premium", "true");
           } else {
-            localStorage.removeItem("astraz_premium"); // Or set to false, but removal is safer for defaults
+            localStorage.removeItem("astraz_premium");
           }
 
           setIsPremium(profile.is_premium || false);
           setCreditsRemaining(profile.credits_remaining ?? 0);
           setTotalGenerations(profile.total_generations || 0);
+
+          // Set User Plan from Profile (Source of Truth for Admin Upgrades)
+          if (profile.premium_type) {
+            const planType = profile.premium_type.toLowerCase();
+            if (planType === "enterprise") setUserPlan("enterprise");
+            else if (planType === "professional") setUserPlan("professional");
+            else if (planType === "starter") setUserPlan("starter");
+            else setUserPlan("free");
+          }
 
           // Access control: Check if user can access dashboard
           const hasUnusedTrial = (profile.free_generations_used || 0) === 0;
