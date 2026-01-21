@@ -74,27 +74,29 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
-                <div className="text-center mb-8">
-                    <Link href="/" className="inline-flex items-center gap-2">
-                        <img src="/logo.png" alt="Astraz AI" className="h-10 w-10" />
-                        <span className="text-2xl font-bold text-slate-900 dark:text-white">Astraz AI</span>
+                <div className="text-center mb-10">
+                    <Link href="/" className="inline-flex flex-col items-center gap-3 group">
+                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5 shadow-xl shadow-amber-500/30 transition-transform group-hover:scale-105">
+                            <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[14px] bg-white dark:bg-slate-900 p-1.5" />
+                        </div>
+                        <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Astraz AI</span>
                     </Link>
                 </div>
 
                 {/* Login Card */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-2">
+                <div className="rounded-3xl border border-slate-200 bg-white p-10 shadow-2xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/50">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white text-center mb-3">
                         Welcome Back
                     </h1>
-                    <p className="text-slate-500 text-center mb-8">
-                        Sign in to access your account
+                    <p className="text-slate-500 text-center mb-10">
+                        Sign in to continue building your career
                     </p>
 
                     {error && (
-                        <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+                        <div className="mb-8 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
                             {error}
                         </div>
                     )}
@@ -152,12 +154,12 @@ export default function LoginPage() {
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white font-semibold"
+                            className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg font-semibold rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:shadow-xl"
                         >
                             {isLoading ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...</>
+                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Signing in...</>
                             ) : (
-                                <>Sign In <ArrowRight className="ml-2 h-4 w-4" /></>
+                                <>Sign In <ArrowRight className="ml-2 h-5 w-5" /></>
                             )}
                         </Button>
                     </form>

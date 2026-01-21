@@ -179,20 +179,20 @@ function PaymentPageContent() {
         src="https://checkout.razorpay.com/v1/checkout.js"
         strategy="afterInteractive"
       />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-        <nav className="border-b border-slate-200/80 bg-white/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/80">
-          <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-            <Button onClick={() => router.push("/")} variant="ghost" size="sm">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <nav className="border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
+          <div className="container mx-auto flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <Button onClick={() => router.push("/")} variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              Back to Home
             </Button>
 
             {/* Currency Toggle */}
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 p-1.5 dark:border-slate-700 dark:bg-slate-800">
               <button
                 onClick={() => setCurrency("INR")}
-                className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${currency === "INR"
-                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${currency === "INR"
+                  ? "bg-white text-slate-900 shadow-md dark:bg-slate-700 dark:text-white"
                   : "text-slate-500 hover:text-slate-700"
                   }`}
               >
@@ -200,8 +200,8 @@ function PaymentPageContent() {
               </button>
               <button
                 onClick={() => setCurrency("USD")}
-                className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${currency === "USD"
-                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${currency === "USD"
+                  ? "bg-white text-slate-900 shadow-md dark:bg-slate-700 dark:text-white"
                   : "text-slate-500 hover:text-slate-700"
                   }`}
               >
@@ -211,12 +211,12 @@ function PaymentPageContent() {
           </div>
         </nav>
 
-        <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-5xl">
+        <div className="container mx-auto px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl">
             {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-50 mb-4">
-                Choose Your Plan
+            <div className="text-center mb-16">
+              <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-slate-50 mb-5">
+                Choose Your <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Plan</span>
               </h1>
               <p className="text-lg text-slate-600 dark:text-slate-400">
                 Invest in your career. Get AI-powered resume optimization.

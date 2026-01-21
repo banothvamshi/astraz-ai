@@ -56,24 +56,26 @@ export default function Home() {
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-white/50 backdrop-blur-xl dark:bg-slate-950/50"
+        className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/50 bg-white/80 backdrop-blur-xl dark:bg-slate-950/80 dark:border-slate-800/50"
       >
-        <div className="container mx-auto flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Astraz AI" className="h-9 w-9" />
-            <span className="text-xl font-bold tracking-tight">Astraz AI</span>
+        <div className="container mx-auto flex h-20 items-center justify-between px-6 lg:px-8">
+          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => router.push("/")}>
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5 shadow-lg shadow-amber-500/25 transition-transform group-hover:scale-105">
+              <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[10px] bg-white dark:bg-slate-900 p-1" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Astraz AI</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Button
               onClick={() => router.push("/login")}
               variant="ghost"
-              className="hidden sm:flex hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="hidden sm:flex px-6 text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-all"
             >
               Sign In
             </Button>
             <Button
               onClick={() => router.push("/signup")}
-              className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
+              className="px-6 h-11 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-xl rounded-xl"
             >
               Get Started
             </Button>
