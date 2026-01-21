@@ -72,7 +72,14 @@ const seoKeywords = [
   "resume builder India",
   "resume builder USA",
   "resume builder free India",
-  "international resume builder"
+  "international resume builder",
+  "resume builder 2026",
+  "AI CV maker",
+  "automated resume builder",
+  "google gemini resume builder",
+  "resume optimization tool",
+  "increase interview chances",
+  "get hired faster"
 ].join(", ");
 
 export const metadata: Metadata = {

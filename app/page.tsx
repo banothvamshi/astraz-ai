@@ -128,14 +128,11 @@ export default function Home() {
             </motion.div>
 
             <motion.h1 variants={fadeIn} className="mb-6 text-5xl font-extrabold tracking-tight sm:text-7xl">
-              Beat the ATS. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-purple-500 to-cyan-500">
-                Land the Interview.
-              </span>
+              Build an <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-purple-500 to-cyan-500">ATS-Optimized Resume</span> that gets you hired.
             </motion.h1>
 
             <motion.p variants={fadeIn} className="mb-10 text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Stop guessing keywords. Our advanced AI analyzes job descriptions and engineers your resume to structurally pass 95% of Applicant Tracking Systems.
+              Stop getting rejected by bots. Our <span className="font-semibold text-slate-900 dark:text-white">Google Gemini AI</span> analyzes job descriptions to engineer a resume that passes 99% of Applicant Tracking Systems.
             </motion.p>
 
             <motion.div variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
