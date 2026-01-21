@@ -41,19 +41,19 @@ export default function ForgotPasswordPage() {
 
     if (isSuccess) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
                 <div className="w-full max-w-md text-center">
-                    <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                        <CheckCircle className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                    <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 shadow-xl shadow-emerald-500/20">
+                        <CheckCircle className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
                         Check Your Email
                     </h1>
-                    <p className="text-slate-500 mb-6">
-                        We've sent a password reset link to <span className="font-medium">{email}</span>
+                    <p className="text-lg text-slate-500 mb-8">
+                        We've sent a password reset link to <span className="font-semibold text-slate-700 dark:text-slate-300">{email}</span>
                     </p>
                     <Link href="/login">
-                        <Button variant="outline">
+                        <Button variant="outline" className="h-12 px-6 rounded-xl border-slate-300 hover:border-amber-500 hover:text-amber-600 transition-all">
                             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Login
                         </Button>
                     </Link>
@@ -63,32 +63,34 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
-                <div className="text-center mb-8">
-                    <Link href="/" className="inline-flex items-center gap-2">
-                        <img src="/logo.png" alt="Astraz AI" className="h-10 w-10" />
-                        <span className="text-2xl font-bold text-slate-900 dark:text-white">Astraz AI</span>
+                <div className="text-center mb-10">
+                    <Link href="/" className="inline-flex flex-col items-center gap-3 group">
+                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5 shadow-xl shadow-amber-500/30 transition-transform group-hover:scale-105">
+                            <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[14px] bg-white dark:bg-slate-900 p-1.5" />
+                        </div>
+                        <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Astraz AI</span>
                     </Link>
                 </div>
 
                 {/* Card */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-2">
+                <div className="rounded-3xl border border-slate-200 bg-white p-10 shadow-2xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/50">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white text-center mb-3">
                         Forgot Password?
                     </h1>
-                    <p className="text-slate-500 text-center mb-8">
+                    <p className="text-slate-500 text-center mb-10">
                         Enter your email and we'll send you a reset link
                     </p>
 
                     {error && (
-                        <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+                        <div className="mb-8 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Email Address
@@ -101,7 +103,7 @@ export default function ForgotPasswordPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="you@example.com"
                                     required
-                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                                 />
                             </div>
                         </div>
@@ -109,18 +111,18 @@ export default function ForgotPasswordPage() {
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                            className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg font-semibold rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:shadow-xl"
                         >
                             {isLoading ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</>
+                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Sending...</>
                             ) : (
                                 "Send Reset Link"
                             )}
                         </Button>
                     </form>
 
-                    <div className="mt-6 text-center">
-                        <Link href="/login" className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1">
+                    <div className="mt-8 text-center">
+                        <Link href="/login" className="text-sm text-amber-600 hover:text-amber-700 flex items-center justify-center gap-2 transition-colors">
                             <ArrowLeft className="h-4 w-4" /> Back to Login
                         </Link>
                     </div>

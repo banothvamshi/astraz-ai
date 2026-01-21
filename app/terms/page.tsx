@@ -5,24 +5,26 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 
 export default function TermsPage() {
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
             {/* Header */}
-            <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
-                <div className="container mx-auto flex h-16 items-center justify-between px-6">
-                    <Link href="/" className="flex items-center gap-2">
-                        <img src="/logo.png" alt="Astraz AI" className="h-9 w-9" />
-                        <span className="text-xl font-bold">Astraz AI</span>
+            <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
+                <div className="container mx-auto flex h-20 items-center justify-between px-6 lg:px-8">
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5 shadow-lg shadow-amber-500/25 transition-transform group-hover:scale-105">
+                            <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[10px] bg-white dark:bg-slate-900 p-1" />
+                        </div>
+                        <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Astraz AI</span>
                     </Link>
-                    <Link href="/" className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1">
-                        <ArrowLeft className="h-4 w-4" /> Back
+                    <Link href="/" className="text-sm text-slate-600 hover:text-amber-600 flex items-center gap-2 transition-colors">
+                        <ArrowLeft className="h-4 w-4" /> Back to Home
                     </Link>
                 </div>
             </nav>
 
             {/* Content */}
-            <div className="container mx-auto max-w-3xl px-6 py-16">
-                <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">Terms of Service</h1>
-                <p className="text-slate-500 mb-12">Last updated: January 2026</p>
+            <div className="container mx-auto max-w-4xl px-6 lg:px-8 py-20">
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">Terms of Service</h1>
+                <p className="text-lg text-slate-500 mb-16">Last updated: January 2026</p>
 
                 <div className="prose prose-slate dark:prose-invert max-w-none">
                     <h2>1. Acceptance of Terms</h2>
