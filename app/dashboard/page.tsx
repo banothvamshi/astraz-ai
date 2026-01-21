@@ -470,13 +470,7 @@ export default function Dashboard() {
                 Upgrade Plan
               </Button>
             )}
-            <Button
-              onClick={() => router.push("/dashboard/debug-parser")}
-              variant="ghost"
-              className="hidden sm:flex text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400"
-            >
-              Debug Tools
-            </Button>
+
             <Button
               onClick={async () => {
                 const { getSupabaseBrowserClient } = await import("@/lib/auth");

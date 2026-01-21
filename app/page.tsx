@@ -457,7 +457,6 @@ export default function Home() {
               <h4 className="font-semibold text-slate-900 dark:text-white mb-3">Support</h4>
               <ul className="space-y-2 text-sm text-slate-500">
                 <li><a href="/contact" className="hover:text-amber-600">Contact Us</a></li>
-                <li><a href="mailto:support@astrazai.com" className="hover:text-amber-600">Email</a></li>
               </ul>
             </div>
             <div>
