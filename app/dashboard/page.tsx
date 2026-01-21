@@ -112,6 +112,13 @@ export default function Dashboard() {
             return;
           }
 
+          // Sync local storage with DB to fix "upgrade not reflecting" issue
+          if (profile.is_premium) {
+            localStorage.setItem("astraz_premium", "true");
+          } else {
+            localStorage.removeItem("astraz_premium"); // Or set to false, but removal is safer for defaults
+          }
+
           setIsPremium(profile.is_premium || false);
           setCreditsRemaining(profile.credits_remaining ?? 0);
           setTotalGenerations(profile.total_generations || 0);

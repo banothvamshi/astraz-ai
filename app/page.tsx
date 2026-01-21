@@ -10,15 +10,29 @@ import { motion, useScroll, useTransform } from "framer-motion";
 export default function Home() {
   const router = useRouter();
   const [hasTrial, setHasTrial] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 200], [1, 0.8]);
 
   useEffect(() => {
     setHasTrial(hasUsedTrial());
+
+    // Check for active session
+    const checkSession = async () => {
+      const { getSupabaseBrowserClient } = await import("@/lib/auth");
+      const supabase = getSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) setIsLoggedIn(true);
+    };
+    checkSession();
   }, []);
 
   const handleGetStarted = () => {
-    // If user has used their trial, redirect to payment page
+    if (isLoggedIn) {
+      router.push("/dashboard");
+      return;
+    }
+    // If user has used their trial and not logged in, they might still be new
     if (hasTrial) {
       router.push("/payment");
     } else {
@@ -66,19 +80,30 @@ export default function Home() {
             <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Astraz AI</span>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              onClick={() => router.push("/login")}
-              variant="ghost"
-              className="hidden sm:flex px-6 text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-all"
-            >
-              Sign In
-            </Button>
-            <Button
-              onClick={() => router.push("/signup")}
-              className="px-6 h-11 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-xl rounded-xl"
-            >
-              Get Started
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                onClick={() => router.push("/dashboard")}
+                className="px-6 h-11 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-xl rounded-xl"
+              >
+                Go to Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={() => router.push("/login")}
+                  variant="ghost"
+                  className="hidden sm:flex px-6 text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-all"
+                >
+                  Sign In
+                </Button>
+                <Button
+                  onClick={() => router.push("/signup")}
+                  className="px-6 h-11 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-xl rounded-xl"
+                >
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </motion.nav>
