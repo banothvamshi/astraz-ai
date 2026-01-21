@@ -470,10 +470,11 @@ Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
 Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable).
 
 CRITICAL FORMATTING RULES:
-0. **OCR & SPACING CORRECTION**: 
-   - If Job Titles or Company Names have typos (e.g. "Technicaior"), FIX them.
-   - If Company Names are missing spaces (e.g. "HighbrowTechnologyInc"), ADD SPACES to make them readable (e.g. "Highbrow Technology Inc").
-   - If Company Names are in camelCase or PascalCase, convert to proper Title Case with spaces.
+0. **PRESERVE ORIGINAL NAMES EXACTLY**: 
+   - **CRITICAL**: Keep Job Titles and Company Names EXACTLY as they appear in the original resume.
+   - Do NOT add spaces to company names (if original says "HighbrowTechnologyInc", keep it as "HighbrowTechnologyInc").
+   - Do NOT modify formatting of names (if original has no space, do NOT add space).
+   - Only fix obvious typos that would embarrass the candidate (e.g., "Gogle" → "Google").
 1. **DO NOT** include the candidate's Name, Email, Phone, or Location at the top. The system adds this automatically.
 2. **START DIRECTLY** with the first section header (e.g., \`# Professional Summary\`).
 3. Use \`#\` for Main Section Headers.

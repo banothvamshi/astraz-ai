@@ -248,6 +248,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         <link rel="canonical" href="https://astrazai.com" />
         <meta name="format-detection" content="telephone=no" />
         <script

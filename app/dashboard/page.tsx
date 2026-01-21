@@ -345,33 +345,27 @@ export default function Dashboard() {
       const a = document.createElement("a");
       a.href = url;
 
-      // Generate a descriptive filename
-      const timestamp = new Date().toISOString().split("T")[0];
+      // Generate a clean, simple filename: Name_JobRole_Resume.pdf
       const userName = (contactInfo.fullName || resumeMeta?.name || "Resume")
         .replace(/[^a-zA-Z\s]/g, "")
-        .split(" ")
+        .trim()
+        .split(/\s+/)
         .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join("");
+        .join("_");
       const targetJob = (jobDetails.jobTitle || "")
         .replace(/[^a-zA-Z\s]/g, "")
-        .split(" ")
+        .trim()
+        .split(/\s+/)
         .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join("")
-        .slice(0, 30);
-      const targetCompany = (jobDetails.companyName || "")
-        .replace(/[^a-zA-Z\s]/g, "")
-        .split(" ")
-        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join("")
-        .slice(0, 20);
+        .join("_")
+        .slice(0, 40);
 
-      // Format: Name_JobTitle_Company_Resume_Date.pdf or Name_Resume_Date.pdf
+      // Format: Name_JobRole_Resume.pdf or Name_Resume.pdf
       const namePart = userName || "Resume";
       const jobPart = targetJob ? `_${targetJob}` : "";
-      const companyPart = targetCompany ? `_${targetCompany}` : "";
       const docType = type === "resume" ? "Resume" : "CoverLetter";
 
-      a.download = `${namePart}${jobPart}${companyPart}_${docType}_${timestamp}.pdf`;
+      a.download = `${namePart}${jobPart}_${docType}.pdf`;
 
       document.body.appendChild(a);
       a.click();
