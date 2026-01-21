@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       const currentCredits = currentProfile?.credits_remaining || 0;
-      const newCredits = planCredits === -1 ? -1 : currentCredits + planCredits;
+      const newCredits = currentCredits + planCredits;
 
       await supabase
         .from("profiles")

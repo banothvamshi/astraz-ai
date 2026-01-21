@@ -61,7 +61,34 @@ export async function POST(request: NextRequest) {
         }
 
         // Increment user's total_generations count if user exists
-        if (userId) {
+        // Explicitly handle credit deduction and sync
+        if (userId && !isFreeGeneration) {
+            // 1. Get current credits
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("credits_remaining, total_generations")
+                .eq("id", userId)
+                .single();
+
+            const currentCredits = profile?.credits_remaining || 0;
+
+            // 2. Deduct credit (ensure non-negative)
+            // No more "unlimited" check - we strictly count down
+            const newCredits = Math.max(0, currentCredits - 1);
+
+            // 3. Update profiles table
+            await supabase
+                .from("profiles")
+                .update({
+                    credits_remaining: newCredits,
+                    total_generations: (profile?.total_generations || 0) + 1,
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", userId);
+
+            console.log(`[Sync] Deducted credit for ${userId}. New balance: ${newCredits}`);
+        } else if (userId && isFreeGeneration) {
+            // Just track the generation count for free usage
             await supabase.rpc("increment_generation_count", { user_uuid: userId });
         }
 

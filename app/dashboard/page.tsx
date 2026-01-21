@@ -418,19 +418,12 @@ export default function Dashboard() {
           {/* Generations Display */}
           {!isLoadingProfile && creditsRemaining !== null && (
             <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-              {creditsRemaining === -1 ? (
-                <>
-                  <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Unlimited Generations</span>
-                </>
-              ) : (
-                <>
-                  <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
-                    {creditsRemaining} {creditsRemaining === 1 ? 'generation' : 'generations'} left
-                  </span>
-                </>
-              )}
+              <>
+                <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                  {creditsRemaining} {creditsRemaining === 1 ? 'generation' : 'generations'} left
+                </span>
+              </>
             </div>
           )}
 

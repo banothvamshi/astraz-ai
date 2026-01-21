@@ -33,15 +33,8 @@ export async function POST(
         }
 
         const currentCredits = profile.credits_remaining;
-        // Handle unlimited credits (-1)
-        if (currentCredits === -1 && amount > 0) {
-            return NextResponse.json(
-                { message: "User has unlimited credits. No change made." },
-                { status: 200 }
-            );
-        }
 
-        const newCredits = currentCredits === -1 ? -1 : Math.max(0, currentCredits + amount);
+        const newCredits = Math.max(0, currentCredits + amount);
 
         // 2. Update credits
         const { error: updateError } = await supabase
