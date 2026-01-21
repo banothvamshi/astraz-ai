@@ -19,6 +19,22 @@ export function getSupabaseBrowserClient() {
 export function getSupabaseAdmin() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+    // Security Check: Ensure we aren't using the 'anon' key by mistake
+    if (supabaseServiceKey && supabaseServiceKey.includes('.')) {
+        try {
+            const payload = JSON.parse(atob(supabaseServiceKey.split('.')[1]));
+            if (payload.role !== 'service_role') {
+                console.error("\n\n❌ CRITICAL SECURITY WARNING: ❌");
+                console.error("The 'SUPABASE_SERVICE_ROLE_KEY' appears to be an 'anon' key (role: " + payload.role + ").");
+                console.error("Admin actions (upgrades, credits) WILL FAIL.");
+                console.error("Please update your environment variables with the 'service_role' (secret) key from Supabase Dashboard.\n\n");
+            }
+        } catch (e) {
+            // Ignore parsing errors, let Supabase handle valid/invalid keys
+        }
+    }
+
     return createClient(supabaseUrl, supabaseServiceKey, {
         auth: {
             autoRefreshToken: false,

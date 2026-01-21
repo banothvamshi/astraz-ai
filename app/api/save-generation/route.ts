@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
             companyName,
             jobLocation,
             resumeContent,
+            coverLetterContent,
             originalResumeText,
             jobDescriptionText,
             isFreeGeneration
@@ -29,11 +30,12 @@ export async function POST(request: NextRequest) {
         const { data: generation, error: genError } = await supabase
             .from("generations")
             .insert({
-                user_id: userId || null,
+                user_id: userId || null, // Explicitly handle null for guests
                 job_title: jobTitle || null,
                 company_name: companyName || null,
                 job_location: jobLocation || null,
                 resume_content: resumeContent || null,
+                cover_letter_content: coverLetterContent || null,
                 original_resume_text: originalResumeText || null,
                 job_description_text: jobDescriptionText || null,
                 is_free_generation: isFreeGeneration || false,

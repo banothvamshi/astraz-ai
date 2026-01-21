@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateText } from "@/lib/gemini";
+
 import { parseResumePDF, extractResumeSections, ParsedResume } from "@/lib/pdf-parser";
 import { parseResumePDFEnhanced, extractStructuredSections } from "@/lib/pdf-parser-enhanced";
 import { parseAdvancedPDF } from "@/lib/pdf-parser-advanced-v3";
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { resume, jobDescription, companyName, includeCoverLetter } = body;
+    const { resume, jobDescription, companyName, includeCoverLetter, userId } = body;
 
     // Comprehensive validation
     if (!resume) {
@@ -734,15 +735,19 @@ Generate the cover letter now:`;
       }
     });
 
+
+
     // Save generation to database (fire-and-forget)
     fetch(`${request.nextUrl.origin}/api/save-generation`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        userId: userId || null,
         jobTitle: parsedJob.title,
         companyName: parsedJob.company,
         jobLocation: parsedJob.location,
         resumeContent: cleanResume,
+        coverLetterContent: generatedCoverLetter,
         originalResumeText: finalResumeText?.substring(0, 5000), // Truncate for storage
         jobDescriptionText: jobDescription?.substring(0, 5000),
         isFreeGeneration: !isPremium,

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function TermsPage() {
     return (
@@ -29,14 +29,12 @@ export default function TermsPage() {
                 <div className="prose prose-slate dark:prose-invert max-w-none">
                     <h2>1. Acceptance of Terms</h2>
                     <p>
-                        By accessing or using Astraz AI ("Service"), you agree to be bound by these Terms of Service.
-                        If you do not agree to these terms, please do not use our Service.
+                        By accessing or using Astraz AI ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.
                     </p>
 
                     <h2>2. Description of Service</h2>
                     <p>
-                        Astraz AI provides AI-powered resume optimization services. We use artificial intelligence to
-                        analyze job descriptions and generate ATS-optimized resumes based on user-provided information.
+                        Astraz AI provides AI-powered resume optimization services. We use artificial intelligence to analyze job descriptions and generate ATS-optimized resumes based on user-provided information.
                     </p>
 
                     <h2>3. User Accounts</h2>
@@ -49,57 +47,40 @@ export default function TermsPage() {
 
                     <h2>4. Payment Terms</h2>
                     <ul>
-                        <li>Premium access requires a one-time payment</li>
+                        <li>Monthly subscription billing; cancel anytime</li>
                         <li>All payments are processed securely through Razorpay</li>
                         <li>Prices are subject to change with reasonable notice</li>
-                        <li>Refunds are available within 7 days of purchase if the service was not used</li>
+                        <li>Refunds available within 7 days if service was not used</li>
                     </ul>
 
                     <h2>5. Acceptable Use</h2>
-                    <p>You agree NOT to:</p>
-                    <ul>
-                        <li>Use the Service for any illegal purpose</li>
-                        <li>Upload false, misleading, or fraudulent information</li>
-                        <li>Attempt to reverse-engineer, hack, or exploit the Service</li>
-                        <li>Use automated tools to access the Service without permission</li>
-                        <li>Share, resell, or redistribute generated content commercially</li>
-                    </ul>
+                    <p>
+                        You agree NOT to: use the Service for illegal purposes, upload false information, attempt to hack or exploit the Service, or share/resell generated content commercially.
+                    </p>
 
                     <h2>6. Intellectual Property</h2>
                     <p>
-                        The resume content you provide remains your property. The AI-generated output is licensed to
-                        you for personal use. Astraz AI retains rights to the underlying technology and algorithms.
+                        The resume content you provide remains your property. The AI-generated output is licensed to you for personal use. Astraz AI retains rights to the underlying technology.
                     </p>
 
-                    <h2>7. Disclaimer of Warranties</h2>
+                    <h2>7. Disclaimer</h2>
                     <p>
-                        The Service is provided "as is" without warranties of any kind. We do not guarantee that
-                        using our Service will result in job interviews or employment. Results may vary based on
-                        individual circumstances, job market conditions, and employer requirements.
+                        The Service is provided "as is" without warranties. We do not guarantee job interviews or employment. Results vary based on individual circumstances and market conditions.
                     </p>
 
                     <h2>8. Limitation of Liability</h2>
                     <p>
-                        Astraz AI shall not be liable for any indirect, incidental, special, consequential, or
-                        punitive damages arising from your use of the Service. Our total liability shall not
-                        exceed the amount you paid for the Service.
+                        Astraz AI shall not be liable for any indirect, incidental, special, or consequential damages. Our total liability shall not exceed the amount you paid for the Service.
                     </p>
 
-                    <h2>9. Termination</h2>
+                    <h2>9. Governing Law</h2>
                     <p>
-                        We reserve the right to terminate or suspend your account at any time for violations of
-                        these terms or for any other reason at our sole discretion.
+                        These Terms are governed by the laws of India. Any disputes shall be resolved through arbitration in Hyderabad, Telangana.
                     </p>
 
-                    <h2>10. Changes to Terms</h2>
+                    <h2>10. Contact</h2>
                     <p>
-                        We may update these terms from time to time. Continued use of the Service after changes
-                        constitutes acceptance of the new terms.
-                    </p>
-
-                    <h2>11. Contact</h2>
-                    <p>
-                        For questions about these Terms, please contact us at support@astraz.ai
+                        For questions about these Terms, please contact us at <a href="mailto:support@astrazai.com" className="text-amber-600 hover:underline">support@astrazai.com</a>
                     </p>
                 </div>
             </div>

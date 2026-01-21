@@ -55,6 +55,7 @@ export default function Dashboard() {
   const [userPlan, setUserPlan] = useState<"free" | "starter" | "professional" | "enterprise">("free");
 
   // New: Contact info state
+  const [userId, setUserId] = useState<string | null>(null);
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
     fullName: "",
     email: "",
@@ -99,9 +100,13 @@ export default function Dashboard() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
+        setUserId(user.id);
+      }
+
+      if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin, is_premium, credits_remaining, total_generations, free_generations_used, premium_type")
+          .select("is_admin, is_premium, credits_remaining, total_generations, free_generations_used, premium_type, subscription_end_date")
           .eq("id", user.id)
           .single();
 
@@ -112,31 +117,46 @@ export default function Dashboard() {
             return;
           }
 
+          // Check for Subscription Expiration
+          let isExpired = false;
+          if (profile.subscription_end_date) {
+            const expiryDate = new Date(profile.subscription_end_date);
+            if (expiryDate < new Date()) {
+              isExpired = true;
+            }
+          }
+
+          // Effective Premium Status
+          const isEffectivePremium = profile.is_premium && !isExpired;
+
           // Sync local storage with DB to fix "upgrade not reflecting" issue
-          if (profile.is_premium) {
+          if (isEffectivePremium) {
             localStorage.setItem("astraz_premium", "true");
           } else {
             localStorage.removeItem("astraz_premium");
           }
 
-          setIsPremium(profile.is_premium || false);
+          setIsPremium(isEffectivePremium || false);
           setCreditsRemaining(profile.credits_remaining ?? 0);
           setTotalGenerations(profile.total_generations || 0);
 
           // Set User Plan from Profile (Source of Truth for Admin Upgrades)
-          if (profile.premium_type) {
+          if (isEffectivePremium && profile.premium_type) {
             const planType = profile.premium_type.toLowerCase();
             if (planType === "enterprise") setUserPlan("enterprise");
             else if (planType === "professional") setUserPlan("professional");
             else if (planType === "starter") setUserPlan("starter");
             else setUserPlan("free");
+          } else {
+            // If expired or not premium, fallback to free
+            setUserPlan("free");
           }
 
           // Access control: Check if user can access dashboard
           const hasUnusedTrial = (profile.free_generations_used || 0) === 0;
           const hasCredits = (profile.credits_remaining || 0) > 0 || profile.credits_remaining === -1;
 
-          if (!profile.is_premium && !hasUnusedTrial && !hasCredits) {
+          if (!isEffectivePremium && !hasUnusedTrial && !hasCredits) {
             // No access - redirect to payment
             router.push("/payment");
             return;
@@ -245,6 +265,7 @@ export default function Dashboard() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-premium-user": isPremium ? "true" : "false"
         },
         body: JSON.stringify({
           resume: base64Resume,
@@ -252,7 +273,8 @@ export default function Dashboard() {
           companyName: jobDetails.companyName.trim() || undefined,
           jobTitle: jobDetails.jobTitle.trim() || undefined,
           jobLocation: jobDetails.location.trim() || undefined,
-          includeCoverLetter: includeCoverLetter,
+          includeCoverLetter: includeCoverLetter && ["professional", "enterprise"].includes(userPlan),
+          userId: userId, // Pass User ID for tracking
           // Send contact overrides if user provided them
           contactOverrides: {
             fullName: contactInfo.fullName.trim() || undefined,
@@ -514,6 +536,18 @@ export default function Dashboard() {
                 }`}
             >
               History
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("settings");
+                router.push("/dashboard?tab=settings");
+              }}
+              className={`px-8 py-4 text-sm font-semibold border-b-2 transition-all ${activeTab === "settings"
+                ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800/50"
+                }`}
+            >
+              Settings
             </button>
           </div>
 
@@ -1044,6 +1078,91 @@ export default function Dashboard() {
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "settings" && (
+        <div className="max-w-3xl mx-auto space-y-8 mt-12">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                <Download className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Export Data</h2>
+                <p className="text-sm text-slate-500">Download a copy of your personal data and resume history.</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-6 border border-slate-100 dark:border-slate-800">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                Your export will include your profile information, generation history, and saved resume data in JSON format.
+              </p>
+              <Button
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/user/export");
+                    if (!res.ok) throw new Error("Export failed");
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `astraz-export-${new Date().toISOString().split("T")[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                  } catch (err) {
+                    alert("Failed to export data. Please try again.");
+                  }
+                }}
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download My Data
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30 p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                <LogOut className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-red-600 dark:text-red-400">Danger Zone</h2>
+                <p className="text-sm text-slate-500">Irreversible account actions.</p>
+              </div>
+            </div>
+
+            <div className="bg-red-50 dark:bg-red-900/10 rounded-xl p-6 border border-red-100 dark:border-red-900/30">
+              <h3 className="font-semibold text-red-900 dark:text-red-200 mb-2">Delete Account</h3>
+              <p className="text-sm text-red-700 dark:text-red-300 mb-6">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+              <Button
+                onClick={async () => {
+                  if (confirm("Are you strictly sure you want to delete your account? This action is permanent and cannot be undone.")) {
+                    try {
+                      const res = await fetch("/api/user/delete", { method: "DELETE" });
+                      if (res.ok) {
+                        alert("Account deleted.");
+                        window.location.href = "/";
+                      } else {
+                        throw new Error("Deletion failed");
+                      }
+                    } catch (err) {
+                      alert("Failed to delete account. Please try again.");
+                    }
+                  }
+                }}
+                variant="destructive"
+                className="w-full sm:w-auto hover:bg-red-700 transition-colors"
+              >
+                Delete Account
+              </Button>
             </div>
           </div>
         </div>

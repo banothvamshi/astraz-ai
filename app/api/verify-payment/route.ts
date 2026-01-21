@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
           is_premium: true,
           premium_type: plan_type || "premium",
           credits_remaining: newCredits,
+          subscription_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // +30 days
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -117,6 +118,7 @@ export async function POST(request: NextRequest) {
             is_premium: true,
             premium_type: plan_type || "premium",
             credits_remaining: planCredits,
+            subscription_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // +30 days
             first_login_completed: false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),

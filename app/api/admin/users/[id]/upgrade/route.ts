@@ -25,6 +25,7 @@ export async function POST(
                 is_premium: plan !== 'free',
                 premium_type: plan,
                 credits_remaining: credits, // Set specific credits for the plan
+                subscription_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Grant 30 days access
                 updated_at: new Date().toISOString()
             })
             .eq("id", userId)
