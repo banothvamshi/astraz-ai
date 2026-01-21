@@ -118,62 +118,63 @@ export default function UsersPage() {
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            {/* Users Table */}
+            <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-lg overflow-hidden">
                 {isLoading ? (
                     <div className="p-12 flex justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                        <Loader2 className="h-10 w-10 animate-spin text-amber-600" />
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-slate-50 dark:bg-slate-900/50">
+                            <thead className="bg-slate-50 dark:bg-slate-800/50">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">User</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Credits</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Joined</th>
-                                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">User</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Role</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Credits</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Joined</th>
+                                    <th className="px-6 py-4 text-right text-xs font-semibold uppercase text-slate-500">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                                 {paginatedUsers.map((user) => (
                                     <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center">
-                                                <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
-                                                    {user.email?.substring(0, 2)}
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-amber-600 font-bold dark:from-amber-900/30 dark:to-orange-900/30 dark:text-amber-400">
+                                                    {user.email?.substring(0, 2).toUpperCase()}
                                                 </div>
-                                                <div className="ml-3">
-                                                    <div className="text-sm font-medium text-slate-900 dark:text-white">{user.full_name || 'User'}</div>
+                                                <div>
+                                                    <div className="font-medium text-slate-900 dark:text-white">{user.full_name || 'User'}</div>
                                                     <div className="text-sm text-slate-500">{user.email}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             {user.is_admin ? (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                                    <Shield className="h-3 w-3" /> Admin
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+                                                    <Shield className="h-3.5 w-3.5" /> Admin
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                                                     User
                                                 </span>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
                                             {user.is_premium ? (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                                    <CheckCircle className="h-3 w-3" /> Premium
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                                    <CheckCircle className="h-3.5 w-3.5" /> Premium
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                                                     Free
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                            {user.credits_remaining === -1 ? '∞' : user.credits_remaining || 0}
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            {user.credits_remaining === -1 ? 'Unlimited' : user.credits_remaining || 0}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-slate-500">
                                             {new Date(user.created_at).toLocaleDateString()}
@@ -181,15 +182,17 @@ export default function UsersPage() {
                                         <td className="px-6 py-4 text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                        <MoreVertical className="h-4 w-4" />
+                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
+                                                        <MoreVertical className="h-4 w-4 text-slate-500" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => handleToggleAdmin(user.id, user.is_admin)}>
+                                                <DropdownMenuContent align="end" className="w-48">
+                                                    <DropdownMenuItem onClick={() => handleToggleAdmin(user.id, user.is_admin)} className="cursor-pointer">
+                                                        <Shield className="mr-2 h-4 w-4" />
                                                         {user.is_admin ? 'Remove Admin' : 'Make Admin'}
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={() => handleDeleteUser(user.id)}>
+                                                    <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10 cursor-pointer" onClick={() => handleDeleteUser(user.id)}>
+                                                        <Trash2 className="mr-2 h-4 w-4" />
                                                         Delete User
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
@@ -204,7 +207,7 @@ export default function UsersPage() {
 
                 {/* Pagination Controls */}
                 {!isLoading && totalPages > 1 && (
-                    <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
                         <p className="text-sm text-slate-500">
                             Showing {startIndex + 1} - {Math.min(startIndex + USERS_PER_PAGE, filteredUsers.length)} of {filteredUsers.length} users
                         </p>
@@ -214,17 +217,19 @@ export default function UsersPage() {
                                 size="sm"
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
+                                className="h-8 w-8 p-0 rounded-lg"
                             >
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
-                            <span className="text-sm text-slate-600 dark:text-slate-400">
-                                Page {currentPage} of {totalPages}
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                                {currentPage} / {totalPages}
                             </span>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
+                                className="h-8 w-8 p-0 rounded-lg"
                             >
                                 <ChevronRight className="h-4 w-4" />
                             </Button>

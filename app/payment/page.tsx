@@ -25,7 +25,7 @@ const PLANS = {
     name: "Professional",
     credits: 30,
     tagline: "Best value for serious applicants",
-    features: ["30 Generations/month", "ATS Optimization", "Premium Templates", "Priority Processing", "Cover Letters"],
+    features: ["30 Generations/month", "ATS Optimization", "Priority Processing", "Cover Letters"],
     popular: true,
     billing: "monthly"
   },

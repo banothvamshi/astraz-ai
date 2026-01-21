@@ -397,11 +397,13 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50">
 
       {/* Premium Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-amber-100/50 bg-white/80 backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-950/80">
-        <div className="container mx-auto flex h-full items-center justify-between px-6">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push("/")}>
-            <img src="/logo.png" alt="Astraz AI" className="h-9 w-9" />
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+      <nav className="fixed top-0 left-0 right-0 z-50 h-20 border-b border-slate-200/50 bg-white/90 backdrop-blur-xl dark:border-slate-800/50 dark:bg-slate-950/90">
+        <div className="container mx-auto flex h-full items-center justify-between px-6 lg:px-8">
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push("/")}>
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5 shadow-lg shadow-amber-500/25 transition-transform group-hover:scale-105">
+              <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[10px] bg-white dark:bg-slate-900 p-1" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
               Astraz AI
             </span>
           </div>

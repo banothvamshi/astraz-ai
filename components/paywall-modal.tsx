@@ -26,25 +26,29 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
     USD: { starter: "$4.99", professional: "$9.99", enterprise: "$19.99" }
   };
 
+  // Features must match payment page exactly
   const plans = [
     {
       key: "starter",
       name: "Starter",
+      tagline: "For active job seekers",
       featured: false,
-      features: ["10 Generations/mo", "PDF Downloads", "Basic Templates"],
+      features: ["10 Generations/month", "ATS Optimization", "PDF Export", "Email Support"],
     },
     {
       key: "professional",
       name: "Professional",
+      tagline: "Best value for serious applicants",
       featured: true,
-      features: ["30 Generations/mo", "Premium Templates", "Cover Letters", "Priority Support"],
+      features: ["30 Generations/month", "ATS Optimization", "Priority Processing", "Cover Letters"],
     },
     {
       key: "enterprise",
       name: "Enterprise",
+      tagline: "For career professionals & recruiters",
       featured: false,
       dark: true,
-      features: ["100 Generations/mo", "All Premium Features", "Priority Support", "Early Access"],
+      features: ["100 Generations/month", "Cover Letters", "All Premium Features", "Priority Support", "Early Access"],
     },
   ];
 
@@ -101,26 +105,25 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
                 </div>
               )}
 
-              {/* Plan Name */}
-              <h3 className={`font-bold text-lg mb-2 ${plan.dark ? "text-white" : "text-slate-900 dark:text-white"}`}>
+              {/* Plan Name & Tagline */}
+              <h3 className={`font-bold text-lg mb-1 ${plan.dark ? "text-white" : "text-slate-900 dark:text-white"}`}>
                 {plan.name}
               </h3>
+              <p className={`text-xs mb-3 ${plan.dark ? "text-slate-400" : "text-slate-500"}`}>
+                {plan.tagline}
+              </p>
 
               {/* Price */}
               <div className={`text-3xl font-extrabold mb-4 ${plan.featured ? "text-amber-600" : plan.dark ? "text-white" : "text-slate-900 dark:text-white"}`}>
                 {prices[currency][plan.key as keyof typeof prices.INR]}
-                <span className={`text-sm font-normal ${plan.dark ? "text-slate-400" : "text-slate-500"}`}>/mo</span>
+                <span className={`text-sm font-normal ${plan.dark ? "text-slate-400" : "text-slate-500"}`}>/month</span>
               </div>
 
               {/* Features */}
               <ul className="space-y-3 mb-6 flex-grow">
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className={`flex items-center gap-2.5 text-sm ${plan.dark ? "text-slate-300" : "text-slate-600 dark:text-slate-300"}`}>
-                    {plan.dark ? (
-                      <Zap className="h-4 w-4 text-yellow-400 flex-shrink-0" />
-                    ) : (
-                      <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                    )}
+                    <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                     {feature}
                   </li>
                 ))}
@@ -144,9 +147,14 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
         </div>
 
         {/* Footer */}
-        <p className="text-center text-sm text-slate-500 pb-6 bg-slate-50 dark:bg-slate-900">
-          🔒 Secure payment via Razorpay • UPI, Cards, Net Banking
-        </p>
+        <div className="text-center pb-6 bg-slate-50 dark:bg-slate-900 space-y-2">
+          <p className="text-sm text-slate-500">
+            🔒 Secure payment via Razorpay • UPI, Cards, Net Banking supported
+          </p>
+          <p className="text-xs text-slate-400">
+            Monthly subscription • Cancel anytime • Instant access
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

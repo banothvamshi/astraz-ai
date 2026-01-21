@@ -81,20 +81,22 @@ function ResetPasswordContent() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
-                <div className="text-center mb-8">
-                    <Link href="/" className="inline-flex items-center gap-2">
-                        <img src="/logo.png" alt="Astraz AI" className="h-10 w-10" />
-                        <span className="text-2xl font-bold text-slate-900 dark:text-white">Astraz AI</span>
+                <div className="text-center mb-10">
+                    <Link href="/" className="inline-flex flex-col items-center gap-3 group">
+                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5 shadow-xl shadow-amber-500/30 transition-transform group-hover:scale-105">
+                            <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[14px] bg-white dark:bg-slate-900 p-1.5" />
+                        </div>
+                        <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Astraz AI</span>
                     </Link>
                 </div>
 
                 {/* Card */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-3xl border border-slate-200 bg-white p-10 shadow-2xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/50">
                     {isFirstLogin && (
-                        <div className="mb-6 rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3 dark:bg-amber-900/20 dark:border-amber-800">
+                        <div className="mb-8 rounded-xl bg-amber-50 border border-amber-200 p-4 flex items-start gap-3 dark:bg-amber-900/20 dark:border-amber-800">
                             <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                             <div className="text-sm text-amber-700 dark:text-amber-400">
                                 <strong>First Login:</strong> Please set your own secure password to continue.
@@ -102,15 +104,15 @@ function ResetPasswordContent() {
                         </div>
                     )}
 
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-2">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white text-center mb-3">
                         {isFirstLogin ? "Set Your Password" : "Reset Password"}
                     </h1>
-                    <p className="text-slate-500 text-center mb-8">
+                    <p className="text-slate-500 text-center mb-10">
                         Create a strong, unique password for your account
                     </p>
 
                     {error && (
-                        <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+                        <div className="mb-8 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
                             {error}
                         </div>
                     )}
@@ -127,9 +129,9 @@ function ResetPasswordContent() {
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Enter new password"
+                                    placeholder="New password"
                                     required
-                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                                 />
                                 <button
                                     type="button"
@@ -142,20 +144,23 @@ function ResetPasswordContent() {
 
                             {/* Password Requirements */}
                             {password && (
-                                <div className="mt-3 space-y-1 text-xs">
-                                    {["At least 8 characters", "Lowercase letter", "Uppercase letter", "Number"].map((req, i) => {
-                                        const checks = [
-                                            password.length >= 8,
-                                            /[a-z]/.test(password),
-                                            /[A-Z]/.test(password),
-                                            /[0-9]/.test(password),
-                                        ];
-                                        return (
-                                            <div key={i} className={`flex items-center gap-1 ${checks[i] ? "text-emerald-600" : "text-slate-400"}`}>
-                                                <CheckCircle className="h-3 w-3" /> {req}
-                                            </div>
-                                        );
-                                    })}
+                                <div className="mt-3 space-y-2">
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                        {["8+ chars", "Lowercase", "Uppercase", "Number"].map((req, i) => {
+                                            const checks = [
+                                                password.length >= 8,
+                                                /[a-z]/.test(password),
+                                                /[A-Z]/.test(password),
+                                                /[0-9]/.test(password),
+                                            ];
+                                            return (
+                                                <div key={i} className={`flex items-center gap-1.5 px-2 py-1 rounded-md border ${checks[i] ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400" : "bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"}`}>
+                                                    <CheckCircle className={`h-3 w-3 ${checks[i] ? "block" : "hidden"}`} />
+                                                    {req}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -173,7 +178,7 @@ function ResetPasswordContent() {
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="Confirm new password"
                                     required
-                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                                 />
                             </div>
                             {confirmPassword && password !== confirmPassword && (
@@ -183,13 +188,13 @@ function ResetPasswordContent() {
 
                         <Button
                             type="submit"
-                            disabled={isLoading || passwordErrors.length > 0 || password !== confirmPassword}
-                            className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                            disabled={isLoading}
+                            className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg font-semibold rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:shadow-xl"
                         >
                             {isLoading ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</>
+                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Updating...</>
                             ) : (
-                                "Set Password"
+                                "Update Password"
                             )}
                         </Button>
                     </form>

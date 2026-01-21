@@ -58,7 +58,7 @@ export default function AdminLayout({
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600"></div>
             </div>
         );
     }
@@ -67,31 +67,32 @@ export default function AdminLayout({
         { icon: LayoutDashboard, label: "Overview", href: "/admin" },
         { icon: Users, label: "Users", href: "/admin/users" },
         { icon: Activity, label: "Analytics", href: "/admin/analytics" },
-        { icon: Activity, label: "System Health", href: "/admin/system" },
         { icon: Settings, label: "Settings", href: "/admin/settings" },
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex font-sans">
             {/* Sidebar */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-200 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                    } lg:relative lg:translate-x-0 outline-none`}
+                className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    } lg:relative lg:translate-x-0 outline-none shadow-2xl shadow-slate-900/50`}
             >
-                <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800">
-                    <div className="flex items-center gap-2 font-bold text-xl">
-                        <Shield className="h-6 w-6 text-amber-500" />
-                        <span>Admin Panel</span>
+                <div className="h-20 flex items-center justify-between px-8 border-b border-slate-800 bg-slate-900/50">
+                    <div className="flex items-center gap-3 font-bold text-xl">
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600">
+                            <Shield className="h-5 w-5 text-white" />
+                        </div>
+                        <span className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Admin Panel</span>
                     </div>
                     <button
                         onClick={() => setIsSidebarOpen(false)}
-                        className="lg:hidden text-slate-400 hover:text-white"
+                        className="lg:hidden text-slate-400 hover:text-white transition-colors"
                     >
                         <X className="h-6 w-6" />
                     </button>
                 </div>
 
-                <nav className="p-4 space-y-1">
+                <nav className="p-6 space-y-2">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
@@ -99,8 +100,8 @@ export default function AdminLayout({
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                    ? "bg-indigo-600 text-white"
+                                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-medium ${isActive
+                                    ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-900/20"
                                     : "text-slate-400 hover:text-white hover:bg-slate-800"
                                     }`}
                             >
@@ -111,10 +112,10 @@ export default function AdminLayout({
                     })}
                 </nav>
 
-                <div className="absolute bottom-4 left-4 right-4">
+                <div className="absolute bottom-8 left-6 right-6">
                     <Button
                         variant="ghost"
-                        className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800"
+                        className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800 h-12 rounded-xl"
                         onClick={async () => {
                             const supabase = getSupabaseBrowserClient();
                             await supabase.auth.signOut();
@@ -123,28 +124,28 @@ export default function AdminLayout({
                             router.push("/login");
                         }}
                     >
-                        <LogOut className="mr-2 h-4 w-4" />
+                        <LogOut className="mr-3 h-5 w-5" />
                         Sign Out
                     </Button>
                 </div>
             </aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50 dark:bg-slate-950">
                 {/* Header */}
-                <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 lg:px-8">
+                <header className="h-20 bg-white/80 backdrop-blur-xl dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 z-40 sticky top-0">
                     <button
                         onClick={() => setIsSidebarOpen(true)}
-                        className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                     >
                         <Menu className="h-6 w-6" />
                     </button>
 
                     <div className="flex items-center gap-4 ml-auto">
-                        <div className="text-sm text-slate-500">
+                        <div className="text-sm font-medium text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/50">
                             Super Admin Access
                         </div>
-                        <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-amber-600 font-bold shadow-sm dark:from-amber-900/40 dark:to-orange-900/40 dark:text-amber-400">
                             A
                         </div>
                     </div>
