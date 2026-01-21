@@ -15,6 +15,19 @@ const geistMono = Geist_Mono({
 
 // Comprehensive SEO keywords for job search/resume builder ranking
 const seoKeywords = [
+  // SHORT-TAIL (Single word / 2 words for quick searches)
+  "resume",
+  "CV",
+  "ATS",
+  "jobs",
+  "hiring",
+  "career",
+  "resume builder",
+  "resume maker",
+  "CV builder",
+  "CV maker",
+  "job search",
+
   // Primary keywords
   "ATS resume builder",
   "ATS resume optimizer",
@@ -153,6 +166,15 @@ export const metadata: Metadata = {
   other: {
     "msapplication-TileColor": "#6366f1",
     "theme-color": "#6366f1",
+  },
+
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo.png", type: "image/png" }
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/logo.png",
   }
 };
 

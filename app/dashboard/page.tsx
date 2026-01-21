@@ -102,16 +102,26 @@ export default function Dashboard() {
 
       if (user) {
         setUserId(user.id);
+
+        // Set email from auth user
+        setContactInfo(prev => ({ ...prev, email: user.email || "" }));
       }
 
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin, is_premium, credits_remaining, total_generations, free_generations_used, premium_type, subscription_end_date")
+          .select("is_admin, is_premium, credits_remaining, total_generations, free_generations_used, premium_type, subscription_end_date, full_name, phone")
           .eq("id", user.id)
           .single();
 
         if (profile) {
+          // Pre-populate contact info from profile
+          setContactInfo(prev => ({
+            ...prev,
+            fullName: profile.full_name || "",
+            phone: profile.phone || ""
+          }));
+
           // Redirect admins to admin panel
           if (profile.is_admin) {
             router.push("/admin");
