@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { resume, jobDescription, companyName } = body;
+    const { resume, jobDescription, companyName, includeCoverLetter } = body;
 
     // Comprehensive validation
     if (!resume) {
@@ -645,8 +645,55 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
       console.error("Cache error:", cacheError);
     }
 
+    // Generate cover letter if requested
+    let generatedCoverLetter: string | null = null;
+    if (includeCoverLetter) {
+      try {
+        const coverLetterPrompt = `You are an elite cover letter writer. Create a compelling, personalized cover letter.
+
+CANDIDATE INFO:
+Name: ${normalizedResume.name || "Candidate"}
+Email: ${normalizedResume.email || ""}
+Phone: ${normalizedResume.phone || ""}
+
+TARGET JOB:
+Position: ${parsedJob.title || "the position"}
+Company: ${parsedJob.company || companyName || "the company"}
+
+JOB DESCRIPTION:
+${sanitizedJobDescription.substring(0, 3000)}
+
+RESUME SUMMARY:
+${cleanResume.substring(0, 2000)}
+
+INSTRUCTIONS:
+1. Write a professional, 3-4 paragraph cover letter
+2. Opening: Express genuine interest in the specific role and company
+3. Body: Highlight 2-3 key achievements from resume that match job requirements
+4. Use specific metrics and accomplishments from the resume
+5. Closing: Strong call to action expressing enthusiasm for interview
+6. Keep it concise (250-350 words)
+7. Personalize to the company and role - don't be generic
+8. Professional yet engaging tone
+9. DO NOT use any placeholders like [Company Name] - use actual information
+
+Generate the cover letter now:`;
+
+        generatedCoverLetter = await generateText(coverLetterPrompt, "You are an expert cover letter writer creating compelling, personalized cover letters.", {
+          temperature: 0.5,
+          maxOutputTokens: 2000,
+        });
+
+        generatedCoverLetter = cleanMarkdownContent(generatedCoverLetter);
+      } catch (coverLetterError) {
+        console.error("Cover letter generation error:", coverLetterError);
+        // Don't fail the whole request, just skip cover letter
+      }
+    }
+
     const response = NextResponse.json({
       resume: cleanResume,
+      coverLetter: generatedCoverLetter,
       meta: {
         ...structuredResume,
         name: normalizedResume.name || structuredResume.name,

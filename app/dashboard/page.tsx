@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadArea } from "@/components/upload-area";
 import { PaywallModal } from "@/components/paywall-modal";
@@ -49,6 +49,10 @@ export default function Dashboard() {
   const [payments, setPayments] = useState<any[]>([]);
   const [generations, setGenerations] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  // Cover letter states
+  const [includeCoverLetter, setIncludeCoverLetter] = useState(false);
+  const [userPlan, setUserPlan] = useState<"free" | "starter" | "professional" | "enterprise">("free");
 
   // New: Contact info state
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
@@ -133,7 +137,18 @@ export default function Dashboard() {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
-        if (paymentsData) setPayments(paymentsData);
+        if (paymentsData) {
+          setPayments(paymentsData);
+          // Detect user plan from most recent successful payment
+          const lastPayment = paymentsData.find((p: any) => p.status === "completed");
+          if (lastPayment) {
+            const planType = lastPayment.plan_type?.toLowerCase();
+            if (planType === "enterprise") setUserPlan("enterprise");
+            else if (planType === "professional") setUserPlan("professional");
+            else if (planType === "starter") setUserPlan("starter");
+            else setUserPlan("free");
+          }
+        }
 
         // 2. Generations
         const { data: generationsData } = await supabase
@@ -221,6 +236,7 @@ export default function Dashboard() {
           companyName: jobDetails.companyName.trim() || undefined,
           jobTitle: jobDetails.jobTitle.trim() || undefined,
           jobLocation: jobDetails.location.trim() || undefined,
+          includeCoverLetter: includeCoverLetter,
           // Send contact overrides if user provided them
           contactOverrides: {
             fullName: contactInfo.fullName.trim() || undefined,
@@ -820,6 +836,52 @@ export default function Dashboard() {
                       className="w-full min-h-[180px] rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all resize-none"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Cover Letter Toggle */}
+              <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${userPlan === "professional" || userPlan === "enterprise"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                      }`}>
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        Include Cover Letter
+                        {(userPlan === "free" || userPlan === "starter") && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                            <Lock className="h-3 w-3 mr-1" />
+                            Pro
+                          </span>
+                        )}
+                      </h3>
+                      <p className="text-xs text-slate-500">Generate a matching cover letter with your resume</p>
+                    </div>
+                  </div>
+
+                  {userPlan === "professional" || userPlan === "enterprise" ? (
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includeCoverLetter}
+                        onChange={(e) => setIncludeCoverLetter(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-600"></div>
+                    </label>
+                  ) : (
+                    <Button
+                      onClick={() => setShowPaywall(true)}
+                      size="sm"
+                      className="bg-amber-600 hover:bg-amber-700 text-white text-xs"
+                    >
+                      Upgrade to Unlock
+                    </Button>
+                  )}
                 </div>
               </div>
 
