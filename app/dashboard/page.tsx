@@ -696,9 +696,6 @@ export default function Dashboard() {
                   <div className="p-12 text-center text-slate-500">
                     <FileText className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                     <p>No resumes generated yet.</p>
-                    <Button onClick={() => router.push("/dashboard?tab=builder")} variant="ghost" className="mt-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50">
-                      Create your first resume
-                    </Button>
                   </div>
                 )}
               </div>
@@ -860,49 +857,51 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Cover Letter Toggle */}
-              <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+              {/* 3. Cover Letter Toggle */}
+              <div className={`p-6 rounded-2xl border transition-all ${includeCoverLetter
+                ? "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/50"
+                : "bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800"
+                }`}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${userPlan === "professional" || userPlan === "enterprise"
-                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                  <div className="flex items-center gap-4">
+                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center transition-colors ${includeCoverLetter ? "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400" : "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
                       }`}>
-                      <FileText className="h-5 w-5" />
+                      <FileText className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                        Include Cover Letter
-                        {(userPlan === "free" || userPlan === "starter") && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                            <Lock className="h-3 w-3 mr-1" />
-                            Pro
-                          </span>
+                      <div className="flex items-center gap-2">
+                        <h2 className={`font-bold text-lg ${includeCoverLetter ? "text-amber-900 dark:text-amber-100" : "text-slate-900 dark:text-white"}`}>
+                          Include Cover Letter
+                        </h2>
+                        {!["professional", "enterprise"].includes(userPlan) && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                            <Lock className="h-3 w-3 text-slate-400" />
+                            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">Pro</span>
+                          </div>
                         )}
-                      </h3>
-                      <p className="text-xs text-slate-500">Generate a matching cover letter with your resume</p>
+                      </div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Generate a tailored cover letter</p>
                     </div>
                   </div>
 
-                  {userPlan === "professional" || userPlan === "enterprise" ? (
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={includeCoverLetter}
-                        onChange={(e) => setIncludeCoverLetter(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-600"></div>
-                    </label>
-                  ) : (
-                    <Button
-                      onClick={() => setShowPaywall(true)}
-                      size="sm"
-                      className="bg-amber-600 hover:bg-amber-700 text-white text-xs"
-                    >
-                      Upgrade to Unlock
-                    </Button>
-                  )}
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={includeCoverLetter}
+                      onChange={(e) => {
+                        if (!["professional", "enterprise"].includes(userPlan)) {
+                          setShowPaywall(true);
+                          // Or assume they might want to toggle it off if it was on? 
+                          // But typically locked features are off.
+                          // Let's stick to showing paywall if they try to enable it when not allowed.
+                          return;
+                        }
+                        setIncludeCoverLetter(e.target.checked);
+                      }}
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 dark:peer-focus:ring-amber-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-amber-500"></div>
+                  </label>
                 </div>
               </div>
 
