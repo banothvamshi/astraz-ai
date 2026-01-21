@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload, FileText, X } from "lucide-react";
+import { Upload, FileText, X, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -43,23 +43,25 @@ export function UploadArea({ onFileSelect, selectedFile, onRemove }: UploadAreaP
   return (
     <div className="w-full">
       {selectedFile ? (
-        <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
-          <FileText className="h-5 w-5 text-blue-600" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-slate-900 dark:text-slate-50">
+        <div className="flex items-center gap-4 rounded-xl border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-5 dark:border-emerald-800 dark:from-emerald-900/20 dark:to-teal-900/20">
+          <div className="h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
+            <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-semibold text-slate-900 dark:text-slate-50 truncate">
               {selectedFile.name}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {(selectedFile.size / 1024).toFixed(2)} KB
+            <p className="text-sm text-emerald-600 dark:text-emerald-400">
+              ✓ Ready to process • {(selectedFile.size / 1024).toFixed(1)} KB
             </p>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onRemove}
-            className="h-8 w-8 p-0"
+            className="h-10 w-10 p-0 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
       ) : (
@@ -69,18 +71,18 @@ export function UploadArea({ onFileSelect, selectedFile, onRemove }: UploadAreaP
           onDragLeave={handleDragLeave}
           onClick={() => fileInputRef.current?.click()}
           className={cn(
-            "flex cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-12 transition-colors hover:border-blue-400 hover:bg-blue-50/50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-600 dark:hover:bg-blue-950/20",
-            isDragging && "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
+            "flex cursor-pointer flex-col items-center justify-center gap-5 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-10 transition-all hover:border-amber-400 hover:bg-amber-50/50 dark:border-slate-700 dark:bg-slate-900/50 dark:hover:border-amber-500 dark:hover:bg-amber-950/20",
+            isDragging && "border-amber-500 bg-amber-50 dark:bg-amber-950/30 scale-[1.02]"
           )}
         >
-          <div className="rounded-full bg-blue-100 p-4 dark:bg-blue-900/30">
-            <Upload className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          <div className="rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 p-5 dark:from-amber-900/40 dark:to-orange-900/40 shadow-lg shadow-amber-500/10">
+            <Upload className="h-10 w-10 text-amber-600 dark:text-amber-400" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium text-slate-900 dark:text-slate-50">
+            <p className="text-base font-semibold text-slate-900 dark:text-slate-50">
               Click to upload or drag and drop
             </p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               PDF files only (max 10MB)
             </p>
           </div>
