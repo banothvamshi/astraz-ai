@@ -132,7 +132,7 @@ export default function Home() {
             </motion.h1>
 
             <motion.p variants={fadeIn} className="mb-10 text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Stop getting rejected by bots. Our <span className="font-semibold text-slate-900 dark:text-white">Google Gemini AI</span> analyzes job descriptions to engineer a resume that passes 99% of Applicant Tracking Systems.
+              Stop getting rejected by bots. Our <span className="font-semibold text-slate-900 dark:text-white">Advanced AI Engine</span> analyzes job descriptions to engineer a resume that passes 99% of Applicant Tracking Systems.
             </motion.p>
 
             <motion.div variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -170,7 +170,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <div className="text-4xl font-bold text-amber-600">10K+</div>
+              <div className="text-4xl font-bold text-amber-600">50K+</div>
               <div className="text-sm text-slate-500 mt-1">Resumes Optimized</div>
             </motion.div>
             <motion.div
@@ -179,7 +179,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              <div className="text-4xl font-bold text-emerald-600">95%</div>
+              <div className="text-4xl font-bold text-emerald-600">99%</div>
               <div className="text-sm text-slate-500 mt-1">ATS Pass Rate</div>
             </motion.div>
             <motion.div

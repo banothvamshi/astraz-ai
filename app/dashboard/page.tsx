@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadArea } from "@/components/upload-area";
+import { canUseFreeTrial, markTrialUsed, hasUsedTrial } from "@/lib/storage";
 import { getSupabaseBrowserClient } from "@/lib/auth";
 
 
