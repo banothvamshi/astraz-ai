@@ -19,7 +19,7 @@ export async function POST(
         const supabase = getSupabaseAdmin();
 
         // Update user profile
-        const { error } = await supabase
+        const { data: updatedUser, error } = await supabase
             .from("profiles")
             .update({
                 is_premium: plan !== 'free',
@@ -27,7 +27,9 @@ export async function POST(
                 credits_remaining: credits, // Set specific credits for the plan
                 updated_at: new Date().toISOString()
             })
-            .eq("id", userId);
+            .eq("id", userId)
+            .select()
+            .single();
 
         if (error) throw error;
 
@@ -36,7 +38,8 @@ export async function POST(
 
         return NextResponse.json({
             success: true,
-            message: `User plan updated to ${plan} successfully.`
+            message: `User plan updated to ${plan} successfully.`,
+            user: updatedUser
         });
 
     } catch (error) {

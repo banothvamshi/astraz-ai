@@ -113,8 +113,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             });
 
             if (res.ok) {
+                const data = await res.json();
                 toast.success(`Upgraded to ${plan}`);
-                fetchUserDetails();
+                // Update local state immediately with returned data if available, or fetch
+                if (data.user) {
+                    setUser(data.user);
+                } else {
+                    fetchUserDetails();
+                }
             } else {
                 toast.error("Failed to upgrade");
             }
@@ -239,12 +245,12 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                             </Button>
                             <Button
                                 variant="outline"
-                                onClick={() => handleUpgrade('enterprise', 100)}
+                                onClick={() => handleUpgrade('enterprise', 1000)}
                                 disabled={isUpdating}
                                 className="justify-between h-12 border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-900/10 hover:bg-indigo-100 dark:hover:bg-indigo-900/20"
                             >
                                 <span className="text-indigo-700 dark:text-indigo-400 font-bold">Enterprise Plan</span>
-                                <span className="text-xs bg-white dark:bg-slate-900 px-2 py-1 rounded">100 Credits</span>
+                                <span className="text-xs bg-white dark:bg-slate-900 px-2 py-1 rounded">1000 Credits</span>
                             </Button>
                         </div>
                         <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
