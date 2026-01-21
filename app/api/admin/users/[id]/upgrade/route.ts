@@ -19,7 +19,7 @@ export async function POST(
         const supabase = getSupabaseAdmin();
 
         // Update user profile
-        const { data: updatedUser, error } = await supabase
+        const { data: updatedRows, error } = await supabase
             .from("profiles")
             .update({
                 is_premium: plan !== 'free',
@@ -28,10 +28,21 @@ export async function POST(
                 updated_at: new Date().toISOString()
             })
             .eq("id", userId)
-            .select()
-            .single();
+            .select();
 
         if (error) throw error;
+
+        if (!updatedRows || updatedRows.length === 0) {
+            return NextResponse.json(
+                {
+                    error: "Update failed",
+                    details: "User not found OR API Key permission denied (RLS). Ensure usage of service_role key."
+                },
+                { status: 404 }
+            );
+        }
+
+        const updatedUser = updatedRows[0];
 
         // Log the upgrade
         console.log(`[Admin Audit] Plan manually updated for ${userId} to ${plan} with ${credits} credits`);
