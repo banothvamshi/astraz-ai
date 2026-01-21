@@ -907,6 +907,9 @@ export default function Dashboard() {
                   </>
                 )}
               </Button>
+
+              {/* Bottom Spacer */}
+              <div className="h-8"></div>
             </div>
 
             {/* RIGHT COLUMN: Results */}

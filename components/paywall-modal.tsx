@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Check, Crown, Zap } from "lucide-react";
+import { Check, Crown, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface PaywallModalProps {
@@ -14,7 +14,6 @@ interface PaywallModalProps {
 
 export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProps) {
   const router = useRouter();
-
   const [currency, setCurrency] = useState<"INR" | "USD">("INR");
 
   const handlePlanSelect = (plan: string) => {
@@ -27,31 +26,55 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
     USD: { starter: "$4.99", professional: "$9.99", enterprise: "$19.99" }
   };
 
+  const plans = [
+    {
+      key: "starter",
+      name: "Starter",
+      featured: false,
+      features: ["10 Generations/mo", "PDF Downloads", "Basic Templates"],
+    },
+    {
+      key: "professional",
+      name: "Professional",
+      featured: true,
+      features: ["30 Generations/mo", "Premium Templates", "Cover Letters", "Priority Support"],
+    },
+    {
+      key: "enterprise",
+      name: "Enterprise",
+      featured: false,
+      dark: true,
+      features: ["100 Generations/mo", "All Premium Features", "Priority Support", "Early Access"],
+    },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur">
-            <Crown className="h-7 w-7 text-white" />
+      <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden border-0 shadow-2xl">
+        {/* Header */}
+        <DialogHeader className="px-8 py-8 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-600 text-white">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg">
+            <Crown className="h-8 w-8 text-white" />
           </div>
-          <DialogTitle className="text-center text-2xl font-bold">
+          <DialogTitle className="text-center text-3xl font-bold">
             Choose Your Plan
           </DialogTitle>
-          <DialogDescription className="text-center text-indigo-100">
-            You've used your free trial. Unlock premium features to land your dream job.
+          <DialogDescription className="text-center text-amber-100 text-base">
+            Unlock premium features to land your dream job
           </DialogDescription>
 
-          <div className="mt-4 flex justify-center">
-            <div className="bg-white/20 p-1 rounded-lg flex items-center gap-1">
+          {/* Currency Toggle */}
+          <div className="mt-6 flex justify-center">
+            <div className="bg-white/20 backdrop-blur-sm p-1.5 rounded-xl flex items-center gap-1">
               <button
                 onClick={() => setCurrency("INR")}
-                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${currency === "INR" ? "bg-white text-indigo-600 shadow-sm" : "text-white hover:bg-white/10"}`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${currency === "INR" ? "bg-white text-amber-600 shadow-md" : "text-white hover:bg-white/10"}`}
               >
                 🇮🇳 INR
               </button>
               <button
                 onClick={() => setCurrency("USD")}
-                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${currency === "USD" ? "bg-white text-indigo-600 shadow-sm" : "text-white hover:bg-white/10"}`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${currency === "USD" ? "bg-white text-amber-600 shadow-md" : "text-white hover:bg-white/10"}`}
               >
                 🌍 USD
               </button>
@@ -59,91 +82,72 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
           </div>
         </DialogHeader>
 
-        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Starter Plan */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
-            <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Starter</h3>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-              {prices[currency].starter}
-              <span className="text-xs font-normal text-slate-500">/mo</span>
-            </div>
-            <ul className="space-y-2 mb-4 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                <Check className="h-4 w-4 text-emerald-500" /> 10 Generations/mo
-              </li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                <Check className="h-4 w-4 text-emerald-500" /> PDF Downloads
-              </li>
-            </ul>
-            <Button
-              onClick={() => handlePlanSelect('starter')}
-              variant="outline"
-              className="w-full"
-              size="sm"
+        {/* Pricing Cards */}
+        <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 dark:bg-slate-900">
+          {plans.map((plan) => (
+            <div
+              key={plan.key}
+              className={`relative flex flex-col rounded-2xl p-6 transition-all ${plan.featured
+                  ? "border-2 border-amber-500 bg-white dark:bg-slate-800 shadow-xl shadow-amber-500/20 scale-105"
+                  : plan.dark
+                    ? "bg-gradient-to-br from-slate-900 to-slate-800 text-white border border-slate-700"
+                    : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-300"
+                }`}
             >
-              Get Starter
-            </Button>
-          </div>
+              {/* Popular Badge */}
+              {plan.featured && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-1 text-xs font-bold text-white shadow-lg">
+                  MOST POPULAR
+                </div>
+              )}
 
-          {/* Professional Plan - Highlighted */}
-          <div className="relative rounded-xl border-2 border-amber-500 bg-amber-50 p-4 dark:bg-amber-950/30">
-            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-amber-600 px-3 py-0.5 text-xs font-semibold text-white">
-              POPULAR
-            </div>
-            <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Professional</h3>
-            <div className="text-2xl font-bold text-amber-600 mb-1">
-              {prices[currency].professional}
-              <span className="text-xs font-normal text-slate-500">/mo</span>
-            </div>
-            <ul className="space-y-2 mb-4 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                <Check className="h-4 w-4 text-emerald-500" /> 30 Generations/mo
-              </li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                <Check className="h-4 w-4 text-emerald-500" /> Premium Templates
-              </li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                <Check className="h-4 w-4 text-emerald-500" /> Cover Letters
-              </li>
-            </ul>
-            <Button
-              onClick={() => handlePlanSelect('professional')}
-              className="w-full bg-amber-600 hover:bg-amber-700"
-              size="sm"
-            >
-              Get Professional
-            </Button>
-          </div>
+              {/* Plan Name */}
+              <h3 className={`font-bold text-lg mb-2 ${plan.dark ? "text-white" : "text-slate-900 dark:text-white"}`}>
+                {plan.name}
+              </h3>
 
-          {/* Enterprise Plan */}
-          <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
-            <h3 className="font-semibold mb-1">Enterprise</h3>
-            <div className="text-2xl font-bold mb-1">
-              {prices[currency].enterprise}
-              <span className="text-xs font-normal text-slate-400">/mo</span>
+              {/* Price */}
+              <div className={`text-3xl font-extrabold mb-4 ${plan.featured ? "text-amber-600" : plan.dark ? "text-white" : "text-slate-900 dark:text-white"}`}>
+                {prices[currency][plan.key as keyof typeof prices.INR]}
+                <span className={`text-sm font-normal ${plan.dark ? "text-slate-400" : "text-slate-500"}`}>/mo</span>
+              </div>
+
+              {/* Features */}
+              <ul className="space-y-3 mb-6 flex-grow">
+                {plan.features.map((feature, idx) => (
+                  <li key={idx} className={`flex items-center gap-2.5 text-sm ${plan.dark ? "text-slate-300" : "text-slate-600 dark:text-slate-300"}`}>
+                    {plan.dark ? (
+                      <Zap className="h-4 w-4 text-yellow-400 flex-shrink-0" />
+                    ) : (
+                      <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                    )}
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Button */}
+              <Button
+                onClick={() => handlePlanSelect(plan.key)}
+                className={`w-full h-12 font-semibold rounded-xl transition-all ${plan.featured
+                    ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25"
+                    : plan.dark
+                      ? "bg-white text-slate-900 hover:bg-slate-100"
+                      : "border-2 border-slate-300 bg-transparent text-slate-700 hover:border-amber-500 hover:text-amber-600 dark:border-slate-600 dark:text-slate-300"
+                  }`}
+                variant={plan.featured ? "default" : "outline"}
+              >
+                Get {plan.name}
+              </Button>
             </div>
-            <ul className="space-y-2 mb-4 text-sm">
-              <li className="flex items-center gap-2 text-slate-300">
-                <Zap className="h-4 w-4 text-yellow-400" /> 100 Generations/mo
-              </li>
-              <li className="flex items-center gap-2 text-slate-300">
-                <Zap className="h-4 w-4 text-yellow-400" /> Priority Support
-              </li>
-            </ul>
-            <Button
-              onClick={() => handlePlanSelect('enterprise')}
-              className="w-full bg-white text-slate-900 hover:bg-slate-100"
-              size="sm"
-            >
-              Get Enterprise
-            </Button>
-          </div>
+          ))}
         </div>
 
-        <p className="text-center text-xs text-slate-500 pb-4">
-          Secure payment via Razorpay • UPI, Cards, Net Banking
+        {/* Footer */}
+        <p className="text-center text-sm text-slate-500 pb-6 bg-slate-50 dark:bg-slate-900">
+          🔒 Secure payment via Razorpay • UPI, Cards, Net Banking
         </p>
       </DialogContent>
-    </Dialog >
+    </Dialog>
   );
 }
