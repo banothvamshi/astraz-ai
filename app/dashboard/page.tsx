@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { UploadArea } from "@/components/upload-area";
 import { canUseFreeTrial, markTrialUsed, hasUsedTrial } from "@/lib/storage";
 import { getSupabaseBrowserClient } from "@/lib/auth";
+import { PaywallModal } from "@/components/paywall-modal";
+import { ResumeEditor } from "@/components/resume-editor";
 
 
 interface ContactInfo {
