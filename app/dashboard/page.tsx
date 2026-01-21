@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadArea } from "@/components/upload-area";
 import { PaywallModal } from "@/components/paywall-modal";
@@ -451,6 +451,21 @@ export default function Dashboard() {
               className="hidden sm:flex text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400"
             >
               Debug Tools
+            </Button>
+            <Button
+              onClick={async () => {
+                const { getSupabaseBrowserClient } = await import("@/lib/auth");
+                const supabase = getSupabaseBrowserClient();
+                await supabase.auth.signOut();
+                localStorage.clear();
+                router.push("/");
+              }}
+              variant="ghost"
+              size="sm"
+              className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:text-slate-400 dark:hover:text-red-400 dark:hover:bg-red-900/10 px-2"
+              title="Sign Out"
+            >
+              <LogOut className="h-5 w-5" />
             </Button>
           </div>
         </div>
