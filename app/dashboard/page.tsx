@@ -606,15 +606,66 @@ export default function Dashboard() {
                 </div>
 
                 <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Contact Details</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Contact Details</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        const supabase = getSupabaseBrowserClient();
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (!session?.access_token) {
+                          alert("Please log in again");
+                          return;
+                        }
+
+                        const res = await fetch("/api/user/profile", {
+                          method: "PUT",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${session.access_token}`
+                          },
+                          body: JSON.stringify({
+                            full_name: contactInfo.fullName,
+                            phone: contactInfo.phone
+                          })
+                        });
+
+                        if (res.ok) {
+                          alert("Profile updated successfully!");
+                        } else {
+                          alert("Failed to update profile");
+                        }
+                      }}
+                      className="text-amber-600 border-amber-600 hover:bg-amber-50"
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-slate-500">Full Name</label>
-                      <div className="mt-1 text-slate-900 dark:text-white">{contactInfo.fullName || "Not provided"}</div>
+                      <label className="block text-sm font-medium text-slate-500 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={contactInfo.fullName}
+                        onChange={(e) => setContactInfo({ ...contactInfo, fullName: e.target.value })}
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        placeholder="Enter your full name"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-500">Email</label>
-                      <div className="mt-1 text-slate-900 dark:text-white">{contactInfo.email || "Not provided"}</div>
+                      <label className="block text-sm font-medium text-slate-500 mb-1">Phone (Optional)</label>
+                      <input
+                        type="tel"
+                        value={contactInfo.phone}
+                        onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        placeholder="Enter your phone number"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-500 mb-1">Email</label>
+                      <div className="mt-1 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400">{contactInfo.email || "Not provided"}</div>
                     </div>
                   </div>
                 </div>

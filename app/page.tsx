@@ -379,59 +379,97 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24 bg-gradient-to-br from-amber-600 to-purple-700 text-white">
-        <div className="container mx-auto px-6 text-center">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl font-bold mb-4"
-          >
-            Ready to Land Your Dream Job?
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto"
-          >
-            Join thousands of professionals who've transformed their job search with AI-powered resume optimization.
-          </motion.p>
+      {/* FAQ Section */}
+      <section className="py-24 bg-white dark:bg-slate-950">
+        <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+            className="text-center mb-16"
           >
-            <Button
-              onClick={handleGetStarted}
-              size="lg"
-              className="h-14 px-10 text-lg bg-white text-amber-700 hover:bg-slate-100 transition-all rounded-full font-semibold"
-            >
-              Start Optimizing for Free
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400">
+              Everything you need to know about our AI resume builder.
+            </p>
           </motion.div>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {[
+              {
+                q: "Is Astraz AI really free to try?",
+                a: "Yes! You get one completely free resume optimization to experience the power of our AI before committing to any plan."
+              },
+              {
+                q: "What is ATS and why does it matter?",
+                a: "ATS (Applicant Tracking System) is software used by 99% of large companies to filter resumes. Our AI ensures your resume passes these filters so a human actually sees your application."
+              },
+              {
+                q: "How long does it take to generate a resume?",
+                a: "Our AI generates a fully optimized, job-tailored resume in under 15 seconds."
+              },
+              {
+                q: "Can I edit the generated resume?",
+                a: "Absolutely! You can edit, refine, and download your resume as many times as you need."
+              },
+              {
+                q: "Is my data secure?",
+                a: "Yes. We use industry-standard encryption and never share your personal information. You can export or delete your data anytime."
+              }
+            ].map((faq, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="border border-slate-200 dark:border-slate-800 rounded-xl p-6"
+              >
+                <h3 className="font-semibold text-lg text-slate-900 dark:text-white mb-2">{faq.q}</h3>
+                <p className="text-slate-600 dark:text-slate-400">{faq.a}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-12">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Astraz AI" className="h-8 w-8" />
-              <span className="text-lg font-bold">Astraz AI</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            <div className="col-span-2 md:col-span-1">
+              <div className="flex items-center gap-2 mb-3">
+                <img src="/logo.png" alt="Astraz AI" className="h-8 w-8" />
+                <span className="text-lg font-bold text-slate-900 dark:text-white">Astraz AI</span>
+              </div>
+              <p className="text-sm text-slate-500">AI-powered resume optimization.</p>
             </div>
-            <div className="flex items-center gap-6 text-sm text-slate-500">
-              <a href="/terms" className="hover:text-amber-600 transition-colors">Terms of Service</a>
-              <a href="/privacy" className="hover:text-amber-600 transition-colors">Privacy Policy</a>
+            <div>
+              <h4 className="font-semibold text-slate-900 dark:text-white mb-3">Product</h4>
+              <ul className="space-y-2 text-sm text-slate-500">
+                <li><a href="/dashboard" className="hover:text-amber-600">Resume Builder</a></li>
+                <li><a href="/payment" className="hover:text-amber-600">Pricing</a></li>
+              </ul>
             </div>
-            <p className="text-sm text-slate-500">
-              © 2026 Astraz AI. Engineered for Excellence.
-            </p>
+            <div>
+              <h4 className="font-semibold text-slate-900 dark:text-white mb-3">Support</h4>
+              <ul className="space-y-2 text-sm text-slate-500">
+                <li><a href="/contact" className="hover:text-amber-600">Contact Us</a></li>
+                <li><a href="mailto:support@astrazai.com" className="hover:text-amber-600">Email</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-slate-900 dark:text-white mb-3">Legal</h4>
+              <ul className="space-y-2 text-sm text-slate-500">
+                <li><a href="/privacy" className="hover:text-amber-600">Privacy Policy</a></li>
+                <li><a href="/terms" className="hover:text-amber-600">Terms of Service</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t border-slate-200 dark:border-slate-800 text-center text-sm text-slate-500">
+            © {new Date().getFullYear()} Astraz AI. Engineered for Excellence.
           </div>
         </div>
       </footer>
