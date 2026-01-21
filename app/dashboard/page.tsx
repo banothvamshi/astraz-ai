@@ -912,6 +912,30 @@ export default function Dashboard() {
 
                   )}
 
+                  {/* Cover Letter Card */}
+                  {generatedCoverLetter && (
+                    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+                      <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
+                          <FileText className="w-5 h-5" />
+                          Cover Letter
+                        </div>
+                        <Button
+                          onClick={() => handleDownload("coverLetter")}
+                          size="sm"
+                          className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
+                        >
+                          <Download className="mr-1.5 h-3.5 w-3.5" />
+                          PDF
+                        </Button>
+                      </div>
+                      <div className="p-4 max-h-[400px] overflow-y-auto">
+                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-slate-700 dark:text-slate-300">
+                          {generatedCoverLetter}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               ) : (
