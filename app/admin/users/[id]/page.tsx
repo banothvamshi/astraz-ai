@@ -122,7 +122,17 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     fetchUserDetails();
                 }
             } else {
-                toast.error("Failed to upgrade");
+                // Try to parse error details
+                const errorData = await res.json().catch(() => ({}));
+                const errorMessage = errorData.error || errorData.details || "Failed to upgrade";
+
+                console.error("Upgrade failed:", errorData);
+                toast.error(errorMessage);
+
+                if (res.status === 404 && errorData.details) {
+                    // Show a second, longer toast or alert for the critical key issue
+                    alert(`CRITICAL ERROR:\n${errorData.details}`);
+                }
             }
         } catch (e) {
             toast.error("Server error");
