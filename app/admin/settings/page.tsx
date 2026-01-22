@@ -27,6 +27,23 @@ interface SystemSettings {
     defaultPlan: string;
 }
 
+interface SettingItem {
+    label: string;
+    description: string;
+    type: "toggle" | "number" | "select";
+    key: keyof SystemSettings;
+    value: boolean | number | string;
+    dangerous?: boolean;
+    options?: { value: string; label: string }[];
+}
+
+interface SettingCard {
+    title: string;
+    icon: any;
+    color: string;
+    settings: SettingItem[];
+}
+
 export default function SettingsPage() {
     const [settings, setSettings] = useState<SystemSettings>({
         freeTrialCredits: 1,
@@ -58,7 +75,7 @@ export default function SettingsPage() {
         setIsSaving(false);
     };
 
-    const settingCards = [
+    const settingCards: SettingCard[] = [
         {
             title: "Registration & Onboarding",
             icon: Shield,
@@ -201,8 +218,8 @@ export default function SettingsPage() {
                                                 <button
                                                     onClick={() => handleToggle(setting.key)}
                                                     className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${setting.value
-                                                            ? (setting.dangerous ? 'bg-amber-500' : 'bg-emerald-500')
-                                                            : 'bg-slate-200 dark:bg-slate-700'
+                                                        ? (setting.dangerous ? 'bg-amber-500' : 'bg-emerald-500')
+                                                        : 'bg-slate-200 dark:bg-slate-700'
                                                         }`}
                                                 >
                                                     <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${setting.value ? 'translate-x-6' : 'translate-x-1'
