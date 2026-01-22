@@ -91,11 +91,12 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-5xl md:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 mb-6 max-w-4xl mx-auto"
+            className="text-5xl md:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 mb-6 max-w-5xl mx-auto"
           >
-            Don't Let the ATS <br />
+            The Best Free AI
+            <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500">
-              Reject You.
+              Resume Builder.
             </span>
           </motion.h1>
 
@@ -105,8 +106,10 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10"
           >
-            Recruiters use AI to filter you out. Fight back with Astraz. <br />
-            <span className="font-bold text-slate-900 dark:text-white">Hack the hiring algorithm</span> and land interviews at top companies like Google, Apple, and Netflix.
+            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10">
+              Create a professional, ATS-friendly resume in seconds. <br />
+              <span className="font-bold text-slate-900 dark:text-white">100% Free PDF Download. No Sign-up Required.</span> Better than Canva & Resume.io.
+            </p>
           </motion.p>
 
           <motion.div
@@ -250,6 +253,32 @@ export default function Home() {
           >
             Create Top 1% Resume
           </Button>
+        </div>
+      </section>
+
+      <section className="py-12 bg-slate-50 dark:bg-black border-t border-slate-200 dark:border-slate-800">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Why Choose Astraz AI as your Free Resume Builder?</h2>
+            <div className="grid md:grid-cols-2 gap-8 text-left text-sm text-slate-600 dark:text-slate-400">
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Completely Free Resume Maker</h3>
+                <p>Unlike other platforms that charge you at the last step, Astraz AI offers a truly free tier. Build, edit, and download your resume without paying a cent.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Beat Applicant Tracking Systems (ATS)</h3>
+                <p>99% of Fortune 500 companies use ATS. Our resumes are engineered to pass these bots, ensuring your profile actually reaches a human recruiter.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Alternative to Canva & Novoresume</h3>
+                <p>Canva resumes look good but fail ATS scans. Novoresume limits your customization. Astraz AI gives you the best of both worlds: Stunning design and perfect parsing.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Instant PDF Download</h3>
+                <p>No watermarks. No hidden fees. Just click download and apply to your dream job using our industry-standard PDF format.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -18,102 +18,75 @@ const seoKeywords = [
   // SHORT-TAIL (Single word / 2 words for quick searches)
   "resume",
   "CV",
-  "ATS",
-  "jobs",
-  "hiring",
-  "career",
+  "bio data",
+  "curriculum vitae",
   "resume builder",
-  "resume maker",
-  "CV builder",
-  "CV maker",
+  "free resume builder",
+  "cv maker",
+  "free cv maker",
+  "biodata format",
   "job search",
 
-  // Primary keywords
-  "ATS resume builder",
-  "ATS resume optimizer",
-  "AI resume builder",
-  "resume generator",
-  "free resume builder",
+  // Primary keywords (High Intent)
+  "best free resume builder",
+  "completely free resume builder",
+  "100% free resume builder",
+  "free resume builder pdf",
+  "download resume pdf",
+  "create resume for free",
+  "make my resume",
+  "online resume builder",
 
-  // Long-tail keywords
-  "ATS friendly resume",
-  "ATS optimized resume",
-  "resume for job application",
-  "professional resume maker",
-  "best resume builder 2025",
-  "resume builder online free",
-  "AI powered resume",
-  "resume builder with AI",
+  // ATS Optimization
+  "ATS resume checker",
+  "ATS resume score",
+  "ATS friendly resume templates",
+  "resume keywords optimizer",
+  "how to pass ATS",
 
-  // Alternative searches
-  "resume maker",
-  "CV builder",
-  "CV generator",
-  "resume creator",
-  "job resume builder",
-  "career resume builder",
-
-  // Competitor alternatives
-  "resumeworded alternative",
-  "jobscan alternative",
-  "resume.io alternative",
-  "zety alternative",
-  "novoresume alternative",
+  // Competitor Alternatives (The "Vs" Strategy)
   "canva resume alternative",
-  "indeed resume builder alternative",
-  "linkedin resume builder alternative",
+  "better than resumeworded",
+  "novoresume free alternative",
+  "resume.io free alternative",
+  "zety free alternative",
+  "best resume builder reddit",
 
-  // Feature-based
-  "ATS score checker",
-  "resume keyword optimizer",
-  "resume parser",
-  "job description analyzer",
-  "resume tailoring tool",
-  "resume customization AI",
+  // Specific User Intent
+  "resume for freshers",
+  "resume for students",
+  "resume for internship",
+  "resume format for experienced",
+  "modern resume templates",
+  "professional cv templates",
 
-  // Industry specific
-  "tech resume builder",
-  "IT resume generator",
-  "software engineer resume",
-  "data scientist resume",
-  "marketing resume builder",
-  "sales resume generator",
-  "fresher resume builder",
-  "experienced professional resume",
-
-  // Location-based
-  "resume builder India",
-  "resume builder USA",
-  "resume builder free India",
-  "international resume builder",
-  "resume builder 2026",
-  "AI CV maker",
-  "automated resume builder",
-  "google gemini resume builder",
-  "resume optimization tool",
-  "increase interview chances",
-  "get hired faster"
+  // Locational
+  "resume builder india free",
+  "resume builder usa",
+  "cv maker uk",
+  "best resume app",
+  "mobile resume builder"
 ].join(", ");
 
 export const metadata: Metadata = {
   title: {
-    default: "Astraz AI - #1 Free ATS Resume Builder | AI-Powered Resume Generator",
+    default: "Best Free AI Resume Builder | Astraz AI (100% Free PDF Download)",
     template: "%s | Astraz AI"
   },
-  description: "Create ATS-optimized resumes that pass 99% of Applicant Tracking Systems. Free AI resume builder with instant PDF download. Better than Resumeworded, Jobscan, and Resume.io. Used by 50,000+ job seekers worldwide.",
+  description: "Rank #1 Free AI Resume Builder 2026. Create ATS-friendly resumes in minutes. No sign-up required for trial. Better than Canva, Resumeworded & Novoresume. Instant PDF Download.",
   keywords: seoKeywords,
   authors: [{ name: "Astraz AI", url: "https://astrazai.com" }],
   creator: "Astraz AI",
   publisher: "Astraz AI",
-  applicationName: "Astraz AI Resume Builder",
+  applicationName: "Astraz AI CV Maker",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
-  category: "Technology",
-  classification: "Resume Builder, Career Tools",
+  category: "Career & Employment",
+  classification: "Free Resume Builder, CV Maker",
 
   openGraph: {
-    title: "Astraz AI - #1 Free ATS Resume Builder | Pass 99% of ATS Systems",
-    description: "Create ATS-optimized resumes in seconds. Free AI-powered resume builder trusted by 50,000+ job seekers. Better than paid alternatives.",
+    title: "Best Free AI Resume Builder | Pass ATS Scanners (100% Free)",
+    description: "Don't pay for a resume. Use Astraz AI to build a professional, ATS-optimized CV in seconds. Download PDF for free. No credit card required.",
     url: "https://astrazai.com",
     siteName: "Astraz AI",
     type: "website",
@@ -123,15 +96,15 @@ export const metadata: Metadata = {
         url: "https://astrazai.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Astraz AI - Free ATS Resume Builder"
+        alt: "Best Free AI Resume Builder 2026"
       }
     ]
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Astraz AI - #1 Free ATS Resume Builder",
-    description: "Create ATS-optimized resumes that pass 99% of screening systems. Free AI-powered, instant PDF download.",
+    title: "Best Free AI Resume Builder | Astraz AI",
+    description: "Stop paying for resumes. Create a job-winning CV for free with Astraz AI. ATS-friendly & Instant Download.",
     images: ["https://astrazai.com/twitter-image.png"],
     creator: "@astrazai"
   },
@@ -159,8 +132,6 @@ export const metadata: Metadata = {
 
   verification: {
     google: "rDPoz0SsOONDkX6V7zZ5qULymzB7X8mKMQbJWM9A9vA",
-    // yandex: "your-yandex-code",
-    // bing: "your-bing-code",
   },
 
   other: {
