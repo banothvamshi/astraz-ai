@@ -43,15 +43,6 @@ export function calculateTotalExperience(text: string): { totalYears: number; de
         try {
             // Start Date
             const startStr = match[1]; // Full start string needed? No, match[2] is month, match[3] is year if logic holds? 
-            // Actually, let's look at groups.
-            // match[1] = Start Full (e.g. "Jan 2020")
-            // match[2] = Start Month (Jan)
-            // match[3] = Start Year (2020)
-
-            // match[4] = End Full (e.g. "Feb 2021" or "Present")
-            // If End is date:
-            // match[5] = End Month
-            // match[6] = End Year
 
             const startMonth = parseMonth(match[2]);
             const startYear = parseInt(match[3]);
@@ -86,7 +77,7 @@ export function calculateTotalExperience(text: string): { totalYears: number; de
         return { totalYears: 0, details: "No dates found" };
     }
 
-    // 3. Merge Overlapping Ranges
+    // 3. Merge Overlapping Ranges & Calculate Gap-Aware Total
     // Sort by start date
     ranges.sort((a, b) => a.start.getTime() - b.start.getTime());
 
@@ -113,16 +104,22 @@ export function calculateTotalExperience(text: string): { totalYears: number; de
 
     // 4. Calculate Total Duration
     let totalMonths = 0;
-    merged.forEach(r => {
-        const months = (r.end.getFullYear() - r.start.getFullYear()) * 12 + (r.end.getMonth() - r.start.getMonth());
-        totalMonths += Math.max(0, months);
+
+    merged.forEach((r, i) => {
+        const duration = (r.end.getFullYear() - r.start.getFullYear()) * 12 + (r.end.getMonth() - r.start.getMonth());
+        totalMonths += Math.max(0, duration);
     });
 
     const totalYears = parseFloat((totalMonths / 12).toFixed(1));
 
+    // Calculate span for sanity check
+    const careerSpanYears = merged.length > 0
+        ? parseFloat(((merged[merged.length - 1].end.getTime() - merged[0].start.getTime()) / (1000 * 60 * 60 * 24 * 365.25)).toFixed(1))
+        : 0;
+
     return {
         totalYears,
-        details: `${totalYears} years calculated from ${merged.length} distinct periods`
+        details: `${totalYears} yoe (span ${careerSpanYears}y, ${merged.length} roles)`
     };
 }
 
