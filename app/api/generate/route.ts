@@ -17,6 +17,7 @@ import { shouldAllowAPICall, getBillingStatusMessage } from "@/lib/billing-guard
 import { estimateCost, getCostOptimizationTips } from "@/lib/cost-optimizer";
 import { validateGeneratedContent } from "@/lib/content-validator";
 import { logGenerationData } from "@/lib/data-logger";
+import { calculateTotalExperience } from "@/lib/experience-calculator";
 
 // Maximum execution time (25 seconds for Vercel)
 const MAX_EXECUTION_TIME = 25000;
@@ -530,54 +531,25 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     let generatedResume: string;
     try {
       const systemPrompt = `
-    You are an expert ATS-Optimization AI. Your goal is to not just formatting, but to REWRITE and ELEVATE the user's resume.
+    You are an expert ATS-Optimization AI. Your goal is to REWRITE and ELEVATE the user's resume while maintaining **STRICT FACTUAL ACCURACY**.
     
-    TRANSFORM MEDIOCRE CONTENT INTO EXECUTIVE-LEVEL ACHIEVEMENTS.
+    CRITICAL RULE: **NO HALLUCINATION OF SENIORITY**.
+    - The user has **${calculatedExperience.totalYears} years** of experience.
+    - If this is < 3 years, write a "High Potential / Early Career" style resume.
+    - If this is > 5 years, write a "Senior / Expert" style resume.
+    - **NEVER** write "5+ years of experience" for a candidate with ${calculatedExperience.totalYears} years.
+    
+    TRANSFORM MEDIOCRE CONTENT INTO EXECUTIVE-LEVEL ACHIEVEMENTS (` + (calculatedExperience.totalYears < 2 ? "Junior/Entry Level Focused" : "Experienced Focused") + `).
     
     CRITICAL INSTRUCTION - "MENTAL SANDBOX":
-    Before generating the final resume, you must THINK silently to yourself to plan the overhaul.
-    
-    Wrap your analysis in a <thinking> block at the very beginning of your response.
+    Wrap your analysis in a <thinking> block.
     Inside <thinking>:
-    1. **Analyze Gaps**: Compare the User's Resume vs. Job Description. What keywords are missing?
-    2. **Strategy**: How will you rephrase "weak" bullets into "strong" ones?
-    3. **Structure**: Plan the section order for maximum impact.
-    4. **Design Match**: Suggest a layout theme ID based on the role culture.
-       - "executive" (for C-level/VP/Director)
-       - "creative" (for Design/Arts/Marketing)
-       - "modern" (for Tech/Startup/Software)
-       - "professional" (for Legal/Finance/General)
-       output strictly as: "Theme: <id>"
-    
-    Then, output the final Markdown Resume outside the <thinking> block.
-    
-    CRITICAL:
-    1. **REPHRASE**: Rewrite every single bullet point to be stronger, punchier, and results-oriented.
-    2. **MATCH JD**: Forcefully align the experience with the Job Description keywords.
-    3. **NO COPY-PASTE**: Do not just copy the user's text. Improve it. Overhaul it.
-    
-    Structure your response EXACTLY as:
-    <thinking>
-    ... your analysis ...
-    Theme: modern
+    1. **Verify Experience**: Check dates. Does it align with ${calculatedExperience.totalYears} years?
+    2. **Strategy**: How to make a ${calculatedExperience.totalYears}-year candidate look amazing without lying?
+    3. **Theme**: Suggest a layout theme.
     </thinking>
     
-    # Professional Summary
-    ... rest of resume ...
-
-    CRITICAL INPUT HANDLING:
-    - The user's resume has been parsed from a PDF and may contain "parsing artifacts".
-    - **Merged Words**: You might see text like "DataScience" or "ProjectManagement". PLEASE READ THESE AS "Data Science" and "Project Management".
-    - **Spaced Text**: You might see "S U M M A R Y". Read this as "SUMMARY".
-    - **Missing Sections**: If a section (like Skills) is empty in the structured data, LOOK AT THE "RAW TEXT" or "UNCLASSIFIED CONTENT" to find it.
-    - **Inference**: If the resume says "Google", infer "Tech" industry / high standards. If "React", infer "Frontend".
-    
-    STRICT RULES:
-    1. **NO HALLUCINATION**: Do not invent jobs, degrees, or companies. You MAY rephrase/polish descriptions, but do not make up facts.
-    2. **ATS OPTIMIZATION**: Use keywords from the Job Description naturally.
-    3. **Professional Tone**: Use active voice, strong action verbs, and quantify results (e.g. "Increased sales by 20%").
-    
-    Structure your response EXACTLY as the logical structure requested.
+    Then, output the final Markdown Resume.
     `;
       generatedResume = await retry(
         () =>
