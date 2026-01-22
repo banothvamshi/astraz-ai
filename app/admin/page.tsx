@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 export default async function AdminDashboard() {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // 1. Fetch Key Metrics
     // Total Revenue (approximate from successful payments)

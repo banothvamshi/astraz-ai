@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
 export default async function AdminPayments() {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Fetch all payments ordered by date
     // In a real app, this should be paginated
