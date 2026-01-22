@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { content, type, name, email, phone, linkedin, location, company, jobTitle, theme } = body;
+    const { content, type, name, email, phone, linkedin, location, company, jobTitle, theme, preview } = body;
 
     // Validation
     if (!content || typeof content !== "string") {
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(pdfBuffer as any, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Disposition": `${preview ? 'inline' : 'attachment'}; filename="${filename}"`,
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Pragma": "no-cache",
         "Expires": "0",

@@ -417,6 +417,7 @@ export default function Dashboard() {
           company: jobDetails.companyName || undefined,
           jobTitle: jobDetails.jobTitle || undefined,
           theme: themeOverride || selectedTheme,
+          preview: true, // Request inline disposition to prevent browser blocking
         }),
       });
 

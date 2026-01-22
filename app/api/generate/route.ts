@@ -737,7 +737,12 @@ Generate the cover letter now:`;
     let generatedScore = null;
     try {
       const { calculateResumeScore } = await import("@/lib/resume-scorer");
-      generatedScore = calculateResumeScore(cleanResume);
+      // Stitch header + body for accurate scoring
+      const fullTextForScoring = `
+${normalizedResume.name} | ${normalizedResume.email} | ${normalizedResume.phone} | ${normalizedResume.linkedin} | ${normalizedResume.location}
+${cleanResume}
+      `.trim();
+      generatedScore = calculateResumeScore(fullTextForScoring);
     } catch (e) {
       console.error("Failed to score generated resume", e);
     }
