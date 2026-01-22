@@ -1,477 +1,282 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Sparkles, Check, Zap, Shield, TrendingUp, Cpu, FileText, Lock } from "lucide-react";
+import { ArrowRight, Sparkles, Check, Zap, Shield, TrendingUp, Cpu, FileText, Lock, Star, ChevronRight, Menu, X, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { hasUsedTrial } from "@/lib/storage";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useInView, useSpring } from "framer-motion";
+import { Spotlight } from "@/components/ui/spotlight";
+import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
+import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
+import { cn } from "@/lib/utils";
+
+
+import { FloatingNav } from "@/components/ui/floating-navbar";
+
+// --- Components for the Page ---
+
+
+function Counter({ from, to }: { from: number; to: number }) {
+  const nodeRef = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(nodeRef, { once: true });
+
+  const fromValue = from || 0;
+  const toValue = to || 100;
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    let startTimestamp: number | null = null;
+    const duration = 2000;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+
+      const current = Math.floor(progress * (toValue - fromValue) + fromValue);
+
+      if (nodeRef.current) {
+        nodeRef.current.textContent = current.toLocaleString();
+      }
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+
+    window.requestAnimationFrame(step);
+  }, [isInView, fromValue, toValue]);
+
+  return <span ref={nodeRef}>{fromValue}</span>;
+}
 
 export default function Home() {
   const router = useRouter();
   const [hasTrial, setHasTrial] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { scrollY } = useScroll();
-  const opacity = useTransform(scrollY, [0, 200], [1, 0.8]);
 
   useEffect(() => {
     setHasTrial(hasUsedTrial());
-
-    // Check for active session
-    const checkSession = async () => {
-      const { getSupabaseBrowserClient } = await import("@/lib/auth");
-      const supabase = getSupabaseBrowserClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) setIsLoggedIn(true);
-    };
-    checkSession();
   }, []);
 
   const handleGetStarted = () => {
-    if (isLoggedIn) {
-      router.push("/dashboard");
-      return;
-    }
-    // If user has used their trial and not logged in, they might still be new
-    if (hasTrial) {
-      router.push("/payment");
-    } else {
-      router.push("/dashboard");
-    }
+    // Logic for routing based on auth state
+    router.push("/dashboard");
   };
-
-  const fadeIn = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5 }
-  };
-
-  const stagger = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  // Background Aurora Effect
-  const AuroraBackground = () => (
-    <div className="absolute inset-0 -z-10 overflow-hidden">
-      <div className="absolute -top-[40%] -left-[20%] w-[70%] h-[70%] rounded-full bg-amber-500/20 blur-[120px] mix-blend-screen animate-aurora" />
-      <div className="absolute -top-[40%] -right-[20%] w-[70%] h-[70%] rounded-full bg-cyan-500/20 blur-[120px] mix-blend-screen animate-aurora delay-1000" />
-      <div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] rounded-full bg-purple-500/20 blur-[100px] mix-blend-screen animate-aurora delay-2000" />
-    </div>
-  );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 selection:bg-amber-500/30">
+    <div className="min-h-screen bg-white dark:bg-black text-slate-900 dark:text-white selection:bg-amber-500/30 overflow-x-hidden">
+      <FloatingNav />
 
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/50 bg-white/80 backdrop-blur-xl dark:bg-slate-950/80 dark:border-slate-800/50"
-      >
-        <div className="container mx-auto flex h-20 items-center justify-between px-6 lg:px-8">
-          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => router.push("/")}>
-            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5 shadow-lg shadow-amber-500/25 transition-transform group-hover:scale-105">
-              <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[10px] bg-white dark:bg-slate-900 p-1" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Astraz AI</span>
-          </div>
-          <div className="flex items-center gap-3">
-            {isLoggedIn ? (
-              <Button
-                onClick={() => router.push("/dashboard")}
-                className="px-6 h-11 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-xl rounded-xl"
-              >
-                Go to Dashboard
-              </Button>
-            ) : (
-              <>
-                <Button
-                  onClick={() => router.push("/login")}
-                  variant="ghost"
-                  className="hidden sm:flex px-6 text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-all"
-                >
-                  Sign In
-                </Button>
-                <Button
-                  onClick={() => router.push("/signup")}
-                  className="px-6 h-11 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-xl rounded-xl"
-                >
-                  Get Started
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </motion.nav>
+      {/* 1. Hero Section with Spotlight */}
+      <section className="relative pt-36 pb-32 md:pt-48 md:pb-48 overflow-hidden bg-grid-black/[0.02] dark:bg-grid-white/[0.02]">
+        <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-        <AuroraBackground />
-
-        <div className="container mx-auto px-6 relative z-10">
-          <motion.div
-            initial="initial"
-            animate="animate"
-            variants={stagger}
-            className="mx-auto max-w-4xl text-center"
-          >
-            <motion.div variants={fadeIn} className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/50 px-4 py-1.5 text-sm font-medium text-amber-700 backdrop-blur-md dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 mb-8">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-              </span>
-              AI-Powered Resume Engineering v2.0
-            </motion.div>
-
-            <motion.h1 variants={fadeIn} className="mb-6 text-5xl font-extrabold tracking-tight sm:text-7xl">
-              Build an <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-purple-500 to-cyan-500">ATS-Optimized Resume</span> that gets you hired.
-            </motion.h1>
-
-            <motion.p variants={fadeIn} className="mb-10 text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Stop getting rejected by bots. Our <span className="font-semibold text-slate-900 dark:text-white">Advanced AI Engine</span> analyzes job descriptions to engineer a resume that passes 99% of Applicant Tracking Systems.
-            </motion.p>
-
-            <motion.div variants={fadeIn} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                onClick={handleGetStarted}
-                size="lg"
-                className="h-14 px-8 text-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-all rounded-full"
-              >
-                {hasTrial ? "View Plans" : "Optimize My Resume Free"}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </motion.div>
-
-            <motion.div variants={fadeIn} className="mt-12 flex items-center justify-center gap-8 text-sm text-slate-500 font-medium">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-500" /> 100% Free Trial
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-500" /> No Credit Card
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-500" /> Instant PDF Download
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 border-y border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <div className="text-4xl font-bold text-amber-600">50K+</div>
-              <div className="text-sm text-slate-500 mt-1">Resumes Optimized</div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="text-4xl font-bold text-emerald-600">99%</div>
-              <div className="text-sm text-slate-500 mt-1">ATS Pass Rate</div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="text-4xl font-bold text-purple-600">3x</div>
-              <div className="text-sm text-slate-500 mt-1">More Interviews</div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="text-4xl font-bold text-cyan-600">~15 sec</div>
-              <div className="text-sm text-slate-500 mt-1">Generation Time</div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Grid (Bento Style) */}
-      <section className="py-24 bg-slate-50 dark:bg-slate-900/50">
-        <div className="container mx-auto px-6">
-          <div className="mb-16 text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold mb-4">Engineered for Success</h2>
-            <p className="text-slate-600 dark:text-slate-400">
-              We don't just "write" resumes. We compile them using data-driven strategies that align with modern hiring algorithms.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="group md:col-span-2 relative overflow-hidden rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all"
-            >
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Cpu className="w-48 h-48" />
-              </div>
-              <div className="relative z-10">
-                <div className="h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-6 text-amber-600 dark:text-amber-400">
-                  <Zap className="w-6 h-6" />
-                </div>
-                <h3 className="text-2xl font-bold mb-3">Deep ATS Analysis</h3>
-                <p className="text-slate-600 dark:text-slate-400 max-w-md">
-                  Our engine reverse-engineers the job description to identify critical keywords, skills, and semantic patterns that the ATS is scoring for.
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Card 2 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all"
-            >
-              <div className="relative z-10">
-                <div className="h-12 w-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center mb-6 text-cyan-600 dark:text-cyan-400">
-                  <TrendingUp className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Score Optimization</h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Instant feedback on how well your profile matches the role.
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Card 3 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all"
-            >
-              <div className="relative z-10">
-                <div className="h-12 w-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-6 text-purple-600 dark:text-purple-400">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Enterprise Formatting</h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Clean, professional layouts preferred by Fortune 500 recruiters.
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Card 4 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="group md:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 shadow-sm hover:shadow-xl transition-all"
-            >
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Shield className="w-48 h-48" />
-              </div>
-              <div className="relative z-10">
-                <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-6">
-                  <Lock className="w-6 h-6" />
-                </div>
-                <h3 className="text-2xl font-bold mb-3">Privacy First</h3>
-                <p className="text-slate-300 max-w-md">
-                  Your data is processed securely and never shared with third parties. We believe in complete data sovereignty for job seekers.
-                </p>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-24 bg-white dark:bg-slate-950">
-        <div className="container mx-auto px-6">
-          <div className="mb-16 text-center">
-            <h2 className="text-3xl font-bold mb-4">Loved by Job Seekers</h2>
-            <p className="text-slate-600 dark:text-slate-400">Real results from real users</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-6"
-            >
-              <div className="flex items-center gap-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-slate-700 dark:text-slate-300 mb-4">
-                "Applied to 5 jobs with my old resume - nothing. Used Astraz AI once, got 3 interviews in a week. The ATS optimization is real."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-amber-600 font-bold">R</div>
-                <div>
-                  <p className="font-semibold text-sm">Rahul M.</p>
-                  <p className="text-xs text-slate-500">Software Engineer</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Testimonial 2 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-6"
-            >
-              <div className="flex items-center gap-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-slate-700 dark:text-slate-300 mb-4">
-                "As a fresher, I had no idea how to structure my resume. Astraz AI took my basic info and transformed it into something professional."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 font-bold">P</div>
-                <div>
-                  <p className="font-semibold text-sm">Priya S.</p>
-                  <p className="text-xs text-slate-500">Data Analyst</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Testimonial 3 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-6"
-            >
-              <div className="flex items-center gap-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-slate-700 dark:text-slate-300 mb-4">
-                "The keyword optimization is incredible. My resume now mirrors exactly what companies are looking for. Worth every rupee."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-purple-600 font-bold">A</div>
-                <div>
-                  <p className="font-semibold text-sm">Ankit K.</p>
-                  <p className="text-xs text-slate-500">Product Manager</p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-24 bg-white dark:bg-slate-950">
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-6 relative z-10 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium mb-8 backdrop-blur-sm"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-400">
-              Everything you need to know about our AI resume builder.
-            </p>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+            v2.0 Now Available with AI Theme Designer
           </motion.div>
 
-          <div className="max-w-3xl mx-auto space-y-4">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-5xl md:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 mb-6 max-w-4xl mx-auto"
+          >
+            Engineer Your <br />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500">
+              Dream Career
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10"
+          >
+            Stop guessing keywords. Our advanced AI reverse-engineers Job Descriptions
+            to build ATS-proof resumes that recruiters actually read.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Button
+              onClick={handleGetStarted}
+              size="lg"
+              className="h-14 px-8 rounded-full text-lg bg-slate-900 dark:bg-white text-white dark:text-black hover:scale-105 transition-transform shadow-2xl shadow-indigo-500/20"
+            >
+              Start Building Free <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-14 px-8 rounded-full text-lg border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-white/10"
+            >
+              <Github className="mr-2 h-5 w-5" /> Star on GitHub
+            </Button>
+          </motion.div>
+        </div>
+
+        {/* Abstract Background Elements */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[500px] bg-indigo-500/20 opacity-30 blur-[120px] rounded-full pointer-events-none" />
+      </section>
+
+      {/* 2. Stats with Counter Animation */}
+      <section className="py-20 border-y border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
             {[
-              {
-                q: "Is Astraz AI really free to try?",
-                a: "Yes! You get one completely free resume optimization to experience the power of our AI before committing to any plan."
-              },
-              {
-                q: "What is ATS and why does it matter?",
-                a: "ATS (Applicant Tracking System) is software used by 99% of large companies to filter resumes. Our AI ensures your resume passes these filters so a human actually sees your application."
-              },
-              {
-                q: "How long does it take to generate a resume?",
-                a: "Our AI generates a fully optimized, job-tailored resume in under 15 seconds."
-              },
-              {
-                q: "Can I edit the generated resume?",
-                a: "Absolutely! You can edit, refine, and download your resume as many times as you need."
-              },
-              {
-                q: "Is my data secure?",
-                a: "Yes. We use industry-standard encryption and never share your personal information. You can export or delete your data anytime."
-              }
-            ].map((faq, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="border border-slate-200 dark:border-slate-800 rounded-xl p-6"
-              >
-                <h3 className="font-semibold text-lg text-slate-900 dark:text-white mb-2">{faq.q}</h3>
-                <p className="text-slate-600 dark:text-slate-400">{faq.a}</p>
-              </motion.div>
+              { label: "Resumes Optimized", value: 50000, suffix: "+", color: "text-amber-500" },
+              { label: "ATS Pass Rate", value: 99, suffix: "%", color: "text-emerald-500" },
+              { label: "Interview Increase", value: 3, suffix: "x", color: "text-purple-500" },
+              { label: "Community", value: 12000, suffix: "+", color: "text-blue-500" },
+            ].map((stat, i) => (
+              <div key={i} className="space-y-2">
+                <div className={`text-4xl lg:text-5xl font-bold ${stat.color}`}>
+                  <Counter from={0} to={stat.value} />{stat.suffix}
+                </div>
+                <div className="text-sm font-medium text-slate-500 uppercase tracking-widest">{stat.label}</div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-12">
+      {/* 3. Features Bento Grid */}
+      <section id="features" className="py-32 bg-white dark:bg-black">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 mb-3">
-                <img src="/logo.png" alt="Astraz AI" className="h-8 w-8" />
-                <span className="text-lg font-bold text-slate-900 dark:text-white">Astraz AI</span>
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white">
+              Recruiting Intelligence <br />
+              <span className="text-slate-400 dark:text-slate-600">at your fingertips.</span>
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400">
+              We've analyzed millions of data points to understand exactly what hiring algorithms look for.
+            </p>
+          </div>
+
+          <BentoGrid>
+            <BentoGridItem
+              title="Semantic Matching Engine"
+              description="Our AI doesn't just keyword stuff. It rebuilds your experience to semantically align with the job description."
+              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800" />}
+              icon={<Cpu className="h-4 w-4 text-neutral-500" />}
+              className="md:col-span-2"
+            />
+            <BentoGridItem
+              title="Real-time ATS Scoring"
+              description="Get instant feedback on your resume's parseability and ranking potential."
+              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800" />}
+              icon={<Zap className="h-4 w-4 text-neutral-500" />}
+              className="md:col-span-1"
+            />
+            <BentoGridItem
+              title="Dynamic Theming"
+              description="Switch between Professional, Creative, and Executive layouts with one click."
+              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800" />}
+              icon={<FileText className="h-4 w-4 text-neutral-500" />}
+              className="md:col-span-1"
+            />
+            <BentoGridItem
+              title="Privacy Design"
+              description="Your data is encrypted. We don't sell your resume to recruiters."
+              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800" />}
+              icon={<Shield className="h-4 w-4 text-neutral-500" />}
+              className="md:col-span-2"
+            />
+          </BentoGrid>
+        </div>
+      </section>
+
+      {/* 4. Testimonials Infinite Cards */}
+      <section id="testimonials" className="py-24 bg-slate-50 dark:bg-neutral-950/50 overflow-hidden">
+        <div className="container mx-auto px-6 mb-12 text-center">
+          <h2 className="text-3xl font-bold mb-4">You're in good company.</h2>
+          <p className="text-slate-500">Join thousands of professionals who landed their dream job.</p>
+        </div>
+
+        <InfiniteMovingCards
+          items={[
+            { quote: "I applied to 50 jobs with no luck. After using Astraz, I got 3 interviews in a week.", name: "Sarah J.", title: "Product Manager at Google" },
+            { quote: "The AI suggested keywords I completely missed. It felt like cheating, but legal.", name: "Michael Chen", title: "Software Engineer at Meta" },
+            { quote: "Finally a resume builder that doesn't mess up the formatting when downloading PDF.", name: "Emily R.", title: "Marketing Director" },
+            { quote: "The dynamic themes are a game changer. I tailored my resume for a creative agency instantly.", name: "David K.", title: "UX Designer" },
+            { quote: "Simple, fast, and effective. The dashboard UI is also really clean.", name: "Priya P.", title: "Data Analyst" },
+          ]}
+          direction="right"
+          speed="slow"
+        />
+      </section>
+
+      {/* 5. CTA Section */}
+      <section className="py-32 bg-white dark:bg-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-30" />
+        <div className="container mx-auto px-6 relative z-10 text-center">
+          <h2 className="text-4xl md:text-6xl font-bold mb-8">Ready to upgrade your career?</h2>
+          <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto">
+            Join the top 1% of candidates who use AI to their advantage.
+          </p>
+          <Button
+            onClick={handleGetStarted}
+            size="lg"
+            className="h-16 px-10 text-xl rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-2xl shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105"
+          >
+            Build My Resume Now
+          </Button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-50 dark:bg-neutral-950 border-t border-slate-200 dark:border-white/10 py-16">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-16">
+            <div className="col-span-2">
+              <div className="flex items-center gap-2 mb-6">
+                <span className="font-bold text-2xl">Astraz AI</span>
               </div>
-              <p className="text-sm text-slate-500">AI-powered resume optimization.</p>
+              <p className="text-slate-500 max-w-sm">
+                Advanced resume engineering for the modern professional. Built with love and plenty of caffeine.
+              </p>
             </div>
             <div>
-              <h4 className="font-semibold text-slate-900 dark:text-white mb-3">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="/dashboard" className="hover:text-amber-600">Resume Builder</a></li>
-                <li><a href="/payment" className="hover:text-amber-600">Pricing</a></li>
+              <h4 className="font-bold mb-6">Product</h4>
+              <ul className="space-y-4 text-slate-500">
+                <li><a href="#" className="hover:text-amber-500 transition-colors">Features</a></li>
+                <li><a href="#" className="hover:text-amber-500 transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-amber-500 transition-colors">Templates</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-slate-900 dark:text-white mb-3">Support</h4>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="/contact" className="hover:text-amber-600">Contact Us</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-slate-900 dark:text-white mb-3">Legal</h4>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="/privacy" className="hover:text-amber-600">Privacy Policy</a></li>
-                <li><a href="/terms" className="hover:text-amber-600">Terms of Service</a></li>
+              <h4 className="font-bold mb-6">Legal</h4>
+              <ul className="space-y-4 text-slate-500">
+                <li><a href="#" className="hover:text-amber-500 transition-colors">Privacy</a></li>
+                <li><a href="#" className="hover:text-amber-500 transition-colors">Terms</a></li>
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-slate-200 dark:border-slate-800 text-center text-sm text-slate-500">
-            © {new Date().getFullYear()} Astraz AI. Engineered for Excellence.
+          <div className="flex items-center justify-between pt-8 border-t border-slate-200 dark:border-white/10 text-slate-500 text-sm">
+            <div>© {new Date().getFullYear()} Astraz AI Inc.</div>
+            <div className="flex gap-4">
+              <Github className="w-5 h-5 cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors" />
+            </div>
           </div>
         </div>
       </footer>
     </div>
   );
 }
+

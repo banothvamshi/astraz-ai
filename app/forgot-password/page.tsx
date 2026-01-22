@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Loader2, Sparkles, Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowserClient } from "@/lib/auth";
+import { Spotlight } from "@/components/ui/spotlight";
+import { motion } from "framer-motion";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
@@ -18,25 +20,19 @@ export default function ForgotPasswordPage() {
         setIsLoading(true);
 
         try {
-            const supabase = getSupabaseBrowserClient();
-            const emailLower = email.toLowerCase().trim();
+            // Import dynamically to avoid server-only module in client bundle issues
+            const { sendResetPasswordEmail } = await import("@/app/actions/auth-actions");
 
-            const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-                emailLower,
-                {
-                    redirectTo: `${window.location.origin}/reset-password`,
-                }
-            );
+            const result = await sendResetPasswordEmail(email);
 
-            if (resetError) {
-                // Supabase doesn't reveal if email exists for security
-                // But we can show a generic message
-                setError(resetError.message);
+            if (!result.success) {
+                setError(result.message || "Failed to send reset email.");
             } else {
                 setIsSuccess(true);
             }
         } catch (err: any) {
             setError("An unexpected error occurred. Please try again.");
+            console.error(err);
         } finally {
             setIsLoading(false);
         }
@@ -44,30 +40,58 @@ export default function ForgotPasswordPage() {
 
     if (isSuccess) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
-                <div className="w-full max-w-md text-center">
-                    <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 shadow-xl shadow-emerald-500/20">
+            <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center p-4 relative overflow-hidden">
+                <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+                <div className="w-full max-w-md text-center relative z-10">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 shadow-xl shadow-emerald-500/20"
+                    >
                         <CheckCircle className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
+                    </motion.div>
+                    <motion.h1
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="text-3xl font-bold text-slate-900 dark:text-white mb-3"
+                    >
                         Check Your Email
-                    </h1>
-                    <p className="text-lg text-slate-500 mb-8">
+                    </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-lg text-slate-500 mb-8"
+                    >
                         We've sent a password reset link to <span className="font-semibold text-slate-700 dark:text-slate-300">{email}</span>
-                    </p>
-                    <Link href="/login">
-                        <Button variant="outline" className="h-12 px-6 rounded-xl border-slate-300 hover:border-amber-500 hover:text-amber-600 transition-all">
-                            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Login
-                        </Button>
-                    </Link>
+                    </motion.p>
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <Link href="/login">
+                            <Button variant="outline" className="h-12 px-6 rounded-xl border-slate-300 hover:border-amber-500 hover:text-amber-600 transition-all dark:border-slate-700 dark:hover:border-amber-500">
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Login
+                            </Button>
+                        </Link>
+                    </motion.div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
+        <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center p-4 relative overflow-hidden">
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="w-full max-w-md relative z-10"
+            >
                 {/* Logo */}
                 <div className="text-center mb-10">
                     <Link href="/" className="inline-flex flex-col items-center gap-3 group">
@@ -79,7 +103,7 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 {/* Card */}
-                <div className="rounded-3xl border border-slate-200 bg-white p-10 shadow-2xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/50">
+                <div className="rounded-3xl border border-slate-200 bg-white/50 backdrop-blur-xl p-10 shadow-2xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900/50 dark:shadow-slate-950/50">
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white text-center mb-3">
                         Forgot Password?
                     </h1>
@@ -106,7 +130,7 @@ export default function ForgotPasswordPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="you@example.com"
                                     required
-                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                    className="w-full rounded-xl border border-slate-200 bg-white/50 py-3.5 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white transition-all"
                                 />
                             </div>
                         </div>
@@ -114,7 +138,7 @@ export default function ForgotPasswordPage() {
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg font-semibold rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:shadow-xl"
+                            className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg font-semibold rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:shadow-xl hover:scale-[1.02]"
                         >
                             {isLoading ? (
                                 <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Sending...</>
@@ -125,12 +149,12 @@ export default function ForgotPasswordPage() {
                     </form>
 
                     <div className="mt-8 text-center">
-                        <Link href="/login" className="text-sm text-amber-600 hover:text-amber-700 flex items-center justify-center gap-2 transition-colors">
+                        <Link href="/login" className="text-sm text-amber-600 hover:text-amber-700 flex items-center justify-center gap-2 transition-colors hover:underline">
                             <ArrowLeft className="h-4 w-4" /> Back to Login
                         </Link>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

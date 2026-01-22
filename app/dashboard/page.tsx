@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import { UploadArea } from "@/components/upload-area";
 import { canUseFreeTrial, markTrialUsed, hasUsedTrial } from "@/lib/storage";
 import { getSupabaseBrowserClient } from "@/lib/auth";
 import { PaywallModal } from "@/components/paywall-modal";
 import { ResumeEditor } from "@/components/resume-editor";
+import { ThemeSelector } from "@/components/theme-selector";
 
 
 interface ContactInfo {
@@ -40,6 +42,7 @@ export default function Dashboard() {
   const [editingResume, setEditingResume] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<string>("professional");
 
   // Credits system states
   const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
@@ -316,9 +319,21 @@ export default function Dashboard() {
       setGeneratedCoverLetter(data.coverLetter);
       setResumeMeta(data.meta);
 
+      // Auto-select AI suggested theme if available
+      if (data.suggestedTheme) {
+        setSelectedTheme(data.suggestedTheme);
+      }
+
       // Auto-generate PDF preview
       if (data.resume) {
-        generatePreviewPdf(data.resume, data.meta);
+        // Use the suggested theme for the preview (it's already set in state but state updates are async, 
+        // so we pass it explicitly to generatePreviewPdf if we moved the var logic out, 
+        // but generatePreviewPdf reads from state? No, it takes args. 
+        // Wait, generatePreviewPdf takes content and meta, but reads contactInfo from state.
+        // I need to update generatePreviewPdf signature or rely on state. 
+        // React state update might not be immediate for the next call.
+        // Better to update generatePreviewPdf to accept theme override.
+        generatePreviewPdf(data.resume, data.meta, data.suggestedTheme);
       }
 
       // Mark trial as used
@@ -344,7 +359,7 @@ export default function Dashboard() {
     });
   };
 
-  const generatePreviewPdf = async (resumeContent: string, meta: any) => {
+  const generatePreviewPdf = async (resumeContent: string, meta: any, themeOverride?: string) => {
     setIsPreviewLoading(true);
     try {
       const response = await fetch("/api/download-pdf", {
@@ -360,6 +375,7 @@ export default function Dashboard() {
           location: contactInfo.location || meta?.location,
           company: jobDetails.companyName || undefined,
           jobTitle: jobDetails.jobTitle || undefined,
+          theme: themeOverride || selectedTheme,
         }),
       });
 
@@ -397,6 +413,7 @@ export default function Dashboard() {
           location: contactInfo.location || resumeMeta?.location,
           company: jobDetails.companyName || undefined,
           jobTitle: jobDetails.jobTitle || undefined,
+          theme: selectedTheme,
         }),
       });
 
@@ -587,7 +604,12 @@ export default function Dashboard() {
           )}
 
           {activeTab === "account" && (
-            <div className="max-w-4xl mx-auto space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="max-w-4xl mx-auto space-y-6"
+            >
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Account Overview</h2>
 
@@ -739,11 +761,16 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {activeTab === "history" && (
-            <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="max-w-4xl mx-auto"
+            >
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                   <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Generation History</h2>
@@ -830,13 +857,18 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
 
       {activeTab === "builder" && (
-        <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="max-w-7xl mx-auto"
+        >
           <div className="grid gap-10 lg:grid-cols-2">
 
             {/* LEFT COLUMN: Inputs */}
@@ -1036,6 +1068,15 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* 4. Theme Selector */}
+              <ThemeSelector
+                currentTheme={selectedTheme}
+                onSelect={setSelectedTheme}
+                disabled={isGenerating}
+              />
+
+              <div className="h-4"></div>
+
               <Button
                 onClick={handleGenerate}
                 disabled={isGenerating || !resumeFile || !jobDescription.trim()}
@@ -1099,7 +1140,7 @@ export default function Dashboard() {
                               setGeneratedResume(edited);
                               setEditingResume(false);
                               // Regenerate preview on save
-                              generatePreviewPdf(edited, resumeMeta);
+                              generatePreviewPdf(edited, resumeMeta, selectedTheme);
                             }}
                             onCancel={() => setEditingResume(false)}
                           />
@@ -1171,11 +1212,16 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {activeTab === "settings" && (
-        <div className="max-w-3xl mx-auto space-y-8 mt-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="max-w-3xl mx-auto space-y-8 mt-12"
+        >
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
@@ -1279,7 +1325,7 @@ export default function Dashboard() {
               </Button>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       <PaywallModal

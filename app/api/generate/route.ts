@@ -527,6 +527,12 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     1. **Analyze Gaps**: Compare the User's Resume vs. Job Description. What keywords are missing?
     2. **Strategy**: How will you rephrase "weak" bullets into "strong" ones?
     3. **Structure**: Plan the section order for maximum impact.
+    4. **Design Match**: Suggest a layout theme ID based on the role culture.
+       - "executive" (for C-level/VP/Director)
+       - "creative" (for Design/Arts/Marketing)
+       - "modern" (for Tech/Startup/Software)
+       - "professional" (for Legal/Finance/General)
+       output strictly as: "Theme: <id>"
     
     Then, output the final Markdown Resume outside the <thinking> block.
     
@@ -538,6 +544,7 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     Structure your response EXACTLY as:
     <thinking>
     ... your analysis ...
+    Theme: modern
     </thinking>
     
     # Professional Summary
@@ -605,11 +612,20 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
 
     // Clean generated content
     let cleanResume = generatedResume;
+    let suggestedThemeId = "professional"; // Default
 
     // Remove <thinking> block if present
     const thinkingMatch = cleanResume.match(/<thinking>[\s\S]*?<\/thinking>/);
     if (thinkingMatch) {
-      console.log("AI Mental Sandbox Strategy:", thinkingMatch[0]); // Log the strategy for debugging/analytics!
+      console.log("AI Mental Sandbox Strategy:", thinkingMatch[0]); // Log the strategy
+
+      // Extract Theme
+      const themeMatch = thinkingMatch[0].match(/Theme:\s*([a-zA-Z]+)/i);
+      if (themeMatch && themeMatch[1]) {
+        suggestedThemeId = themeMatch[1].toLowerCase();
+        console.log("AI Suggested Theme:", suggestedThemeId);
+      }
+
       cleanResume = cleanResume.replace(/<thinking>[\s\S]*?<\/thinking>/, "").trim();
     }
 
@@ -711,6 +727,7 @@ Generate the cover letter now:`;
         location: parsedJob.location,
         workMode: parsedJob.workMode,
       },
+      suggestedTheme: suggestedThemeId, // AI suggestion
       cached: false,
       rateLimit: {
         remaining: rateLimit.remaining,

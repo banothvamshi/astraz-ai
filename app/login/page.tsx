@@ -7,6 +7,9 @@ import { Loader2, Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowserClient } from "@/lib/auth";
 
+import { Spotlight } from "@/components/ui/spotlight";
+import { motion } from "framer-motion";
+
 export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
@@ -74,8 +77,15 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
+        <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center p-4 relative overflow-hidden">
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="w-full max-w-md relative z-10"
+            >
                 {/* Logo */}
                 <div className="text-center mb-10">
                     <Link href="/" className="inline-flex flex-col items-center gap-3 group">
@@ -87,7 +97,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Login Card */}
-                <div className="rounded-3xl border border-slate-200 bg-white p-10 shadow-2xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/50">
+                <div className="rounded-3xl border border-slate-200 bg-white/50 backdrop-blur-xl p-10 shadow-2xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900/50 dark:shadow-slate-950/50">
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white text-center mb-3">
                         Welcome Back
                     </h1>
@@ -116,7 +126,7 @@ export default function LoginPage() {
                                     placeholder="you@example.com"
                                     required
                                     autoComplete="username"
-                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                    className="w-full rounded-lg border border-slate-200 bg-white/50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white transition-all"
                                 />
                             </div>
                         </div>
@@ -127,7 +137,7 @@ export default function LoginPage() {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                     Password
                                 </label>
-                                <Link href="/forgot-password" className="text-sm text-amber-600 hover:text-amber-700 dark:text-indigo-400">
+                                <Link href="/forgot-password" className="text-sm text-amber-600 hover:text-amber-700 dark:text-amber-500 dark:hover:text-amber-400 transition-colors">
                                     Forgot password?
                                 </Link>
                             </div>
@@ -140,7 +150,7 @@ export default function LoginPage() {
                                     placeholder="••••••••"
                                     required
                                     autoComplete="current-password"
-                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                    className="w-full rounded-lg border border-slate-200 bg-white/50 py-3 pl-11 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white transition-all"
                                 />
                                 <button
                                     type="button"
@@ -156,7 +166,7 @@ export default function LoginPage() {
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg font-semibold rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:shadow-xl"
+                            className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg font-semibold rounded-xl shadow-lg shadow-amber-500/25 transition-all hover:shadow-xl hover:scale-[1.02]"
                         >
                             {isLoading ? (
                                 <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Signing in...</>
@@ -168,7 +178,7 @@ export default function LoginPage() {
 
                     <div className="mt-6 text-center text-sm text-slate-500">
                         Don't have an account?{" "}
-                        <Link href="/signup" className="text-amber-600 hover:text-amber-700 font-medium">
+                        <Link href="/signup" className="text-amber-600 hover:text-amber-700 font-medium hover:underline">
                             Sign Up
                         </Link>
                     </div>
@@ -176,11 +186,11 @@ export default function LoginPage() {
 
                 {/* Footer Links */}
                 <div className="mt-6 text-center text-xs text-slate-500">
-                    <Link href="/terms" className="hover:text-slate-700">Terms of Service</Link>
+                    <Link href="/terms" className="hover:text-slate-700 dark:hover:text-slate-300">Terms of Service</Link>
                     <span className="mx-2">•</span>
-                    <Link href="/privacy" className="hover:text-slate-700">Privacy Policy</Link>
+                    <Link href="/privacy" className="hover:text-slate-700 dark:hover:text-slate-300">Privacy Policy</Link>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

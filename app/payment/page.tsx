@@ -2,9 +2,12 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Check, ArrowLeft, Globe } from "lucide-react";
+import { Loader2, Check, ArrowLeft, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Script from "next/script";
+import { FloatingNav } from "@/components/ui/floating-navbar";
+import { Spotlight } from "@/components/ui/spotlight";
+import { motion } from "framer-motion";
 
 declare global {
   interface Window {
@@ -205,8 +208,9 @@ function PaymentPageContent() {
 
   if (paymentSuccess) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4">
-        <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-xl text-center dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-black px-4 relative overflow-hidden">
+        <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+        <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white/50 backdrop-blur-xl p-8 shadow-xl text-center dark:border-slate-800 dark:bg-slate-900/50 relative z-10">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
             <Check className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
           </div>
@@ -218,7 +222,7 @@ function PaymentPageContent() {
           </p>
           <Button
             onClick={() => router.push("/dashboard")}
-            className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
+            className="w-full h-12 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25"
           >
             Go to Dashboard
           </Button>
@@ -233,85 +237,111 @@ function PaymentPageContent() {
         src="https://checkout.razorpay.com/v1/checkout.js"
         strategy="afterInteractive"
       />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-        <nav className="border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
-          <div className="container mx-auto flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
-            <Button onClick={() => router.push("/")} variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
+      <div className="min-h-screen bg-white dark:bg-black selection:bg-amber-500/30">
+        <FloatingNav />
+        <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
 
-            {/* Currency Toggle */}
-            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 p-1.5 dark:border-slate-700 dark:bg-slate-800">
-              <button
-                onClick={() => setCurrency("INR")}
-                className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${currency === "INR"
-                  ? "bg-white text-slate-900 shadow-md dark:bg-slate-700 dark:text-white"
-                  : "text-slate-500 hover:text-slate-700"
-                  }`}
-              >
-                🇮🇳 INR
-              </button>
-              <button
-                onClick={() => setCurrency("USD")}
-                className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${currency === "USD"
-                  ? "bg-white text-slate-900 shadow-md dark:bg-slate-700 dark:text-white"
-                  : "text-slate-500 hover:text-slate-700"
-                  }`}
-              >
-                🌍 USD
-              </button>
-            </div>
-          </div>
-        </nav>
-
-        <div className="container mx-auto px-4 py-20 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4 py-32 sm:px-6 lg:px-8 relative z-10">
           <div className="mx-auto max-w-6xl">
             {/* Header */}
-            <div className="text-center mb-10">
-              <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-slate-50 mb-5">
-                Choose Your <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Plan</span>
-              </h1>
-              <p className="text-lg text-slate-600 dark:text-slate-400">
-                Invest in your career. Get AI-powered resume optimization.
-              </p>
+            <div className="text-center mb-16">
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-4xl sm:text-6xl font-extrabold text-slate-900 dark:text-white mb-6"
+              >
+                Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">Plan</span>
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto"
+              >
+                Invest in your career with our AI-powered premium features. Uncover the hidden potential of your experience.
+              </motion.p>
+
+              {/* Currency Toggle */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mt-8 flex justify-center"
+              >
+                <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-900">
+                  <button
+                    onClick={() => setCurrency("INR")}
+                    className={`flex items-center gap-1.5 rounded-full px-6 py-2 text-sm font-semibold transition-all ${currency === "INR"
+                      ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white"
+                      : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                      }`}
+                  >
+                    🇮🇳 INR
+                  </button>
+                  <button
+                    onClick={() => setCurrency("USD")}
+                    className={`flex items-center gap-1.5 rounded-full px-6 py-2 text-sm font-semibold transition-all ${currency === "USD"
+                      ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white"
+                      : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                      }`}
+                  >
+                    🌍 USD
+                  </button>
+                </div>
+              </motion.div>
             </div>
 
             {/* Promo Code Input */}
-            <div className="max-w-md mx-auto mb-16">
-              <div className="flex gap-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="max-w-md mx-auto mb-20"
+            >
+              <div className="flex gap-2 relative">
                 <input
                   type="text"
                   placeholder="Have a promo code?"
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-800 dark:bg-slate-900"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white/50 backdrop-blur-sm px-4 py-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-800 dark:bg-slate-900/50 dark:text-white transition-all"
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
                 />
                 <Button
                   onClick={validateCoupon}
                   disabled={isValidatingCoupon || !promoCode}
-                  className="bg-slate-900 text-white hover:bg-slate-800 rounded-xl px-6 h-auto"
+                  className="bg-slate-900 dark:bg-white dark:text-black text-white hover:opacity-90 rounded-xl px-6 h-auto transition-all"
                 >
                   {isValidatingCoupon ? <Loader2 className="animate-spin h-4 w-4" /> : "Apply"}
                 </Button>
               </div>
               {couponError && <p className="text-red-500 text-sm mt-2 text-center">{couponError}</p>}
               {appliedCoupon && (
-                <div className="mt-2 text-center bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg p-2">
-                  <p className="text-emerald-700 dark:text-emerald-400 text-sm font-semibold flex items-center justify-center gap-2">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mt-3 text-center bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2"
+                >
+                  <p className="text-emerald-600 dark:text-emerald-400 text-sm font-semibold flex items-center justify-center gap-2">
                     <Check className="h-4 w-4" />
-                    Code <span className="uppercase">{appliedCoupon.code}</span> applied:
+                    Code <span className="uppercase tracking-wider">{appliedCoupon.code}</span> applied:
                     {appliedCoupon.discount_type === 'percent' ? ` ${appliedCoupon.discount_value}% OFF` : ` Flat ${appliedCoupon.discount_value} OFF`}
                   </p>
-                </div>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
 
             {/* Pricing Grid */}
             <div className="grid md:grid-cols-3 gap-8 items-stretch">
               {/* Starter Plan */}
-              <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-8 shadow-sm hover:shadow-lg transition-shadow dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-2">{PLANS.starter.name}</h3>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                whileHover={{ y: -8 }}
+                className="flex flex-col rounded-3xl border border-slate-200 bg-white/50 backdrop-blur-sm p-8 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-slate-200/50 transition-all dark:border-slate-800 dark:bg-slate-900/50 dark:shadow-none"
+              >
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">{PLANS.starter.name}</h3>
                 <p className="text-sm text-slate-500 mb-6">{PLANS.starter.tagline}</p>
                 <div className="mb-8">
                   <div className="flex items-baseline gap-2">
@@ -333,7 +363,10 @@ function PaymentPageContent() {
                 <ul className="space-y-4 mb-8 flex-grow">
                   {PLANS.starter.features.map((feature: string, i: number) => (
                     <li key={i} className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
-                      <Check className="h-5 w-5 text-emerald-500 flex-shrink-0" /> {feature}
+                      <div className="h-5 w-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center flex-shrink-0">
+                        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      {feature}
                     </li>
                   ))}
                 </ul>
@@ -341,20 +374,27 @@ function PaymentPageContent() {
                   onClick={() => handlePayment("starter", prices[currency].starter.value)}
                   disabled={isProcessing}
                   variant="outline"
-                  className="w-full h-12 mt-auto text-base font-semibold"
+                  className="w-full h-14 mt-auto text-base font-semibold border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl"
                 >
                   {isProcessing && selectedPlan === "starter" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
                   ) : "Get Starter"}
                 </Button>
-              </div>
+              </motion.div>
 
               {/* Professional Plan */}
-              <div className="flex flex-col relative rounded-2xl border-2 border-amber-500 bg-white p-8 shadow-xl dark:bg-slate-900 transition-transform hover:scale-[1.02]">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-amber-600 px-5 py-1.5 text-sm font-semibold text-white shadow-lg">
-                  MOST POPULAR
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ y: -8 }}
+                className="flex flex-col relative rounded-3xl border-2 border-amber-500 bg-white p-8 shadow-2xl shadow-amber-500/10 dark:bg-slate-900 transition-all z-10"
+              >
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 px-6 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-amber-500/30">
+                  Most Popular
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-2 mt-2">{PLANS.professional.name}</h3>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2 mt-2">{PLANS.professional.name}</h3>
                 <p className="text-sm text-slate-500 mb-6">{PLANS.professional.tagline}</p>
                 <div className="mb-8">
                   <div className="flex items-baseline gap-2">
@@ -376,26 +416,37 @@ function PaymentPageContent() {
                 <ul className="space-y-4 mb-8 flex-grow">
                   {PLANS.professional.features.map((feature: string, i: number) => (
                     <li key={i} className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
-                      <Check className="h-5 w-5 text-emerald-500 flex-shrink-0" /> {feature}
+                      <div className="h-5 w-5 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
+                        <Check className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      {feature}
                     </li>
                   ))}
                 </ul>
                 <Button
                   onClick={() => handlePayment("professional", prices[currency].professional.value)}
                   disabled={isProcessing}
-                  className="w-full h-12 mt-auto bg-amber-600 hover:bg-amber-700 text-base font-semibold"
+                  className="w-full h-14 mt-auto bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-base font-semibold shadow-lg shadow-amber-500/25 rounded-xl"
                 >
                   {isProcessing && selectedPlan === "professional" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
                   ) : "Get Professional"}
                 </Button>
-              </div>
+              </motion.div>
 
               {/* Enterprise Plan */}
-              <div className="flex flex-col rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-8 shadow-xl text-white">
-                <h3 className="text-xl font-bold mb-2">{PLANS.enterprise.name}</h3>
-                <p className="text-sm text-slate-400 mb-6">{PLANS.enterprise.tagline}</p>
-                <div className="mb-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 }}
+                whileHover={{ y: -8 }}
+                className="flex flex-col rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 p-8 shadow-xl text-white relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                <h3 className="text-2xl font-bold mb-2 relative z-10">{PLANS.enterprise.name}</h3>
+                <p className="text-sm text-slate-400 mb-6 relative z-10">{PLANS.enterprise.tagline}</p>
+                <div className="mb-8 relative z-10">
                   <div className="flex items-baseline gap-2">
                     {appliedCoupon ? (
                       <>
@@ -412,29 +463,32 @@ function PaymentPageContent() {
                     <span className="text-base text-slate-400">/month</span>
                   </div>
                 </div>
-                <ul className="space-y-4 mb-8 flex-grow">
+                <ul className="space-y-4 mb-8 flex-grow relative z-10">
                   {PLANS.enterprise.features.map((feature: string, i: number) => (
                     <li key={i} className="flex items-center gap-3 text-sm text-slate-300">
-                      <Check className="h-5 w-5 text-emerald-400 flex-shrink-0" /> {feature}
+                      <div className="h-5 w-5 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+                        <Check className="h-3 w-3 text-white" />
+                      </div>
+                      {feature}
                     </li>
                   ))}
                 </ul>
                 <Button
                   onClick={() => handlePayment("enterprise", prices[currency].enterprise.value)}
                   disabled={isProcessing}
-                  className="w-full h-12 mt-auto bg-white text-slate-900 hover:bg-slate-100 text-base font-semibold"
+                  className="w-full h-14 mt-auto bg-white text-slate-900 hover:bg-slate-100 text-base font-semibold rounded-xl relative z-10"
                 >
                   {isProcessing && selectedPlan === "enterprise" ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
                   ) : "Get Enterprise"}
                 </Button>
-              </div>
+              </motion.div>
             </div>
 
             {/* Footer */}
-            <div className="mt-12 text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Secure payment via Razorpay • UPI, Cards, Net Banking supported
+            <div className="mt-20 text-center">
+              <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2">
+                <Lock className="w-4 h-4" /> Secure payment via Razorpay • UPI, Cards, Net Banking supported
               </p>
               <p className="mt-2 text-xs text-slate-400">
                 Monthly subscription • Cancel anytime • Instant access

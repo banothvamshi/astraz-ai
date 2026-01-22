@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
 
     // Parse document
     console.log("Parsing document...");
+    // Parse document
+    console.log("Parsing document...");
     const parsedResume = await retry(
       () => parseUniversalDocument(pdfBuffer, {
         includeOCR: true,
@@ -60,9 +62,15 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // Normalize resume
+    // AI Cleaning Step
+    console.log("Applying AI Cleaning Agent...");
+    const { cleanTextWithGemini } = await import("@/lib/gemini-cleaner");
+    const cleanedText = await cleanTextWithGemini(parsedResume.text);
+    console.log(`AI Cleaning complete. Original length: ${parsedResume.text.length}, Cleaned length: ${cleanedText.length}`);
+
+    // Normalize resume using the CLEANED text
     console.log("Normalizing resume...");
-    const normalizedResume = await normalizeResume(parsedResume.text);
+    const normalizedResume = await normalizeResume(cleanedText);
     const formattedResume = formatNormalizedResume(normalizedResume);
 
     // Return normalized structure

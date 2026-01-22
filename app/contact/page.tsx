@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Send, Mail, User, MessageSquare, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { FloatingNav } from "@/components/ui/floating-navbar";
+import { Spotlight } from "@/components/ui/spotlight";
+import { motion } from "framer-motion";
 
 export default function ContactPage() {
     const router = useRouter();
@@ -29,33 +32,20 @@ export default function ContactPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-            {/* Header */}
-            <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl">
-                <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-                    <button
-                        onClick={() => router.push("/")}
-                        className="flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                        Back to Home
-                    </button>
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5 shadow-lg shadow-amber-500/25">
-                            <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[10px] bg-white dark:bg-slate-900 p-1" />
-                        </div>
-                        <span className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                            Astraz AI
-                        </span>
-                    </div>
-                </div>
-            </header>
+        <div className="min-h-screen bg-white dark:bg-black relative overflow-hidden">
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+            <FloatingNav />
 
             {/* Main Content */}
-            <main className="container mx-auto px-6 py-16">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="container mx-auto px-6 py-32 relative z-10"
+            >
                 <div className="max-w-2xl mx-auto">
                     <div className="text-center mb-12">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 mb-6">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 mb-6 shadow-lg shadow-amber-500/20">
                             <Mail className="w-8 h-8" />
                         </div>
                         <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
@@ -66,7 +56,7 @@ export default function ContactPage() {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-8 space-y-6">
+                    <form onSubmit={handleSubmit} className="bg-white/50 backdrop-blur-xl dark:bg-slate-900/50 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-8 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -79,7 +69,7 @@ export default function ContactPage() {
                                         required
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                                         placeholder="John Doe"
                                     />
                                 </div>
@@ -96,7 +86,7 @@ export default function ContactPage() {
                                         required
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                                         placeholder="john@example.com"
                                     />
                                 </div>
@@ -114,7 +104,7 @@ export default function ContactPage() {
                                     required
                                     value={formData.subject}
                                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                                     placeholder="How can we help?"
                                 />
                             </div>
@@ -131,7 +121,7 @@ export default function ContactPage() {
                                     rows={5}
                                     value={formData.message}
                                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all resize-none"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all resize-none"
                                     placeholder="Tell us what's on your mind..."
                                 />
                             </div>
@@ -140,7 +130,7 @@ export default function ContactPage() {
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full h-14 text-lg bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-500/25 rounded-xl transition-all"
+                            className="w-full h-14 text-lg bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-500/25 rounded-xl transition-all hover:scale-[1.02]"
                         >
                             {isSubmitting ? (
                                 <span className="flex items-center gap-2">
@@ -165,7 +155,7 @@ export default function ContactPage() {
                         </p>
                     </div>
                 </div>
-            </main>
+            </motion.div>
         </div>
     );
 }

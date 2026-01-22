@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { removeAllPlaceholders } from "./placeholder-detector";
+import { getTheme, ResumeTheme } from "./themes";
 
 export interface PDFOptions {
   type: "resume" | "coverLetter";
@@ -11,16 +12,8 @@ export interface PDFOptions {
   location?: string;
   company?: string;
   jobTitle?: string;
+  themeId?: string; // NEW: Accept theme ID
 }
-
-// Enterprise-Grade Palette (Deep Indigo & Slate Cosmic)
-const COLORS = {
-  primary: [15, 23, 42], // Slate 900 (Deep Navy/Black)
-  secondary: [51, 65, 85], // Slate 700 (Professional Grey)
-  text: [30, 41, 59], // Slate 800 (High Contrast Body)
-  accent: [79, 70, 229], // Indigo 600 (Subtle Branding Accent)
-  divider: [203, 213, 225], // Slate 300
-};
 
 /**
  * Strips markdown code blocks from content
@@ -56,8 +49,13 @@ function stripMarkdownFormatting(text: string): string {
  * Optimized for ATS compatibility and human readability with professional design.
  */
 export async function generateProfessionalPDF(options: PDFOptions): Promise<Buffer> {
-  const { type, content, name, email } = options;
+  const { type, content, name, email, themeId } = options;
   const cleanedContent = removeAllPlaceholders(stripCodeBlocks(content));
+
+  // Initialize Theme
+  const theme = getTheme(themeId);
+  const COLORS = theme.colors;
+  const FONTS = theme.fonts;
 
   const doc = new jsPDF({
     orientation: "portrait",
@@ -76,13 +74,11 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   let cursorY = MARGIN;
 
   // Typographic Scale
-  const FONT_BODY = "times"; // Serif is strictly professional
-  const FONT_HEADER = "helvetica"; // Sans-serif for headers
   const SIZE_NAME = 22;
   const SIZE_H1 = 14;
   const SIZE_H2 = 12;
   const SIZE_BODY = 10.5;
-  const LINE_HEIGHT_BODY = 5.5;
+  const LINE_HEIGHT_BODY = theme.layout.lineHeight;
 
   // Helper: Check Page Break and Add Page if Needed
   const checkPageBreak = (heightNeeded: number) => {
@@ -113,7 +109,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
   // Helper: Render Bullet Point
   const renderBullet = (text: string) => {
-    doc.setFont(FONT_BODY, "normal");
+    doc.setFont(FONTS.body, "normal");
     doc.setFontSize(SIZE_BODY);
     doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
 
@@ -124,6 +120,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     checkPageBreak(lines.length * LINE_HEIGHT_BODY + 2);
 
     // Draw Bullet
+    doc.setFillColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]); // Dynamic bullet color
     doc.circle(MARGIN + 2, cursorY - 1.5, 0.8, "F");
 
     lines.forEach((line: string) => {
@@ -144,7 +141,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   checkPageBreak(40);
 
   // Name (Centered)
-  doc.setFont(FONT_HEADER, "bold");
+  doc.setFont(FONTS.header, "bold");
   doc.setFontSize(SIZE_NAME);
   doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
   const nameWidth = doc.getTextWidth(displayName);
@@ -159,7 +156,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
   // Contact Line 1 (Email | Phone | Location)
   if (contactParts.length > 0) {
-    doc.setFont(FONT_HEADER, "normal");
+    doc.setFont(FONTS.header, "normal");
     doc.setFontSize(SIZE_BODY);
     doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
     const contactLine = contactParts.join("  |  ");
@@ -170,7 +167,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
   // Contact Line 2 (LinkedIn) - separate line for clean layout
   if (displayLinkedin) {
-    doc.setFont(FONT_HEADER, "normal");
+    doc.setFont(FONTS.header, "normal");
     doc.setFontSize(SIZE_BODY - 1);
     doc.setTextColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
     // Clean LinkedIn URL for display
@@ -188,7 +185,9 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   cursorY += 10;
 
   // COVER LETTER: ADD RECIPIENT BLOCK & DATE
-
+  if (type === "coverLetter") {
+    // ... (Implement cover letter specific layout if needed, using same fonts) ...
+  }
 
   // 2. PARSE AND RENDER CONTENT
   const lines = cleanedContent.split("\n");
@@ -220,7 +219,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
       if (cursorY > MARGIN + 20) cursorY += 5; // Extra space before new section
 
-      doc.setFont(FONT_HEADER, "bold");
+      doc.setFont(FONTS.header, "bold");
       doc.setFontSize(SIZE_H1);
       doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
       doc.text(headerText, MARGIN, cursorY);
@@ -244,7 +243,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
       if (cursorY > MARGIN) cursorY += 4;
 
-      doc.setFont(FONT_HEADER, "bold");
+      doc.setFont(FONTS.header, "bold");
       doc.setFontSize(SIZE_H2);
       doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
       doc.text(subHeaderText, MARGIN, cursorY);
@@ -265,7 +264,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
       const metaText = line.replace(/\*\*/g, "").trim(); // Strip bold markers for clean text
       checkPageBreak(10);
 
-      doc.setFont(FONT_HEADER, "normal"); // Sans-serif for metadata looks cleaner
+      doc.setFont(FONTS.header, "normal"); // Sans-serif for metadata looks cleaner
       doc.setFontSize(SIZE_BODY - 0.5);
       doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]); // Dark Grey
       doc.text(metaText, MARGIN, cursorY);
@@ -281,7 +280,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
       checkPageBreak(15);
       if (cursorY > MARGIN) cursorY += 3;
 
-      doc.setFont(FONT_HEADER, "bold");
+      doc.setFont(FONTS.header, "bold");
       doc.setFontSize(SIZE_BODY); // Same as body but bold
       doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
       doc.text(boldText, MARGIN, cursorY);
@@ -300,7 +299,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
     // REGULAR PARAGRAPH
     const cleanedLine = stripMarkdownFormatting(line);
-    renderTextParagraph(cleanedLine, SIZE_BODY, FONT_BODY, "normal", COLORS.text);
+    renderTextParagraph(cleanedLine, SIZE_BODY, FONTS.body, "normal", COLORS.text);
     i++;
   }
 

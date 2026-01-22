@@ -2,29 +2,30 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { FloatingNav } from "@/components/ui/floating-navbar";
+import { Spotlight } from "@/components/ui/spotlight";
+import { motion } from "framer-motion";
 
 export default function PrivacyPage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-            {/* Header */}
-            <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
-                <div className="container mx-auto flex h-20 items-center justify-between px-6 lg:px-8">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5 shadow-lg shadow-amber-500/25 transition-transform group-hover:scale-105">
-                            <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[10px] bg-white dark:bg-slate-900 p-1" />
-                        </div>
-                        <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Astraz AI</span>
-                    </Link>
-                    <Link href="/" className="text-sm text-slate-600 hover:text-amber-600 flex items-center gap-2 transition-colors">
-                        <ArrowLeft className="h-4 w-4" /> Back to Home
-                    </Link>
-                </div>
-            </nav>
+        <div className="min-h-screen bg-white dark:bg-black relative overflow-hidden">
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+            <FloatingNav />
 
             {/* Content */}
-            <div className="container mx-auto max-w-4xl px-6 lg:px-8 py-20">
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">Privacy Policy</h1>
-                <p className="text-lg text-slate-500 mb-16">Last updated: January 2026</p>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="container mx-auto max-w-4xl px-6 lg:px-8 py-32 relative z-10"
+            >
+                <div className="mb-8">
+                    <Link href="/" className="text-sm text-slate-600 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-500 flex items-center gap-2 transition-colors mb-4">
+                        <ArrowLeft className="h-4 w-4" /> Back to Home
+                    </Link>
+                    <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">Privacy Policy</h1>
+                    <p className="text-lg text-slate-500 dark:text-slate-400 mb-16">Last updated: January 2026</p>
+                </div>
 
                 <div className="prose prose-slate dark:prose-invert max-w-none">
                     <h2>1. Information We Collect</h2>
@@ -79,7 +80,7 @@ export default function PrivacyPage() {
                         For privacy-related questions, contact us at <a href="mailto:privacy@astrazai.com" className="text-amber-600 hover:underline">privacy@astrazai.com</a>
                     </p>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

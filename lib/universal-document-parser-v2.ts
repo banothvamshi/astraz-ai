@@ -593,6 +593,13 @@ function fixOCRIssues(text: string): string {
     [/\bO(?=\d)/g, "0"],
     // Common character swap: rn -> m
     [/rn(?=\s|[aeiou])/g, "m"],
+
+    // SPECIFIC RESUME TYPOS
+    [/\biearning\b/gi, "learning"],
+    [/\bArtificiai\b/gi, "Artificial"],
+    [/\btechnicai\b/gi, "Technical"],
+    [/\btechnicaior\b/gi, "Technical Coordinator"], // Heuristic, AI will do better but good fallback
+    [/HighbrowTechnologyInc/gi, "Highbrow Technology Inc"],
   ];
 
   let cleaned = text;
