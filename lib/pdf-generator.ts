@@ -131,58 +131,124 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     cursorY += 1.5; // Slight spacing between bullets
   };
 
-  // 1. RENDER HEADER (Name & Contact) - ALWAYS RENDER with fallbacks
+  // 1. RENDER HEADER (Name & Contact)
   const displayName = name || "Professional Resume";
   const displayEmail = options.email || "";
   const displayPhone = options.phone || "";
   const displayLinkedin = options.linkedin || "";
   const displayLocation = options.location || "";
 
-  checkPageBreak(40);
+  // HEADER STYLE: BANNER vs CLEAN
+  const isBanner = theme.layout.headerStyle === "banner";
 
-  // Name (Centered)
-  doc.setFont(FONTS.header, "bold");
-  doc.setFontSize(SIZE_NAME);
-  doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-  const nameWidth = doc.getTextWidth(displayName);
-  doc.text(displayName, (PAGE_WIDTH - nameWidth) / 2, cursorY);
-  cursorY += 10;
+  if (isBanner) {
+    // Draw Banner Background
+    const bannerHeight = 50;
+    // Get theme primary color but maybe darker/brighter depending on theme definition
+    // Actually, for Modern/Creative we want background color to be the "Accent" or "Secondary" usually, 
+    // but let's strictly follow standard design: 
+    // Modern: Black/Dark Grey background? Or Emerald? 
+    // Let's use the ACCENT color for the banner background to make it pop, or Secondary.
+    // Wait, in the Theme update I set Primary text to White. So background must be dark.
+    // Let's use the 'Accent' color for Creative and 'Text' color (Dark Grey) for Modern?
+    // No, let's look at `colors` passed:
+    // Modern: Primary=White. Text=Gray800. Accent=Emerald.
+    // We need a background color. Let's assume Secondary or Text for background if Primary is white.
+    // Let's hardcode a good background based on theme for now or use Secondary.
 
-  // Build contact info line with all available fields
-  const contactParts: string[] = [];
-  if (displayEmail) contactParts.push(displayEmail);
-  if (displayPhone) contactParts.push(displayPhone);
-  if (displayLocation) contactParts.push(displayLocation);
+    const bannerColor = theme.id === 'modern' ? [31, 41, 55] : // Dark Gray
+      theme.id === 'creative' ? [88, 28, 135] : // Purple
+        [15, 23, 42]; // Default Navy
 
-  // Contact Line 1 (Email | Phone | Location)
-  if (contactParts.length > 0) {
-    doc.setFont(FONTS.header, "normal");
-    doc.setFontSize(SIZE_BODY);
-    doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
-    const contactLine = contactParts.join("  |  ");
-    const contactWidth = doc.getTextWidth(contactLine);
-    doc.text(contactLine, (PAGE_WIDTH - contactWidth) / 2, cursorY);
-    cursorY += 5;
+    doc.setFillColor(bannerColor[0], bannerColor[1], bannerColor[2]);
+    doc.rect(0, 0, PAGE_WIDTH, bannerHeight, "F");
+
+    cursorY = 18; // Start text inside banner
+
+    // Name (White, Centered)
+    doc.setFont(FONTS.header, "bold");
+    doc.setFontSize(SIZE_NAME + 4); // Larger for banner
+    doc.setTextColor(255, 255, 255);
+    const nameWidth = doc.getTextWidth(displayName);
+    doc.text(displayName, (PAGE_WIDTH - nameWidth) / 2, cursorY);
+    cursorY += 10;
+
+    // Contact (White, Centered, Smaller)
+    const contactParts: string[] = [];
+    if (displayEmail) contactParts.push(displayEmail);
+    if (displayPhone) contactParts.push(displayPhone);
+    if (displayLocation) contactParts.push(displayLocation);
+
+    if (contactParts.length > 0) {
+      doc.setFont(FONTS.header, "normal");
+      doc.setFontSize(SIZE_BODY); // Slightly larger body
+      doc.setTextColor(220, 220, 220); // Off-white
+      const contactLine = contactParts.join("  |  ");
+      const contactWidth = doc.getTextWidth(contactLine);
+      doc.text(contactLine, (PAGE_WIDTH - contactWidth) / 2, cursorY);
+      cursorY += 6;
+    }
+
+    if (displayLinkedin) {
+      doc.setFont(FONTS.header, "normal");
+      doc.setFontSize(SIZE_BODY - 1);
+      doc.setTextColor(200, 200, 200);
+      const linkedinDisplay = displayLinkedin.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      const linkedinWidth = doc.getTextWidth(linkedinDisplay);
+      doc.text(linkedinDisplay, (PAGE_WIDTH - linkedinWidth) / 2, cursorY);
+      cursorY += 6;
+    }
+
+    // Reset cursor to below banner
+    cursorY = bannerHeight + 10;
+
+  } else {
+    // CLEAN/TRADITIONAL HEADER
+    checkPageBreak(40);
+
+    // Name (Centered)
+    doc.setFont(FONTS.header, "bold");
+    doc.setFontSize(SIZE_NAME);
+    doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+    const nameWidth = doc.getTextWidth(displayName);
+    doc.text(displayName, (PAGE_WIDTH - nameWidth) / 2, cursorY);
+    cursorY += 10;
+
+    // Build contact info line with all available fields
+    const contactParts: string[] = [];
+    if (displayEmail) contactParts.push(displayEmail);
+    if (displayPhone) contactParts.push(displayPhone);
+    if (displayLocation) contactParts.push(displayLocation);
+
+    // Contact Line 1 (Email | Phone | Location)
+    if (contactParts.length > 0) {
+      doc.setFont(FONTS.header, "normal");
+      doc.setFontSize(SIZE_BODY);
+      doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
+      const contactLine = contactParts.join("  |  ");
+      const contactWidth = doc.getTextWidth(contactLine);
+      doc.text(contactLine, (PAGE_WIDTH - contactWidth) / 2, cursorY);
+      cursorY += 5;
+    }
+
+    // Contact Line 2 (LinkedIn)
+    if (displayLinkedin) {
+      doc.setFont(FONTS.header, "normal");
+      doc.setFontSize(SIZE_BODY - 1);
+      doc.setTextColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
+      const linkedinDisplay = displayLinkedin.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      const linkedinWidth = doc.getTextWidth(linkedinDisplay);
+      doc.text(linkedinDisplay, (PAGE_WIDTH - linkedinWidth) / 2, cursorY);
+      cursorY += 5;
+    }
+
+    // Divider Line
+    cursorY += 3;
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
+    doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
+    cursorY += 10;
   }
-
-  // Contact Line 2 (LinkedIn) - separate line for clean layout
-  if (displayLinkedin) {
-    doc.setFont(FONTS.header, "normal");
-    doc.setFontSize(SIZE_BODY - 1);
-    doc.setTextColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-    // Clean LinkedIn URL for display
-    const linkedinDisplay = displayLinkedin.replace(/^https?:\/\//, '').replace(/\/$/, '');
-    const linkedinWidth = doc.getTextWidth(linkedinDisplay);
-    doc.text(linkedinDisplay, (PAGE_WIDTH - linkedinWidth) / 2, cursorY);
-    cursorY += 5;
-  }
-
-  // Divider Line
-  cursorY += 3;
-  doc.setLineWidth(0.5);
-  doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-  doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
-  cursorY += 10;
 
   // COVER LETTER: ADD RECIPIENT BLOCK & DATE
   if (type === "coverLetter") {

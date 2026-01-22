@@ -16,6 +16,7 @@ export interface ResumeTheme {
     layout: {
         contentWidthOffset: number; // For margins
         lineHeight: number;
+        headerStyle?: "clean" | "banner" | "sidebar"; // NEW: Header style options
     };
     isPremium?: boolean;
 }
@@ -38,18 +39,19 @@ export const THEMES: Record<string, ResumeTheme> = {
         layout: {
             contentWidthOffset: 0,
             lineHeight: 5.5,
+            headerStyle: "clean",
         },
         isPremium: false
     },
     modern: {
         id: "modern",
         name: "Modern",
-        description: "Sleek, sans-serif design for tech and startup roles.",
+        description: "Sleek, sans-serif design with a bold header.",
         colors: {
-            primary: [0, 0, 0],       // Black
+            primary: [255, 255, 255], // White text for banner
             secondary: [75, 85, 99],  // Gray 600
             text: [31, 41, 55],       // Gray 800
-            accent: [16, 185, 129],   // Emerald 500 (Subtle pop)
+            accent: [16, 185, 129],   // Emerald 500
         },
         fonts: {
             header: "helvetica",
@@ -57,39 +59,41 @@ export const THEMES: Record<string, ResumeTheme> = {
         },
         layout: {
             contentWidthOffset: 0,
-            lineHeight: 6.0, // More breathing room
+            lineHeight: 6.0,
+            headerStyle: "banner", // Enable Banner
         },
         isPremium: false
     },
     creative: {
         id: "creative",
         name: "Creative",
-        description: "Bold colors and distinctive typography for creative fields.",
+        description: "Bold colors and unique layout for creative fields.",
         colors: {
-            primary: [88, 28, 135],   // Purple 900
+            primary: [255, 255, 255], // White text
             secondary: [107, 33, 168], // Purple 700
             text: [17, 24, 39],       // Gray 900
             accent: [219, 39, 119],   // Pink 600
         },
         fonts: {
-            header: "helvetica", // Ideally closer to Gotham/Futura if available in jsPDF standard
+            header: "helvetica",
             body: "helvetica",
         },
         layout: {
             contentWidthOffset: 0,
             lineHeight: 5.8,
+            headerStyle: "banner", // Enable Banner
         },
         isPremium: true
     },
     executive: {
         id: "executive",
         name: "Executive",
-        description: "High-contrast, authoritative design for leadership roles.",
+        description: "High-contrast, authoritative design.",
         colors: {
             primary: [0, 0, 0],         // Pure Black
             secondary: [64, 64, 64],    // Dark Gray
             text: [0, 0, 0],            // Pure Black
-            accent: [180, 83, 9],       // Amber 700 (Gold-ish)
+            accent: [180, 83, 9],       // Amber 700
         },
         fonts: {
             header: "times",
@@ -98,6 +102,7 @@ export const THEMES: Record<string, ResumeTheme> = {
         layout: {
             contentWidthOffset: 0,
             lineHeight: 5.5,
+            headerStyle: "clean",
         },
         isPremium: true
     }
