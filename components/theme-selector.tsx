@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Palette } from "lucide-react";
+import { Check, Palette, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { THEMES } from "@/lib/themes";
 
@@ -8,9 +8,17 @@ interface ThemeSelectorProps {
     currentTheme: string;
     onSelect: (themeId: string) => void;
     disabled?: boolean;
+    isPremiumUser?: boolean;
 }
 
-export function ThemeSelector({ currentTheme, onSelect, disabled }: ThemeSelectorProps) {
+export function ThemeSelector({ currentTheme, onSelect, disabled, isPremiumUser = false }: ThemeSelectorProps) {
+
+    const handleSelect = (theme: any) => {
+        if (disabled) return;
+        if (theme.isPremium && !isPremiumUser) return;
+        onSelect(theme.id);
+    };
+
     return (
         <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 transition-all hover:shadow-xl">
             <div className="p-8">
@@ -22,21 +30,30 @@ export function ThemeSelector({ currentTheme, onSelect, disabled }: ThemeSelecto
                         <h2 className="font-bold text-xl text-slate-900 dark:text-white">Design Theme</h2>
                         <p className="text-sm text-slate-500">Select a professional layout style</p>
                     </div>
+                    {!isPremiumUser && (
+                        <div className="ml-auto px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold">
+                            Upgrade for Premium Themes
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {Object.values(THEMES).map((theme) => {
                         const isSelected = currentTheme === theme.id;
+                        const isLocked = theme.isPremium && !isPremiumUser;
+
                         return (
                             <div
                                 key={theme.id}
-                                onClick={() => !disabled && onSelect(theme.id)}
+                                onClick={() => handleSelect(theme)}
                                 className={cn(
-                                    "relative cursor-pointer rounded-xl border p-4 transition-all hover:scale-[1.02]",
+                                    "relative rounded-xl border p-4 transition-all",
                                     isSelected
                                         ? "border-amber-500 bg-amber-50/50 dark:bg-amber-900/10 ring-1 ring-amber-500"
-                                        : "border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-slate-50 dark:hover:bg-slate-800/50",
-                                    disabled && "opacity-50 cursor-not-allowed"
+                                        : "border-slate-200 dark:border-slate-800",
+                                    !isLocked && !isSelected && "hover:border-amber-300 dark:hover:border-amber-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02]",
+                                    disabled && "opacity-50 cursor-not-allowed",
+                                    isLocked && "opacity-75 cursor-not-allowed bg-slate-50 dark:bg-slate-900/50"
                                 )}
                             >
                                 <div className="flex items-start justify-between mb-2">
@@ -49,6 +66,11 @@ export function ThemeSelector({ currentTheme, onSelect, disabled }: ThemeSelecto
                                     {isSelected && (
                                         <div className="h-5 w-5 rounded-full bg-amber-500 flex items-center justify-center text-white">
                                             <Check className="h-3 w-3" />
+                                        </div>
+                                    )}
+                                    {isLocked && (
+                                        <div className="h-5 w-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                                            <Lock className="h-3 w-3" />
                                         </div>
                                     )}
                                 </div>
@@ -69,6 +91,10 @@ export function ThemeSelector({ currentTheme, onSelect, disabled }: ThemeSelecto
                                         title="Accent"
                                     />
                                 </div>
+
+                                {isLocked && (
+                                    <div className="absolute inset-0 z-10" title="Upgrade to unlock this theme" />
+                                )}
                             </div>
                         );
                     })}

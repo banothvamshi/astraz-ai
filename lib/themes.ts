@@ -17,6 +17,7 @@ export interface ResumeTheme {
         contentWidthOffset: number; // For margins
         lineHeight: number;
     };
+    isPremium?: boolean;
 }
 
 export const THEMES: Record<string, ResumeTheme> = {
@@ -37,7 +38,8 @@ export const THEMES: Record<string, ResumeTheme> = {
         layout: {
             contentWidthOffset: 0,
             lineHeight: 5.5,
-        }
+        },
+        isPremium: false
     },
     modern: {
         id: "modern",
@@ -56,7 +58,8 @@ export const THEMES: Record<string, ResumeTheme> = {
         layout: {
             contentWidthOffset: 0,
             lineHeight: 6.0, // More breathing room
-        }
+        },
+        isPremium: false
     },
     creative: {
         id: "creative",
@@ -75,7 +78,8 @@ export const THEMES: Record<string, ResumeTheme> = {
         layout: {
             contentWidthOffset: 0,
             lineHeight: 5.8,
-        }
+        },
+        isPremium: true
     },
     executive: {
         id: "executive",
@@ -94,7 +98,8 @@ export const THEMES: Record<string, ResumeTheme> = {
         layout: {
             contentWidthOffset: 0,
             lineHeight: 5.5,
-        }
+        },
+        isPremium: true
     }
 };
 
