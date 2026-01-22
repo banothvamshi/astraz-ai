@@ -1,18 +1,11 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/client";
 
-// Singleton instance for browser client
-let browserClient: SupabaseClient | null = null;
-
-// Browser client for client-side auth (Singleton)
+// Browser client for client-side auth using cookies (SSR-compatible)
 export function getSupabaseBrowserClient() {
-    if (browserClient) {
-        return browserClient;
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-    browserClient = createClient(supabaseUrl, supabaseAnonKey);
-    return browserClient;
+    // This now uses @supabase/ssr's createBrowserClient which stores session in cookies
+    // This is critical for Next.js App Router where Server Components need to read auth state
+    return createClient();
 }
 
 // Admin client for server-side operations
@@ -35,7 +28,7 @@ export function getSupabaseAdmin() {
         }
     }
 
-    return createClient(supabaseUrl, supabaseServiceKey, {
+    return createSupabaseClient(supabaseUrl, supabaseServiceKey, {
         auth: {
             autoRefreshToken: false,
             persistSession: false

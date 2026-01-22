@@ -55,9 +55,9 @@ export default function LoginPage() {
 
                 if (profile?.is_admin) {
                     console.log("User is admin, redirecting to admin panel...");
-                    // Force refresh to ensure cookies are seen by Server Components
-                    router.refresh();
-                    router.push("/admin");
+                    // Force hard navigation to ensure cookies are sent to server
+                    // This bypasses Next.js Router cache which might hold a stale "unauth" state
+                    window.location.href = "/admin";
                     return;
                 } else if (profile && profile.first_login_completed === false) {
                     console.log("First login, redirecting to reset password...");
