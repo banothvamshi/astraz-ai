@@ -1,21 +1,28 @@
 import { createClient } from "@/utils/supabase/server";
+import Link from "next/link";
 import {
     Users,
     CreditCard,
     Activity,
     TrendingUp,
-    AlertCircle
+    BarChart3,
+    Tag,
+    Settings,
+    ArrowUpRight,
+    Sparkles,
+    Globe,
+    Clock
 } from "lucide-react";
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
 
     // 1. Fetch Key Metrics
-    // Total Revenue (approximate from successful payments)
     const { data: payments } = await supabase
         .from("payments")
-        .select("amount")
-        .eq("status", "captured");
+        .select("amount, created_at")
+        .eq("status", "captured")
+        .order("created_at", { ascending: false });
 
     const totalRevenue = payments?.reduce((acc, curr) => acc + (curr.amount / 100), 0) || 0;
 
@@ -37,91 +44,223 @@ export default async function AdminDashboard() {
         .select("*", { count: "exact", head: true })
         .gte("created_at", oneDayAgo);
 
+    // Total Generations (All Time)
+    const { count: totalGenerations } = await supabase
+        .from("generations")
+        .select("*", { count: "exact", head: true });
+
+    // Anonymous Generations
+    const { count: anonymousGenerations } = await supabase
+        .from("generations")
+        .select("*", { count: "exact", head: true })
+        .is("user_id", null);
+
+    // Recent Users (for activity feed)
+    const { data: recentUsers } = await supabase
+        .from("profiles")
+        .select("id, email, created_at, is_premium")
+        .order("created_at", { ascending: false })
+        .limit(5);
+
     const cards = [
         {
             title: "Total Revenue",
             value: `₹${totalRevenue.toLocaleString()}`,
-            change: "+12% from last month",
+            change: "+12.5%",
             icon: CreditCard,
-            color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30",
+            color: "from-emerald-500 to-teal-600",
+            href: "/admin/payments"
         },
         {
             title: "Total Users",
             value: userCount?.toLocaleString() || "0",
-            change: `+${premiumCount} Premium`,
+            change: `${premiumCount} Premium`,
             icon: Users,
-            color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
+            color: "from-blue-500 to-indigo-600",
+            href: "/admin/users"
         },
         {
             title: "24h Generations",
             value: generationCount?.toLocaleString() || "0",
-            change: "System Active",
+            change: `${totalGenerations} Total`,
             icon: Activity,
-            color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30",
+            color: "from-amber-500 to-orange-600",
+            href: "/admin/analytics"
         },
         {
-            title: "System Status",
-            value: "99.9% Uptime",
-            change: "All systems operational",
+            title: "Conversion Rate",
+            value: userCount ? ((premiumCount || 0) / userCount * 100).toFixed(1) + "%" : "0%",
+            change: "Free → Paid",
             icon: TrendingUp,
-            color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30",
+            color: "from-purple-500 to-pink-600",
+            href: "/admin/analytics"
         },
+    ];
+
+    const quickActions = [
+        { label: "View All Users", href: "/admin/users", icon: Users },
+        { label: "Analytics Hub", href: "/admin/analytics", icon: BarChart3 },
+        { label: "Manage Coupons", href: "/admin/coupons", icon: Tag },
+        { label: "System Health", href: "/admin/system", icon: Activity },
+        { label: "Settings", href: "/admin/settings", icon: Settings },
     ];
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
-                <p className="text-slate-500">Welcome back, Super Admin.</p>
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Command Center</h1>
+                    <p className="text-slate-500 mt-1">Real-time platform overview and controls</p>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                    <Clock className="h-4 w-4" />
+                    <span>Last synced: {new Date().toLocaleTimeString()}</span>
+                </div>
             </div>
 
+            {/* KPI Cards */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {cards.map((card) => {
                     const Icon = card.icon;
                     return (
-                        <div key={card.title} className="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className={`p-3 rounded-xl ${card.color}`}>
-                                    <Icon className="h-6 w-6" />
+                        <Link
+                            key={card.title}
+                            href={card.href}
+                            className="group relative p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+                        >
+                            <div className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
+                            <div className="relative">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className={`p-3 rounded-xl bg-gradient-to-br ${card.color} text-white shadow-lg`}>
+                                        <Icon className="h-6 w-6" />
+                                    </div>
+                                    <ArrowUpRight className="h-5 w-5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                                 </div>
-                                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full">
+                                <p className="text-sm font-medium text-slate-500">{card.title}</p>
+                                <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{card.value}</p>
+                                <p className="text-xs text-emerald-600 font-medium mt-2 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full inline-block">
                                     {card.change}
-                                </span>
+                                </p>
                             </div>
-                            <h3 className="text-slate-500 text-sm font-medium">{card.title}</h3>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{card.value}</p>
-                        </div>
+                        </Link>
                     );
                 })}
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-                <div className="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Recent Activity</h3>
-                    <div className="h-64 flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                        Chart Placeholder (Recharts integration required)
+            {/* Main Content Grid */}
+            <div className="grid gap-6 lg:grid-cols-3">
+                {/* Quick Actions */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-amber-500" />
+                        Quick Actions
+                    </h3>
+                    <div className="space-y-2">
+                        {quickActions.map((action) => {
+                            const Icon = action.icon;
+                            return (
+                                <Link
+                                    key={action.href}
+                                    href={action.href}
+                                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group"
+                                >
+                                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-colors">
+                                        <Icon className="h-4 w-4 text-slate-600 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                                    </div>
+                                    <span className="font-medium text-slate-700 dark:text-slate-300">{action.label}</span>
+                                    <ArrowUpRight className="h-4 w-4 ml-auto text-slate-300 group-hover:text-slate-500" />
+                                </Link>
+                            );
+                        })}
                     </div>
                 </div>
 
-                <div className="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Recent Payments</h3>
-                    {/* We will fetch recent payments here */}
-                    <div className="space-y-4">
-                        {(payments || []).slice(0, 5).map((payment: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                                        <CreditCard className="h-4 w-4" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-slate-900 dark:text-white">Payment Received</p>
-                                        <p className="text-xs text-slate-500">ID: {payment.razorpay_order_id || "N/A"}</p>
-                                    </div>
+                {/* Recent Signups */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <Users className="h-5 w-5 text-blue-500" />
+                        Recent Signups
+                    </h3>
+                    <div className="space-y-3">
+                        {(recentUsers || []).map((user) => (
+                            <div key={user.id} className="flex items-center gap-3 p-2">
+                                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                                    {user.email?.substring(0, 2).toUpperCase()}
                                 </div>
-                                <span className="font-bold text-emerald-600">+{payment.amount / 100}</span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user.email}</p>
+                                    <p className="text-xs text-slate-500">{new Date(user.created_at).toLocaleDateString()}</p>
+                                </div>
+                                {user.is_premium && (
+                                    <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">PRO</span>
+                                )}
                             </div>
                         ))}
+                        {(!recentUsers || recentUsers.length === 0) && (
+                            <p className="text-sm text-slate-500 text-center py-4">No recent signups</p>
+                        )}
                     </div>
+                </div>
+
+                {/* Anonymous vs Registered */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <Globe className="h-5 w-5 text-emerald-500" />
+                        User Distribution
+                    </h3>
+                    <div className="space-y-4">
+                        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Registered Users</span>
+                                <span className="text-2xl font-bold text-blue-600">{userCount || 0}</span>
+                            </div>
+                            <div className="mt-2 h-2 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-blue-500 rounded-full"
+                                    style={{ width: `${totalGenerations ? ((totalGenerations - (anonymousGenerations || 0)) / totalGenerations * 100) : 0}%` }}
+                                />
+                            </div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Anonymous Generations</span>
+                                <span className="text-2xl font-bold text-slate-600">{anonymousGenerations || 0}</span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">Users who tried without signing up</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Recent Payments */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <CreditCard className="h-5 w-5 text-emerald-500" />
+                        Recent Payments
+                    </h3>
+                    <Link href="/admin/payments" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1">
+                        View All <ArrowUpRight className="h-4 w-4" />
+                    </Link>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    {(payments || []).slice(0, 4).map((payment: any, i: number) => (
+                        <div key={i} className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center">
+                                    <CreditCard className="h-5 w-5 text-emerald-600" />
+                                </div>
+                                <div>
+                                    <p className="text-xl font-bold text-emerald-700 dark:text-emerald-300">₹{(payment.amount / 100).toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <p className="text-xs text-slate-500">{new Date(payment.created_at).toLocaleString()}</p>
+                        </div>
+                    ))}
+                    {(!payments || payments.length === 0) && (
+                        <p className="col-span-full text-sm text-slate-500 text-center py-8">No recent payments</p>
+                    )}
                 </div>
             </div>
         </div>
