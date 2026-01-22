@@ -488,7 +488,8 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-4">
             {/* Upgrade Button for non-premium users */}
-            {!isPremium && (
+            {/* Upgrade Button for non-enterprise users */}
+            {userPlan !== "enterprise" && (
               <Button
                 onClick={() => router.push("/payment")}
                 className="hidden sm:flex bg-amber-600 hover:bg-amber-700 text-white"
@@ -700,8 +701,8 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Upgrade CTA for non-premium users */}
-                {!isPremium && (
+                {/* Upgrade CTA for non-enterprise users */}
+                {userPlan !== "enterprise" && (
                   <div className="mt-8 p-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div>
@@ -787,25 +788,6 @@ export default function Dashboard() {
                 ) : generations.length > 0 ? (
                   <div className="divide-y divide-slate-100 dark:divide-slate-800">
                     {generations.map((gen) => {
-                      // Smart title extraction - if job_title looks like description text, extract first line
-                      let displayTitle = gen.job_title || "Untitled Resume";
-                      if (displayTitle.length > 60 || displayTitle.includes("position focused on")) {
-                        // This is probably the job description, not a title
-                        // Try to extract a better title from the first few words
-                        const firstLine = displayTitle.split(/[.!\n]/)[0];
-                        if (firstLine.length > 60) {
-                          displayTitle = firstLine.substring(0, 50).trim() + "...";
-                        } else {
-                          displayTitle = firstLine.trim() || "Resume Generation";
-                        }
-                      }
-
-                      // Smart company extraction
-                      let displayCompany = gen.company_name || "";
-                      if (displayCompany.length > 40) {
-                        displayCompany = displayCompany.substring(0, 35).trim() + "...";
-                      }
-
                       return (
                         <div key={gen.id} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
                           <div className="flex items-start gap-4">
@@ -814,10 +796,10 @@ export default function Dashboard() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold text-slate-900 dark:text-white text-base truncate">
-                                {displayTitle}
+                                {gen.job_title || "Untitled Resume"}
                               </h3>
                               <p className="text-sm text-slate-500 truncate">
-                                {displayCompany || "Company not specified"}
+                                {gen.company_name || "Company not specified"}
                               </p>
                               <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
                                 <span className="flex items-center gap-1">
@@ -836,18 +818,46 @@ export default function Dashboard() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                setGeneratedResume(gen.resume_content);
-                                if (gen.cover_letter_content) {
-                                  setGeneratedCoverLetter(gen.cover_letter_content);
-                                }
-                                const url = new URL(window.location.href);
-                                url.searchParams.set("tab", "builder");
-                                router.push(url.pathname + url.search);
+                                // Trigger PDF download for this history item
+                                // We'll assume generatePreviewPdf or handleDownload logic can be adapted or we just direct download if we have the content
+                                // Actually, handleDownload uses `generatedResume` state. 
+                                // We should probably set state and then download, OR better, call a specialized download function.
+                                // For simplicity and reliability given current state structure:
+                                // We will reuse the download endpoint directly with the content from this item.
+                                const downloadHistoryPdf = async () => {
+                                  try {
+                                    const response = await fetch("/api/download-pdf", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({
+                                        content: gen.resume_content,
+                                        type: "resume",
+                                        // Use stored metadata if available, otherwise fallback to basic info
+                                        // Ideally we should have stored the full meta, but for now we pass what we have
+                                        name: contactInfo.fullName, // Fallback to current user state
+                                        email: contactInfo.email,
+                                        theme: selectedTheme
+                                      }),
+                                    });
+                                    if (!response.ok) throw new Error("Download failed");
+                                    const blob = await response.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement("a");
+                                    a.href = url;
+                                    a.download = `${(gen.job_title || "Resume").replace(/\s+/g, "_")}.pdf`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    a.remove();
+                                  } catch (e) {
+                                    alert("Failed to download PDF");
+                                  }
+                                };
+                                downloadHistoryPdf();
                               }}
                               className="shrink-0 text-amber-600 border-amber-200 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/20"
                             >
-                              <Edit2 className="h-3.5 w-3.5 mr-1.5" />
-                              Load
+                              <Download className="h-3.5 w-3.5 mr-1.5" />
+                              Download PDF
                             </Button>
                           </div>
                         </div>
