@@ -55,7 +55,8 @@ export default function LoginPage() {
 
                 if (profile?.is_admin) {
                     console.log("User is admin, redirecting to admin panel...");
-                    // Admin access is verified in admin/layout.tsx via database
+                    // Force refresh to ensure cookies are seen by Server Components
+                    router.refresh();
                     router.push("/admin");
                     return;
                 } else if (profile && profile.first_login_completed === false) {
@@ -65,6 +66,7 @@ export default function LoginPage() {
                 } else {
                     console.log("Redirecting to dashboard...");
                     // Normal users go to dashboard
+                    router.refresh();
                     router.push("/dashboard");
                 }
             }
