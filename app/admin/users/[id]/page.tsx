@@ -26,6 +26,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
     // Actions State
     const [creditAmount, setCreditAmount] = useState("");
+    const [expiryDate, setExpiryDate] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
@@ -141,6 +142,58 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         }
     };
 
+    const handleSetExpiry = async () => {
+        if (!expiryDate) return;
+        setIsUpdating(true);
+        try {
+            const supabase = getSupabaseBrowserClient();
+            const { error } = await supabase
+                .from("profiles")
+                .update({
+                    subscription_end_date: new Date(expiryDate).toISOString(),
+                    is_premium: true,
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", id);
+
+            if (error) {
+                toast.error("Failed to update expiry date");
+                console.error(error);
+            } else {
+                toast.success("Subscription expiry updated");
+                fetchUserDetails();
+                setExpiryDate("");
+            }
+        } catch (e) {
+            toast.error("Server error");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleClearExpiry = async () => {
+        if (!confirm("Clear expiry date? User will have permanent premium access.")) return;
+        setIsUpdating(true);
+        try {
+            const supabase = getSupabaseBrowserClient();
+            const { error } = await supabase
+                .from("profiles")
+                .update({ subscription_end_date: null, updated_at: new Date().toISOString() })
+                .eq("id", id);
+
+            if (error) {
+                toast.error("Failed to clear expiry");
+            } else {
+                toast.success("Expiry cleared - user has permanent access");
+                fetchUserDetails();
+            }
+        } catch (e) {
+            toast.error("Server error");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
     if (isLoading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin h-8 w-8 text-amber-600" /></div>;
     if (!user) return <div className="p-12 text-center">User not found</div>;
 
@@ -224,49 +277,132 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     </div>
                 </div>
 
-                {/* Plan Manager */}
+                {/* Subscription Expiry Control */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600">
-                            <Shield className="h-6 w-6" />
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-3 rounded-lg bg-orange-100 dark:bg-orange-900/20 text-orange-600">
+                            <Calendar className="h-6 w-6" />
                         </div>
-                        <h2 className="text-lg font-bold">Plan Manager</h2>
+                        <h2 className="text-lg font-bold">Subscription Expiry</h2>
+                    </div>
+
+                    {/* Current Expiry Display */}
+                    <div className="mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                        <div className="text-xs text-slate-500 mb-1">Current Expiry</div>
+                        {user.subscription_end_date ? (
+                            <div className="flex items-center gap-2">
+                                <span className={`text-sm font-bold ${new Date(user.subscription_end_date) < new Date() ? 'text-red-600' : 'text-emerald-600'}`}>
+                                    {new Date(user.subscription_end_date).toLocaleDateString()}
+                                </span>
+                                {new Date(user.subscription_end_date) < new Date() ? (
+                                    <span className="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-600 font-medium">EXPIRED</span>
+                                ) : (
+                                    <span className="text-xs px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">ACTIVE</span>
+                                )}
+                            </div>
+                        ) : (
+                            <span className="text-sm text-slate-400">No expiry set</span>
+                        )}
                     </div>
 
                     <div className="space-y-3">
-                        <div className="grid grid-cols-1 gap-2">
+                        <input
+                            type="date"
+                            className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-sm"
+                            value={expiryDate}
+                            onChange={e => setExpiryDate(e.target.value)}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
                             <Button
-                                variant="outline"
-                                onClick={() => handleUpgrade('starter', 10)}
-                                disabled={isUpdating}
-                                className="justify-between h-12"
+                                onClick={handleSetExpiry}
+                                disabled={!expiryDate || isUpdating}
+                                size="sm"
+                                className="bg-orange-600 hover:bg-orange-700 text-white h-9"
                             >
-                                <span>Starter Plan</span>
-                                <span className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">10 Credits</span>
+                                Set Expiry
                             </Button>
                             <Button
+                                onClick={handleClearExpiry}
+                                disabled={isUpdating || !user.subscription_end_date}
                                 variant="outline"
-                                onClick={() => handleUpgrade('professional', 30)}
-                                disabled={isUpdating}
-                                className="justify-between h-12 border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100 dark:hover:bg-amber-900/20"
+                                size="sm"
+                                className="h-9"
                             >
-                                <span className="text-amber-700 dark:text-amber-400 font-bold">Professional Plan</span>
-                                <span className="text-xs bg-white dark:bg-slate-900 px-2 py-1 rounded">30 Credits</span>
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => handleUpgrade('enterprise', 100)}
-                                disabled={isUpdating}
-                                className="justify-between h-12 border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-900/10 hover:bg-indigo-100 dark:hover:bg-indigo-900/20"
-                            >
-                                <span className="text-indigo-700 dark:text-indigo-400 font-bold">Enterprise Plan</span>
-                                <span className="text-xs bg-white dark:bg-slate-900 px-2 py-1 rounded">100 Credits</span>
+                                Clear
                             </Button>
                         </div>
-                        <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
-                            <AlertTriangle className="h-3.5 w-3.5" /> Use with caution. Overrides payment status.
-                        </p>
+                        <div className="grid grid-cols-3 gap-1">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setExpiryDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}
+                                className="text-xs h-7"
+                            >
+                                +30d
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setExpiryDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}
+                                className="text-xs h-7"
+                            >
+                                +90d
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setExpiryDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}
+                                className="text-xs h-7"
+                            >
+                                +1yr
+                            </Button>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Plan Manager - Full Width */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600">
+                        <Shield className="h-6 w-6" />
+                    </div>
+                    <h2 className="text-lg font-bold">Plan Manager</h2>
+                </div>
+
+                <div className="space-y-3">
+                    <div className="grid grid-cols-1 gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => handleUpgrade('starter', 10)}
+                            disabled={isUpdating}
+                            className="justify-between h-12"
+                        >
+                            <span>Starter Plan</span>
+                            <span className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">10 Credits</span>
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => handleUpgrade('professional', 30)}
+                            disabled={isUpdating}
+                            className="justify-between h-12 border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100 dark:hover:bg-amber-900/20"
+                        >
+                            <span className="text-amber-700 dark:text-amber-400 font-bold">Professional Plan</span>
+                            <span className="text-xs bg-white dark:bg-slate-900 px-2 py-1 rounded">30 Credits</span>
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => handleUpgrade('enterprise', 100)}
+                            disabled={isUpdating}
+                            className="justify-between h-12 border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-900/10 hover:bg-indigo-100 dark:hover:bg-indigo-900/20"
+                        >
+                            <span className="text-indigo-700 dark:text-indigo-400 font-bold">Enterprise Plan</span>
+                            <span className="text-xs bg-white dark:bg-slate-900 px-2 py-1 rounded">100 Credits</span>
+                        </Button>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
+                        <AlertTriangle className="h-3.5 w-3.5" /> Use with caution. Overrides payment status.
+                    </p>
                 </div>
             </div>
         </div>
