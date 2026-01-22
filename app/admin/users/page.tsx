@@ -16,6 +16,8 @@ const USERS_PER_PAGE = 20;
 
 export default function UsersPage() {
     const [users, setUsers] = useState<any[]>([]);
+    const [generationCounts, setGenerationCounts] = useState<Record<string, number>>({});
+    const [anonymousGenerations, setAnonymousGenerations] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -27,12 +29,34 @@ export default function UsersPage() {
     const fetchUsers = async () => {
         setIsLoading(true);
         const supabase = getSupabaseBrowserClient();
-        const { data } = await supabase
+
+        // Fetch users from profiles
+        const { data: profilesData } = await supabase
             .from("profiles")
             .select("*")
             .order("created_at", { ascending: false });
 
-        if (data) setUsers(data);
+        // Fetch all generations to count per user
+        const { data: generationsData } = await supabase
+            .from("generations")
+            .select("user_id");
+
+        // Count generations per user
+        const counts: Record<string, number> = {};
+        let anonCount = 0;
+        if (generationsData) {
+            for (const gen of generationsData) {
+                if (gen.user_id) {
+                    counts[gen.user_id] = (counts[gen.user_id] || 0) + 1;
+                } else {
+                    anonCount++;
+                }
+            }
+        }
+        setGenerationCounts(counts);
+        setAnonymousGenerations(anonCount);
+
+        if (profilesData) setUsers(profilesData);
         setIsLoading(false);
     };
 
@@ -119,6 +143,22 @@ export default function UsersPage() {
                 </div>
             </div>
 
+            {/* Anonymous Generations Summary */}
+            {anonymousGenerations > 0 && (
+                <div className="rounded-xl bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                            <span className="text-lg">👤</span>
+                        </div>
+                        <div>
+                            <p className="font-medium text-slate-800 dark:text-slate-200">Anonymous/Guest Generations</p>
+                            <p className="text-sm text-slate-500">Users who generated resumes without creating an account</p>
+                        </div>
+                    </div>
+                    <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{anonymousGenerations}</div>
+                </div>
+            )}
+
             {/* Users Table */}
             <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-lg overflow-hidden">
                 {isLoading ? (
@@ -134,6 +174,7 @@ export default function UsersPage() {
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Role</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Status</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Credits</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Generations</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Joined</th>
                                     <th className="px-6 py-4 text-right text-xs font-semibold uppercase text-slate-500">Actions</th>
                                 </tr>
@@ -178,6 +219,11 @@ export default function UsersPage() {
                                         </td>
                                         <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
                                             {user.credits_remaining === -1 ? 'Unlimited' : user.credits_remaining || 0}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+                                                {generationCounts[user.id] || user.total_generations || 0}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-slate-500">
                                             {new Date(user.created_at).toLocaleDateString()}
