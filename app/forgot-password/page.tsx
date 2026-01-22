@@ -21,19 +21,6 @@ export default function ForgotPasswordPage() {
             const supabase = getSupabaseBrowserClient();
             const emailLower = email.toLowerCase().trim();
 
-            // Check if email exists in profiles table first
-            const { data: profile, error: profileError } = await supabase
-                .from("profiles")
-                .select("id")
-                .eq("email", emailLower)
-                .single();
-
-            if (profileError || !profile) {
-                setError("No account found with this email address. Please check your email or sign up.");
-                setIsLoading(false);
-                return;
-            }
-
             const { error: resetError } = await supabase.auth.resetPasswordForEmail(
                 emailLower,
                 {
@@ -42,6 +29,8 @@ export default function ForgotPasswordPage() {
             );
 
             if (resetError) {
+                // Supabase doesn't reveal if email exists for security
+                // But we can show a generic message
                 setError(resetError.message);
             } else {
                 setIsSuccess(true);
