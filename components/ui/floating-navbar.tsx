@@ -54,9 +54,7 @@ export function FloatingNav() {
                     onClick={() => router.push("/")}
                 >
                     <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 p-[1px]">
-                        <div className="absolute inset-0 bg-white dark:bg-black rounded-[11px] m-[1px] flex items-center justify-center">
-                            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-tr from-amber-500 to-orange-600 text-xl">A</span>
-                        </div>
+                        <img src="/logo.png" alt="Astraz AI" className="h-full w-full rounded-[10px] bg-white dark:bg-black p-1 object-cover" />
                     </div>
                     <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                         Astraz <span className="text-amber-600 dark:text-amber-500">AI</span>

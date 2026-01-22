@@ -92,9 +92,9 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-5xl md:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 mb-6 max-w-4xl mx-auto"
           >
-            Engineer Your <br />
+            Don't Let the ATS <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500">
-              Dream Career
+              Reject You.
             </span>
           </motion.h1>
 
@@ -104,8 +104,8 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10"
           >
-            Stop guessing keywords. Our advanced AI reverse-engineers Job Descriptions
-            to build ATS-proof resumes that recruiters actually read.
+            Recruiters use AI to filter you out. Fight back with Astraz. <br />
+            <span className="font-bold text-slate-900 dark:text-white">Hack the hiring algorithm</span> and land interviews at top companies like Google, Apple, and Netflix.
           </motion.p>
 
           <motion.div
@@ -119,7 +119,7 @@ export default function Home() {
               size="lg"
               className="h-14 px-8 rounded-full text-lg bg-slate-900 dark:bg-white text-white dark:text-black hover:scale-105 transition-transform shadow-2xl shadow-indigo-500/20"
             >
-              Start Building Free <ArrowRight className="ml-2 h-5 w-5" />
+              Get Your Unfair Advantage <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button
               variant="outline"
@@ -141,9 +141,9 @@ export default function Home() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
             {[
               { label: "Resumes Optimized", value: 50000, suffix: "+", color: "text-amber-500" },
-              { label: "ATS Pass Rate", value: 99, suffix: "%", color: "text-emerald-500" },
-              { label: "Interview Increase", value: 3, suffix: "x", color: "text-purple-500" },
-              { label: "Community", value: 12000, suffix: "+", color: "text-blue-500" },
+              { label: "Interviews Landed", value: 85, suffix: "%", color: "text-emerald-500" },
+              { label: "Salary Increase", value: 40, suffix: "%", color: "text-purple-500" },
+              { label: "Success Rate", value: 99, suffix: "%", color: "text-blue-500" },
             ].map((stat, i) => (
               <div key={i} className="space-y-2">
                 <div className={`text-4xl lg:text-5xl font-bold ${stat.color}`}>
@@ -161,41 +161,41 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white">
-              Recruiting Intelligence <br />
-              <span className="text-slate-400 dark:text-slate-600">at your fingertips.</span>
+              The Ultimate Cheat Code <br />
+              <span className="text-slate-400 dark:text-slate-600">for your career.</span>
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
-              We've analyzed millions of data points to understand exactly what hiring algorithms look for.
+              We've deconstructed millions of successful resumes to understand exactly what triggers the "YES" pile.
             </p>
           </div>
 
           <BentoGrid>
             <BentoGridItem
               title="Semantic Matching Engine"
-              description="Our AI doesn't just keyword stuff. It rebuilds your experience to semantically align with the job description."
-              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800" />}
-              icon={<Cpu className="h-4 w-4 text-neutral-500" />}
+              description="Our AI doesn't just keyword stuff. It rebuilds your experience to semantically align with the job description, making you the obvious choice."
+              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/10 backdrop-blur-sm" />}
+              icon={<Cpu className="h-4 w-4 text-amber-500" />}
               className="md:col-span-2"
             />
             <BentoGridItem
               title="Real-time ATS Scoring"
-              description="Get instant feedback on your resume's parseability and ranking potential."
-              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800" />}
-              icon={<Zap className="h-4 w-4 text-neutral-500" />}
+              description="See exactly what the bots see. Get an instant score and fix issues before you hit submit."
+              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 border border-emerald-500/10 backdrop-blur-sm" />}
+              icon={<Zap className="h-4 w-4 text-emerald-500" />}
               className="md:col-span-1"
             />
             <BentoGridItem
               title="Dynamic Theming"
-              description="Switch between Professional, Creative, and Executive layouts with one click."
-              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800" />}
-              icon={<FileText className="h-4 w-4 text-neutral-500" />}
+              description="Instantly transform your resume from 'Corporate Professional' to 'Creative Lead' with one click."
+              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/10 backdrop-blur-sm" />}
+              icon={<FileText className="h-4 w-4 text-purple-500" />}
               className="md:col-span-1"
             />
             <BentoGridItem
-              title="Privacy Design"
-              description="Your data is encrypted. We don't sell your resume to recruiters."
-              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800" />}
-              icon={<Shield className="h-4 w-4 text-neutral-500" />}
+              title="Bank-Grade Privacy"
+              description="We respect your data. Your resume is encrypted and never sold to third-party recruiters."
+              header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/10 backdrop-blur-sm" />}
+              icon={<Shield className="h-4 w-4 text-blue-500" />}
               className="md:col-span-2"
             />
           </BentoGrid>
@@ -226,16 +226,16 @@ export default function Home() {
       <section className="py-32 bg-white dark:bg-black relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-30" />
         <div className="container mx-auto px-6 relative z-10 text-center">
-          <h2 className="text-4xl md:text-6xl font-bold mb-8">Ready to upgrade your career?</h2>
+          <h2 className="text-4xl md:text-6xl font-bold mb-8">Stop Wasting Time.</h2>
           <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto">
-            Join the top 1% of candidates who use AI to their advantage.
+            The best jobs are filled in 48 hours. Don't let your dream role slip away.
           </p>
           <Button
             onClick={handleGetStarted}
             size="lg"
             className="h-16 px-10 text-xl rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-2xl shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105"
           >
-            Build My Resume Now
+            Create Top 1% Resume
           </Button>
         </div>
       </section>
