@@ -292,7 +292,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         {user.subscription_end_date ? (
                             <div className="flex items-center gap-2">
                                 <span className={`text-sm font-bold ${new Date(user.subscription_end_date) < new Date() ? 'text-red-600' : 'text-emerald-600'}`}>
-                                    {new Date(user.subscription_end_date).toLocaleDateString()}
+                                    {new Date(user.subscription_end_date).toLocaleString()}
                                 </span>
                                 {new Date(user.subscription_end_date) < new Date() ? (
                                     <span className="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-600 font-medium">EXPIRED</span>
@@ -307,7 +307,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
                     <div className="space-y-3">
                         <input
-                            type="date"
+                            type="datetime-local"
                             className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-sm"
                             value={expiryDate}
                             onChange={e => setExpiryDate(e.target.value)}
@@ -335,7 +335,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => setExpiryDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}
+                                onClick={() => setExpiryDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16))}
                                 className="text-xs h-7"
                             >
                                 +30d
@@ -343,7 +343,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => setExpiryDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}
+                                onClick={() => setExpiryDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16))}
                                 className="text-xs h-7"
                             >
                                 +90d
@@ -351,7 +351,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => setExpiryDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}
+                                onClick={() => setExpiryDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16))}
                                 className="text-xs h-7"
                             >
                                 +1yr
