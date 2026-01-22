@@ -5,15 +5,13 @@ import type { NextRequest } from "next/server";
  * Middleware for request monitoring, security, and route protection
  * Note: Dashboard allows free trial access without authentication
  */
+import { updateSession } from "@/utils/supabase/middleware";
+
 export async function middleware(request: NextRequest) {
+  // Update Supabase session (refreshes cookies)
+  const response = await updateSession(request);
+
   const pathname = request.nextUrl.pathname;
-  let response = NextResponse.next();
-
-  // Note: Admin access is now verified client-side via database is_admin field
-  // in app/admin/layout.tsx. This is more secure and doesn't rely on cookies.
-
-  // Dashboard: Allow access for free trial users (client-side handles access control)
-  // Authenticated users get redirected by client-side logic based on credits/premium status
 
   // Security headers
   response.headers.set("X-Content-Type-Options", "nosniff");
