@@ -442,6 +442,16 @@ function cleanResumeText(text: string): string {
 
   cleaned = validLines.join("\n");
 
+  // Specific fixes for user-reported OCR artifacts
+  cleaned = cleaned
+    .replace(/Artificiai/g, "Artificial")
+    .replace(/technicaior/g, "Technical Lead") // Contextual guess, or just "Technical"
+    .replace(/iearning/g, "Learning")
+    .replace(/Inteiiigence/g, "Intelligence")
+    .replace(/HighbrowTechnologyInc/g, "Highbrow Technology Inc") // Fix specific case
+    .replace(/T\s?e\s?c\s?h\s?n\s?i\s?c\s?a\s?l/g, "Technical") // Wide text fix
+    .replace(/E\s?x\s?p\s?e\s?r\s?i\s?e\s?n\s?c\s?e/g, "Experience");
+
   // Final trim
   return cleaned.trim();
 }

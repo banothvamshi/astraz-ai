@@ -274,8 +274,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the clean formatted resume for generation (now properly structured)
-    const finalResumeText = cleanResumeFormatted;
+    // STAGE 1.5: AI-Powered Deep Cleaning (The "AI Consistency Agent")
+    // This fixes "Artificiai", "T e c h", and other deep OCR issues that regex misses
+    console.log("=".repeat(50));
+    console.log("STAGE 1.5: Running AI Cleaner Agent");
+    console.log("=".repeat(50));
+
+    let aiCleanedText = cleanResumeFormatted;
+    try {
+      const { cleanResumeTextWithAI } = await import("@/lib/ai-cleaner");
+      aiCleanedText = await cleanResumeTextWithAI(cleanResumeFormatted);
+      console.log("✅ AI Cleaning Complete");
+    } catch (e) {
+      console.error("⚠️ AI Cleaning skipped due to error:", e);
+    }
+
+    // Use the potentially AI-cleaned text for generation
+    const finalResumeText = aiCleanedText;
     const resumeSections = extractResumeSections(finalResumeText);
     const structuredResume = extractStructuredSections(finalResumeText);
 
