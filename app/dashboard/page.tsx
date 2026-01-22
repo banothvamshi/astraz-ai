@@ -1265,6 +1265,87 @@ export default function Dashboard() {
             <div className="space-y-6">
               {generatedResume ? (
                 <div className="space-y-6">
+                  {/* RESUME HEALTH SCORE CARD (MOVED HERE FOR VISIBILITY) */}
+                  {(resumeScore || (resumeMeta && resumeMeta.score)) && !isGenerating && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-slate-950/50"
+                    >
+                      {/* If we have a generated resume, show the NEW score, otherwise show the initial analysis score */}
+                      {(() => {
+                        const activeScore = (generatedResume && resumeMeta?.score) ? resumeMeta.score : resumeScore;
+
+                        if (!activeScore) return null;
+
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                {generatedResume ? "Optimization Result" : "Resume Health Score"}
+                              </h3>
+                              <div className={`px-4 py-1.5 rounded-full text-base font-bold shadow-sm ${activeScore.score >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                activeScore.score >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                  'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                }`}>
+                                {activeScore.score}/100 ({activeScore.grade})
+                              </div>
+                            </div>
+
+                            {/* Score Bar */}
+                            <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full mb-6 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-1000 shadow-sm ${activeScore.score >= 80 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
+                                  activeScore.score >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+                                    'bg-gradient-to-r from-red-500 to-pink-500'
+                                  }`}
+                                style={{ width: `${activeScore.score}%` }}
+                              />
+                            </div>
+
+                            {/* Breakdown */}
+                            {activeScore.breakdown && (
+                              <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-6 text-sm text-slate-600 dark:text-slate-400">
+                                <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-800">
+                                  <span>Contact Info:</span>
+                                  <span className="font-semibold text-slate-900 dark:text-white">{activeScore.breakdown.contactInfo.score}/{activeScore.breakdown.contactInfo.max}</span>
+                                </div>
+                                <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-800">
+                                  <span>Sections:</span>
+                                  <span className="font-semibold text-slate-900 dark:text-white">{activeScore.breakdown.sections.score}/{activeScore.breakdown.sections.max}</span>
+                                </div>
+                                <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-800">
+                                  <span>Quantifiable:</span>
+                                  <span className="font-semibold text-slate-900 dark:text-white">{activeScore.breakdown.quantifiableMetrics.score}/{activeScore.breakdown.quantifiableMetrics.max}</span>
+                                </div>
+                                <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-800">
+                                  <span>Action Verbs:</span>
+                                  <span className="font-semibold text-slate-900 dark:text-white">{activeScore.breakdown.actionVerbs.score}/{activeScore.breakdown.actionVerbs.max}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Comparison Badge with Animation */}
+                            {generatedResume && resumeScore && (resumeMeta?.score?.score > resumeScore.score) && (
+                              <motion.div
+                                initial={{ scale: 0.95, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl flex items-center gap-3 justify-center text-center"
+                              >
+                                <Sparkles className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                                  Optimization Complete! Score improved from {resumeScore.score} to {resumeMeta.score.score}.
+                                </span>
+                              </motion.div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </motion.div>
+                  )}
+
+
                   {/* Resume Card */}
                   {generatedResume && (
                     <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">

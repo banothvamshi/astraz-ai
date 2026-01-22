@@ -532,6 +532,15 @@ Example Experience Entry:
 - Led a team of 15...
 - Increased revenue by...
 
+Example Education Entry:
+### Bachelor of Science in Computer Science
+**University of California** | Berkeley, CA | 2018 - 2022
+
+CRITICAL EDUCATION FORMATTING:
+- Degree Name must be the Header (###)
+- Insitution Name must be the Sub-header line (** Institution **)
+- DO NOT stack them both as bold lines.
+
 CRITICAL REQUIREMENTS:
 - Generate a COMPLETE resume with ALL information filled in (2 pages worth of content)
 - Use actual company names, job titles, dates, and achievements from the original resume
