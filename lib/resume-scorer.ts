@@ -81,14 +81,13 @@ export function calculateResumeScore(text: string): ResumeScore {
 
     score += quantifiableMetrics.score;
 
-    // 5. Action Verbs (25 pts)
-    const actionVerbs = { score: 0, max: 25, count: 0 };
-    const weakVerbs = ["worked", "responsible for", "helped", "assisted"];
+    // 5. Action Verbs (20 pts) - Adjusted weight
+    const actionVerbs = { score: 0, max: 20, count: 0 };
     const strongVerbs = [
         "accelerated", "achieved", "architected", "built", "created", "delivered", "developed",
         "directed", "enhanced", "established", "expanded", "generated", "improved", "increased",
         "initiated", "launched", "led", "managed", "maximized", "optimized", "orchestrated",
-        "reduced", "resolved", "spearheaded", "structured", "transformed"
+        "reduced", "resolved", "spearheaded", "structured", "transformed", "engineered"
     ];
 
     let strongVerbCount = 0;
@@ -97,17 +96,28 @@ export function calculateResumeScore(text: string): ResumeScore {
     });
 
     actionVerbs.count = strongVerbCount;
-    if (strongVerbCount >= 10) actionVerbs.score = 25;
+    if (strongVerbCount >= 10) actionVerbs.score = 20;
     else if (strongVerbCount >= 5) actionVerbs.score = 15;
     else if (strongVerbCount >= 2) actionVerbs.score = 5;
     else tips.push("Use strong action verbs like 'Architected' or 'Spearheaded' instead of passive language.");
 
     score += actionVerbs.score;
 
+    // 6. Avoid Clichés (5 pts) - NEW
+    const cliches = ["hard worker", "team player", "reference available", "go-getter", "best in class", "synergy", "thought leader"];
+    let clicheCount = 0;
+    cliches.forEach(c => {
+        if (new RegExp(`\\b${c}\\b`, 'i').test(text)) clicheCount++;
+    });
+
+    if (clicheCount === 0) score += 5;
+    else tips.push(`Avoid overused buzzwords like "${cliches.find(c => new RegExp(`\\b${c}\\b`, 'i').test(text))}".`);
+
     // Determine Grade
     let grade = "F";
-    if (score >= 90) grade = "A+";
-    else if (score >= 80) grade = "A";
+    if (score >= 95) grade = "A+";
+    else if (score >= 88) grade = "A";
+    else if (score >= 80) grade = "A-";
     else if (score >= 70) grade = "B";
     else if (score >= 60) grade = "C";
     else if (score >= 50) grade = "D";
