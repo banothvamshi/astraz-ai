@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.razorpay.com",
-    "frame-src https://api.razorpay.com https://checkout.razorpay.com",
+    "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com blob: data:",
   ].join("; ");
   response.headers.set("Content-Security-Policy", csp);
 

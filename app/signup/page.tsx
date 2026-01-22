@@ -149,6 +149,7 @@ export default function SignupPage() {
                                     onChange={handleChange}
                                     placeholder="John Doe"
                                     required
+                                    autoComplete="name"
                                     className="w-full rounded-lg border border-slate-200 bg-white/50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white transition-all"
                                 />
                             </div>
@@ -168,6 +169,7 @@ export default function SignupPage() {
                                     onChange={handleChange}
                                     placeholder="you@example.com"
                                     required
+                                    autoComplete="email"
                                     className="w-full rounded-lg border border-slate-200 bg-white/50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white transition-all"
                                 />
                             </div>
@@ -186,6 +188,7 @@ export default function SignupPage() {
                                     value={formData.phone}
                                     onChange={handleChange}
                                     placeholder="+91 98765 43210"
+                                    autoComplete="tel"
                                     className="w-full rounded-lg border border-slate-200 bg-white/50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white transition-all"
                                 />
                             </div>
@@ -205,6 +208,7 @@ export default function SignupPage() {
                                     onChange={handleChange}
                                     placeholder="Create a strong password"
                                     required
+                                    autoComplete="new-password"
                                     className="w-full rounded-lg border border-slate-200 bg-white/50 py-3 pl-11 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white transition-all"
                                 />
                                 <button
@@ -240,6 +244,7 @@ export default function SignupPage() {
                                     onChange={handleChange}
                                     placeholder="Confirm your password"
                                     required
+                                    autoComplete="new-password"
                                     className="w-full rounded-lg border border-slate-200 bg-white/50 py-3 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white transition-all"
                                 />
                             </div>
