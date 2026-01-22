@@ -433,12 +433,17 @@ CRITICAL: Generate a COMPLETE resume with ALL sections filled out. Do NOT use pl
 CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
 
 1. **ATS Optimization (Critical)**:
-   - Use EXACT standard section headers: "Professional Summary", "Professional Experience", "Education", "Technical Skills", "Certifications", "Projects" (if relevant)
-   - NO tables, columns, graphics, or complex formatting
-   - Use simple, clean bullet points (• or -)
+   - Use EXACT standard section headers: "Professional Summary", "Professional Experience", "Education", "Technical Skills", "Certifications", "Projects"
+   - NO tables, columns, graphics, or complex formatting (ATS Death Traps)
+   - Use simple, clean bullet points (•)
    - Include ALL relevant keywords naturally: ${keywords.slice(0, 40).join(", ")}
-   - Match job description terminology exactly where appropriate
-   - Use standard date formats (MM/YYYY or Month YYYY)
+   - **KEYWORD DENSITY STRATEGY**: Ensure top 5 skills appear at least 3 times across the resume.
+
+2. **Content Excellence (95+ Score Requirement)**:
+   - **METRIC DENSITY RULE**: Every single bullet point MUST contain a number, %, or $. No exceptions.
+   - **Action Verbs**: Start every bullet with a distinct Power Verb (e.g. "Orchestrated", "Engineered", not "Responsible for").
+   - **Context-Action-Result (CAR)**: "Context (Situation) -> Action (What you did) -> Result (Metric)".
+   - **Avoid Clichés**: Do NOT use "hard worker", "team player", "synergy". Use "Collaborative Leader", "High-Performance Contributor".
 
 2. **Content Excellence**:
    - Start each bullet with POWER action verbs: Architected, Spearheaded, Orchestrated, Transformed, Accelerated, Optimized, Delivered, etc.
