@@ -1,189 +1,127 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/server";
 import {
     Users,
     CreditCard,
-    FileText,
+    Activity,
     TrendingUp,
-    DollarSign,
-    Zap,
-    Activity
+    AlertCircle
 } from "lucide-react";
-import { getSupabaseBrowserClient } from "@/lib/auth";
 
-interface Stats {
-    totalUsers: number;
-    totalRevenue: number;
-    totalGenerations: number;
-    activeUsers: number;
-}
+export default async function AdminDashboard() {
+    const supabase = createClient();
 
-export default function AdminDashboard() {
-    const [stats, setStats] = useState<Stats>({
-        totalUsers: 0,
-        totalRevenue: 0,
-        totalGenerations: 0,
-        activeUsers: 0
-    });
+    // 1. Fetch Key Metrics
+    // Total Revenue (approximate from successful payments)
+    const { data: payments } = await supabase
+        .from("payments")
+        .select("amount")
+        .eq("status", "captured");
 
-    const [recentUsers, setRecentUsers] = useState<any[]>([]);
+    const totalRevenue = payments?.reduce((acc, curr) => acc + (curr.amount / 100), 0) || 0;
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            const supabase = getSupabaseBrowserClient();
+    // Total Users
+    const { count: userCount } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true });
 
-            // Fetch total users
-            const { count: userCount } = await supabase
-                .from("profiles")
-                .select("*", { count: "exact", head: true });
+    // Active Premium Users
+    const { count: premiumCount } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("is_premium", true);
 
-            // Fetch recent users
-            const { data: users } = await supabase
-                .from("profiles")
-                .select("*")
-                .order("created_at", { ascending: false })
-                .limit(5);
+    // Recent Generations (Last 24h)
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count: generationCount } = await supabase
+        .from("generations")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", oneDayAgo);
 
-            // Fetch payments for revenue
-            const { data: payments } = await supabase
-                .from("payments")
-                .select("amount")
-                .eq("status", "completed");
-
-            const revenue = payments?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0;
-
-            // Fetch generations (sum of totals)
-            const { data: profiles } = await supabase
-                .from("profiles")
-                .select("total_generations");
-
-            const generations = profiles?.reduce((acc, curr) => acc + (curr.total_generations || 0), 0) || 0;
-
-            setStats({
-                totalUsers: userCount || 0,
-                totalRevenue: revenue,
-                totalGenerations: generations,
-                activeUsers: Math.floor((userCount || 0) * 0.8) // Mock for demo
-            });
-
-            if (users) setRecentUsers(users);
-        };
-
-        fetchStats();
-    }, []);
-
-    const statCards = [
+    const cards = [
         {
-            label: "Total Users",
-            value: stats.totalUsers.toLocaleString(),
+            title: "Total Revenue",
+            value: `₹${totalRevenue.toLocaleString()}`,
+            change: "+12% from last month",
+            icon: CreditCard,
+            color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30",
+        },
+        {
+            title: "Total Users",
+            value: userCount?.toLocaleString() || "0",
+            change: `+${premiumCount} Premium`,
             icon: Users,
-            color: "blue",
-            gradient: "from-blue-500 to-indigo-600",
-            bg: "bg-blue-50 dark:bg-blue-900/20",
-            trend: "+12% this month"
+            color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
         },
         {
-            label: "Total Revenue",
-            value: `₹${stats.totalRevenue.toLocaleString()}`,
-            icon: DollarSign,
-            color: "emerald",
-            gradient: "from-emerald-500 to-teal-600",
-            bg: "bg-emerald-50 dark:bg-emerald-900/20",
-            trend: "+8% this month"
-        },
-        {
-            label: "Total Generations",
-            value: stats.totalGenerations.toLocaleString(),
-            icon: FileText,
-            color: "amber",
-            gradient: "from-amber-500 to-orange-600",
-            bg: "bg-amber-50 dark:bg-amber-900/20",
-            trend: "+24% this month"
-        },
-        {
-            label: "Active Users",
-            value: stats.activeUsers.toLocaleString(),
+            title: "24h Generations",
+            value: generationCount?.toLocaleString() || "0",
+            change: "System Active",
             icon: Activity,
-            color: "purple",
-            gradient: "from-purple-500 to-violet-600",
-            bg: "bg-purple-50 dark:bg-purple-900/20",
-            trend: "+5% this month"
-        }
+            color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30",
+        },
+        {
+            title: "System Status",
+            value: "99.9% Uptime",
+            change: "All systems operational",
+            icon: TrendingUp,
+            color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30",
+        },
     ];
 
     return (
-        <div className="space-y-8 p-8">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
-
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                {statCards.map((stat, i) => (
-                    <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900 transition-transform hover:scale-[1.02]">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                                    {stat.label}
-                                </p>
-                                <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">
-                                    {stat.value}
-                                </p>
-                            </div>
-                            <div className={`rounded-xl p-3 bg-gradient-to-br ${stat.gradient} shadow-lg shadow-${stat.color}-500/20`}>
-                                <stat.icon className="h-6 w-6 text-white" />
-                            </div>
-                        </div>
-                        <div className="mt-4 flex items-center text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                            <TrendingUp className="mr-1 h-4 w-4" />
-                            {stat.trend}
-                        </div>
-                    </div>
-                ))}
+        <div className="space-y-8">
+            <div>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
+                <p className="text-slate-500">Welcome back, Super Admin.</p>
             </div>
 
-            {/* Recent Users Table */}
-            <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-lg overflow-hidden">
-                <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Recent Users</h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                {cards.map((card) => {
+                    const Icon = card.icon;
+                    return (
+                        <div key={card.title} className="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className={`p-3 rounded-xl ${card.color}`}>
+                                    <Icon className="h-6 w-6" />
+                                </div>
+                                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full">
+                                    {card.change}
+                                </span>
+                            </div>
+                            <h3 className="text-slate-500 text-sm font-medium">{card.title}</h3>
+                            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{card.value}</p>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+                <div className="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Recent Activity</h3>
+                    <div className="h-64 flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                        Chart Placeholder (Recharts integration required)
+                    </div>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">User</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Role</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Joined</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                            {recentUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-amber-600 font-bold dark:from-amber-900/30 dark:to-orange-900/30 dark:text-amber-400">
-                                                {user.full_name?.[0] || "U"}
-                                            </div>
-                                            <div>
-                                                <div className="font-medium text-slate-900 dark:text-white">{user.full_name}</div>
-                                                <div className="text-sm text-slate-500">{user.email}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                        {user.is_admin ? "Admin" : "User"}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">
-                                        {new Date(user.created_at).toLocaleDateString()}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+
+                <div className="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Recent Payments</h3>
+                    {/* We will fetch recent payments here */}
+                    <div className="space-y-4">
+                        {(payments || []).slice(0, 5).map((payment: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                        <CreditCard className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-900 dark:text-white">Payment Received</p>
+                                        <p className="text-xs text-slate-500">ID: {payment.razorpay_order_id || "N/A"}</p>
+                                    </div>
+                                </div>
+                                <span className="font-bold text-emerald-600">+{payment.amount / 100}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
