@@ -637,77 +637,108 @@ export default function Dashboard() {
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Creating Your Masterpiece</h3>
                         <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">{generationStep || "Thinking..."}</p>
-                        <div className="mt-6 flex justify-center gap-1">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-bounce [animation-delay:-0.3s]"></span>
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-bounce [animation-delay:-0.15s]"></span>
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-bounce"></span>
+
+                        {/* Visual Progress Steps */}
+                        <div className="mt-6 flex justify-center gap-2">
+                          {["Parsing", "Analyzing", "Crafting", "Finalizing"].map((step, idx) => {
+                            const currentStepList = ["Parsing your resume...", "Analyzing job structure...", "AI is crafting your resume...", "Finalizing formatting..."];
+                            const currentIdx = currentStepList.indexOf(generationStep);
+                            const isActive = idx === currentIdx;
+                            const isCompleted = idx < currentIdx;
+
+                            return (
+                              <div key={step} className={`h-2 w-full rounded-full transition-all duration-500 ${isCompleted ? 'bg-amber-500' : isActive ? 'bg-amber-300 animate-pulse' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                            )
+                          })}
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* RESUME HEALTH SCORE CARD */}
-                  {resumeScore && !isGenerating && !generatedResume && (
+                  {/* RESUME HEALTH SCORE CARD (GENERATED) */}
+                  {(resumeScore || (resumeMeta && resumeMeta.score)) && !isGenerating && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm"
                     >
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                          <Activity className="h-5 w-5 text-indigo-500" />
-                          Resume Health Score
-                        </h3>
-                        <div className={`px-3 py-1 rounded-full text-sm font-bold ${resumeScore.score >= 80 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                          resumeScore.score >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          }`}>
-                          {resumeScore.score}/100 ({resumeScore.grade})
-                        </div>
-                      </div>
+                      {/* If we have a generated resume, show the NEW score, otherwise show the initial analysis score */}
+                      {(() => {
+                        const activeScore = (generatedResume && resumeMeta?.score) ? resumeMeta : resumeScore;
 
-                      {/* Score Bar */}
-                      <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-1000 ${resumeScore.score >= 80 ? 'bg-green-500' :
-                            resumeScore.score >= 50 ? 'bg-amber-500' :
-                              'bg-red-500'
-                            }`}
-                          style={{ width: `${resumeScore.score}%` }}
-                        />
-                      </div>
+                        if (!activeScore) return null;
 
-                      {/* Breakdown */}
-                      <div className="grid grid-cols-2 gap-3 mb-4 text-xs text-slate-600 dark:text-slate-400">
-                        <div className="flex justify-between">
-                          <span>Contact Info:</span>
-                          <span className="font-medium">{resumeScore.breakdown.contactInfo.score}/{resumeScore.breakdown.contactInfo.max}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Sections:</span>
-                          <span className="font-medium">{resumeScore.breakdown.sections.score}/{resumeScore.breakdown.sections.max}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Quantifiable:</span>
-                          <span className="font-medium">{resumeScore.breakdown.quantifiableMetrics.score}/{resumeScore.breakdown.quantifiableMetrics.max}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Action Verbs:</span>
-                          <span className="font-medium">{resumeScore.breakdown.actionVerbs.score}/{resumeScore.breakdown.actionVerbs.max}</span>
-                        </div>
-                      </div>
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-indigo-500" />
+                                {generatedResume ? "Optimization Result" : "Resume Health Score"}
+                              </h3>
+                              <div className={`px-3 py-1 rounded-full text-sm font-bold ${activeScore.score >= 80 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                  activeScore.score >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                }`}>
+                                {activeScore.score}/100 ({activeScore.grade})
+                              </div>
+                            </div>
 
-                      {/* Tips */}
-                      {resumeScore.tips.length > 0 && (
-                        <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg">
-                          <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 mb-1">💡 Optimization Tips:</p>
-                          <ul className="list-disc pl-4 space-y-1">
-                            {resumeScore.tips.map((tip: string, i: number) => (
-                              <li key={i} className="text-xs text-indigo-700/80 dark:text-indigo-400/80">{tip}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                            {/* Score Bar */}
+                            <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-1000 ${activeScore.score >= 80 ? 'bg-green-500' :
+                                    activeScore.score >= 50 ? 'bg-amber-500' :
+                                      'bg-red-500'
+                                  }`}
+                                style={{ width: `${activeScore.score}%` }}
+                              />
+                            </div>
+
+                            {/* Breakdown */}
+                            {activeScore.breakdown && (
+                              <div className="grid grid-cols-2 gap-3 mb-4 text-xs text-slate-600 dark:text-slate-400">
+                                <div className="flex justify-between">
+                                  <span>Contact Info:</span>
+                                  <span className="font-medium">{activeScore.breakdown.contactInfo?.score ?? '?'}/{activeScore.breakdown.contactInfo?.max ?? 15}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Sections:</span>
+                                  <span className="font-medium">{activeScore.breakdown.sections?.score ?? '?'}/{activeScore.breakdown.sections?.max ?? 25}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Quantifiable:</span>
+                                  <span className="font-medium">{activeScore.breakdown.quantifiableMetrics?.score ?? '?'}/{activeScore.breakdown.quantifiableMetrics?.max ?? 25}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Action Verbs:</span>
+                                  <span className="font-medium">{activeScore.breakdown.actionVerbs?.score ?? '?'}/{activeScore.breakdown.actionVerbs?.max ?? 25}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Tips - ONLY show if optimizing or if score is low */}
+                            {activeScore.tips?.length > 0 && !generatedResume && (
+                              <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg">
+                                <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 mb-1">💡 Optimization Tips:</p>
+                                <ul className="list-disc pl-4 space-y-1">
+                                  {activeScore.tips.map((tip: string, i: number) => (
+                                    <li key={i} className="text-xs text-indigo-700/80 dark:text-indigo-400/80">{tip}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {generatedResume && (
+                              <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg flex items-center gap-2">
+                                <Sparkles className="h-4 w-4 text-green-600" />
+                                <p className="text-xs font-semibold text-green-700 dark:text-green-400">
+                                  Optimization Complete! Score improved from {resumeScore?.score || 0} to {activeScore.score}.
+                                </p>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </motion.div>
                   )}
                   {/* ... existing input code remains ... */}

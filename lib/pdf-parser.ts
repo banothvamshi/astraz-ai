@@ -442,15 +442,22 @@ function cleanResumeText(text: string): string {
 
   cleaned = validLines.join("\n");
 
-  // Specific fixes for user-reported OCR artifacts
+  // Specific fixes for user-reported OCR artifacts - AGGRESSIVE
   cleaned = cleaned
-    .replace(/Artificiai/g, "Artificial")
-    .replace(/technicaior/g, "Technical Lead") // Contextual guess, or just "Technical"
-    .replace(/iearning/g, "Learning")
-    .replace(/Inteiiigence/g, "Intelligence")
-    .replace(/HighbrowTechnologyInc/g, "Highbrow Technology Inc") // Fix specific case
-    .replace(/T\s?e\s?c\s?h\s?n\s?i\s?c\s?a\s?l/g, "Technical") // Wide text fix
-    .replace(/E\s?x\s?p\s?e\s?r\s?i\s?e\s?n\s?c\s?e/g, "Experience");
+    .replace(/Artificiai/gi, "Artificial")
+    .replace(/technicaior/gi, "Technical Lead") // Contextual guess
+    .replace(/iearning/gi, "Learning")
+    .replace(/Inteiiigence/gi, "Intelligence")
+    .replace(/HighbrowTechnologyInc/gi, "Highbrow Technology Inc")
+    .replace(/T\s?e\s?c\s?h\s?n\s?i\s?c\s?a\s?l/gi, "Technical")
+    .replace(/E\s?x\s?p\s?e\s?r\s?i\s?e\s?n\s?c\s?e/gi, "Experience")
+    .replace(/S\s?K\s?I\s?L\s?I\s?S/gi, "SKILLS")
+    .replace(/Google\s?QualityRater/gi, "Google Quality Rater")
+    .replace(/Data\s?Analystand/gi, "Data Analyst and")
+    .replace(/3D Animationand/gi, "3D Animation and")
+    .replace(/inMaya/gi, "in Maya")
+    .replace(/MotionControiwith/gi, "Motion Control with")
+    .replace(/\b([A-Z][a-z]+)([A-Z][a-z]+)\b/g, "$1 $2"); // Generic CamelCase splitter (e.g. RetailSales -> Retail Sales)
 
   // Final trim
   return cleaned.trim();

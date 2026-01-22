@@ -723,6 +723,15 @@ Generate the cover letter now:`;
       }
     }
 
+    // Calculate score of the GENERATED resume
+    let generatedScore = null;
+    try {
+      const { calculateResumeScore } = await import("@/lib/resume-scorer");
+      generatedScore = calculateResumeScore(cleanResume);
+    } catch (e) {
+      console.error("Failed to score generated resume", e);
+    }
+
     const response = NextResponse.json({
       resume: cleanResume,
       coverLetter: generatedCoverLetter,
@@ -735,6 +744,7 @@ Generate the cover letter now:`;
         linkedin: normalizedResume.linkedin,
         github: normalizedResume.github,
         website: normalizedResume.website,
+        score: generatedScore, // Return the NEW score
       },
       parsedJob: {
         title: parsedJob.title,
