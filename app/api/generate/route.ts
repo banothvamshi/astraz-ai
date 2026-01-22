@@ -402,6 +402,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // STAGE 2: Generate Resume
+    console.log("=".repeat(50));
+    console.log("STAGE 2: Generating Resume with AI");
+    console.log("=".repeat(50));
+
+    // Calculate actual experience to prevent hallucinations
+    let calculatedExperience = { totalYears: 0, details: "unknown" };
+    try {
+      // Use the Experience section if available, otherwise full text (but full text might pick up education dates)
+      // Best approach: Use structured "Experience" section if it exists and is long enough
+      let experienceText = structuredResume.sections["EXPERIENCE"] ||
+        structuredResume.sections["WORK EXPERIENCE"] ||
+        structuredResume.sections["EMPLOYMENT"] ||
+        finalResumeText;
+
+      calculatedExperience = calculateTotalExperience(experienceText);
+      console.log(`✅ Calculated Experience: ${calculatedExperience.totalYears} years (${calculatedExperience.details})`);
+    } catch (e) {
+      console.error("Failed to calculate experience:", e);
+    }
+
     // PREMIUM resume generation prompt - Highest quality output
     const resumePrompt = `You are an elite executive resume writer with 25+ years of experience helping candidates secure positions at Fortune 500 companies, FAANG, and top-tier organizations. Your resumes consistently pass ATS systems and impress C-level executives.
 
