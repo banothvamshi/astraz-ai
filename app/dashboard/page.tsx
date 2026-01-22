@@ -552,18 +552,6 @@ export default function Dashboard() {
                 </button>
                 <button
                   onClick={() => {
-                    setActiveTab("history");
-                    router.push("/dashboard?tab=history");
-                  }}
-                  className={`px-8 py-4 text-sm font-semibold border-b-2 transition-all ${activeTab === "history"
-                    ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800/50"
-                    }`}
-                >
-                  History
-                </button>
-                <button
-                  onClick={() => {
                     setActiveTab("settings");
                     router.push("/dashboard?tab=settings");
                   }}
