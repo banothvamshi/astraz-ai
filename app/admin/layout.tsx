@@ -15,20 +15,27 @@ export default async function AdminLayout({
 
     const {
         data: { user },
+        error: userError,
     } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (userError || !user) {
+        console.error("Admin Layout: No user session found on server.", userError);
         redirect("/login");
     }
 
     // Check Admin Role
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("is_admin")
         .eq("id", user.id)
         .single();
 
-    if (!profile || !profile.is_admin) {
+    if (profileError || !profile || !profile.is_admin) {
+        console.error("Admin Layout: Access denied.", {
+            userId: user.id,
+            isAdmin: profile?.is_admin,
+            error: profileError
+        });
         redirect("/dashboard"); // Kick non-admins back to dashboard
     }
 
