@@ -664,7 +664,7 @@ export default function Dashboard() {
                     >
                       {/* If we have a generated resume, show the NEW score, otherwise show the initial analysis score */}
                       {(() => {
-                        const activeScore = (generatedResume && resumeMeta?.score) ? resumeMeta : resumeScore;
+                        const activeScore = (generatedResume && resumeMeta?.score) ? resumeMeta.score : resumeScore;
 
                         if (!activeScore) return null;
 
@@ -676,8 +676,8 @@ export default function Dashboard() {
                                 {generatedResume ? "Optimization Result" : "Resume Health Score"}
                               </h3>
                               <div className={`px-3 py-1 rounded-full text-sm font-bold ${activeScore.score >= 80 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                  activeScore.score >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                activeScore.score >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                  'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                                 }`}>
                                 {activeScore.score}/100 ({activeScore.grade})
                               </div>
@@ -687,8 +687,8 @@ export default function Dashboard() {
                             <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all duration-1000 ${activeScore.score >= 80 ? 'bg-green-500' :
-                                    activeScore.score >= 50 ? 'bg-amber-500' :
-                                      'bg-red-500'
+                                  activeScore.score >= 50 ? 'bg-amber-500' :
+                                    'bg-red-500'
                                   }`}
                                 style={{ width: `${activeScore.score}%` }}
                               />
