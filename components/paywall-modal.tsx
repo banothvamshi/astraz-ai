@@ -33,14 +33,14 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
       name: "Starter",
       tagline: "For active job seekers",
       featured: false,
-      features: ["10 Generations/month", "ATS Optimization", "PDF Export", "Email Support"],
+      features: ["10 Generations/month", "ATS Optimization", "PDF Export", "Cover Letters", "Premium Templates"],
     },
     {
       key: "professional",
       name: "Professional",
       tagline: "Best value for serious applicants",
       featured: true,
-      features: ["30 Generations/month", "ATS Optimization", "Priority Processing", "Cover Letters"],
+      features: ["30 Generations/month", "ATS Optimization", "Cover Letters", "Premium Templates", "Priority Processing"],
     },
     {
       key: "enterprise",
@@ -92,10 +92,10 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
             <div
               key={plan.key}
               className={`relative flex flex-col rounded-2xl p-6 transition-all ${plan.featured
-                  ? "border-2 border-amber-500 bg-white dark:bg-slate-800 shadow-xl shadow-amber-500/20 scale-105"
-                  : plan.dark
-                    ? "bg-gradient-to-br from-slate-900 to-slate-800 text-white border border-slate-700"
-                    : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-300"
+                ? "border-2 border-amber-500 bg-white dark:bg-slate-800 shadow-xl shadow-amber-500/20 scale-105"
+                : plan.dark
+                  ? "bg-gradient-to-br from-slate-900 to-slate-800 text-white border border-slate-700"
+                  : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-300"
                 }`}
             >
               {/* Popular Badge */}
@@ -133,10 +133,10 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
               <Button
                 onClick={() => handlePlanSelect(plan.key)}
                 className={`w-full h-12 font-semibold rounded-xl transition-all ${plan.featured
-                    ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25"
-                    : plan.dark
-                      ? "bg-white text-slate-900 hover:bg-slate-100"
-                      : "border-2 border-slate-300 bg-transparent text-slate-700 hover:border-amber-500 hover:text-amber-600 dark:border-slate-600 dark:text-slate-300"
+                  ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25"
+                  : plan.dark
+                    ? "bg-white text-slate-900 hover:bg-slate-100"
+                    : "border-2 border-slate-300 bg-transparent text-slate-700 hover:border-amber-500 hover:text-amber-600 dark:border-slate-600 dark:text-slate-300"
                   }`}
                 variant={plan.featured ? "default" : "outline"}
               >

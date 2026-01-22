@@ -287,7 +287,7 @@ export default function Dashboard() {
           companyName: jobDetails.companyName.trim() || undefined,
           jobTitle: jobDetails.jobTitle.trim() || undefined,
           jobLocation: jobDetails.location.trim() || undefined,
-          includeCoverLetter: includeCoverLetter && ["professional", "enterprise"].includes(userPlan),
+          includeCoverLetter: includeCoverLetter && ["starter", "professional", "enterprise"].includes(userPlan),
           userId: userId, // Pass User ID for tracking
           // Send contact overrides if user provided them
           contactOverrides: {
@@ -1040,7 +1040,7 @@ export default function Dashboard() {
                         <h2 className={`font-bold text-lg ${includeCoverLetter ? "text-amber-900 dark:text-amber-100" : "text-slate-900 dark:text-white"}`}>
                           Include Cover Letter
                         </h2>
-                        {!["professional", "enterprise"].includes(userPlan) && (
+                        {!["starter", "professional", "enterprise"].includes(userPlan) && (
                           <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                             <Lock className="h-3 w-3 text-slate-400" />
                             <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">Pro</span>
@@ -1057,7 +1057,7 @@ export default function Dashboard() {
                       className="sr-only peer"
                       checked={includeCoverLetter}
                       onChange={(e) => {
-                        if (!["professional", "enterprise"].includes(userPlan)) {
+                        if (!["starter", "professional", "enterprise"].includes(userPlan)) {
                           setShowPaywall(true);
                           // Or assume they might want to toggle it off if it was on? 
                           // But typically locked features are off.

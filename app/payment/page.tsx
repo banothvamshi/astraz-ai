@@ -21,14 +21,14 @@ const PLANS = {
     name: "Starter",
     credits: 10,
     tagline: "For active job seekers",
-    features: ["10 Generations/month", "ATS Optimization", "PDF Export", "Email Support"],
+    features: ["10 Generations/month", "ATS Optimization", "PDF Export", "Cover Letters", "Premium Templates"],
     billing: "monthly"
   },
   professional: {
     name: "Professional",
     credits: 30,
     tagline: "Best value for serious applicants",
-    features: ["30 Generations/month", "ATS Optimization", "Priority Processing", "Cover Letters"],
+    features: ["30 Generations/month", "ATS Optimization", "Cover Letters", "Premium Templates", "Priority Processing"],
     popular: true,
     billing: "monthly"
   },
