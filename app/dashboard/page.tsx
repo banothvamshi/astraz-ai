@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut, Calendar } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut, Calendar, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { UploadArea } from "@/components/upload-area";
@@ -34,6 +34,9 @@ export default function Dashboard() {
   const [jobDescription, setJobDescription] = useState("");
   const [resumeMeta, setResumeMeta] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState<string>(""); // New state for live status
+  const [resumeScore, setResumeScore] = useState<any>(null); // New state for score
+  const [isAnalyzing, setIsAnalyzing] = useState(false); // New state for analysis
   const [generatedResume, setGeneratedResume] = useState<string | null>(null);
   const [generatedCoverLetter, setGeneratedCoverLetter] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -86,6 +89,38 @@ export default function Dashboard() {
       }
     }
   }, []);
+
+  // NEW: Analyze resume when file is uploaded
+  useEffect(() => {
+    if (resumeFile) {
+      analyzeResume(resumeFile);
+    }
+  }, [resumeFile]);
+
+  const analyzeResume = async (file: File) => {
+    setIsAnalyzing(true);
+    setResumeScore(null);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target?.result as string;
+        const res = await fetch("/api/analyze-resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ resume: base64 })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setResumeScore(data.score);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (e) {
+      console.error("Analysis failed", e);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   useEffect(() => {
     const initDashboard = async () => {
@@ -264,10 +299,13 @@ export default function Dashboard() {
     }
 
     setIsGenerating(true);
+    setGenerationStep("Parsing your resume...");
 
     try {
       // Convert PDF to base64
       const base64Resume = await fileToBase64(resumeFile);
+
+      setGenerationStep("Analyzing job structure...");
 
       // Validate base64 conversion
       if (!base64Resume || base64Resume.length === 0) {
@@ -275,6 +313,7 @@ export default function Dashboard() {
       }
 
       // Call API to generate
+      setGenerationStep("AI is crafting your resume...");
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: {
@@ -318,6 +357,8 @@ export default function Dashboard() {
       setGeneratedResume(data.resume);
       setGeneratedCoverLetter(data.coverLetter);
       setResumeMeta(data.meta);
+
+      setGenerationStep("Finalizing formatting...");
 
       // Auto-select AI suggested theme if available
       if (data.suggestedTheme) {
@@ -584,6 +625,91 @@ export default function Dashboard() {
               <div className="grid gap-8 lg:grid-cols-2">
                 {/* Left Column: Input */}
                 <div className="space-y-6">
+
+                  {/* LIVE GENERATION STATUS OVERLAY */}
+                  {isGenerating && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm">
+                      <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-800 text-center">
+                        <div className="mx-auto w-16 h-16 mb-4 relative">
+                          <span className="absolute inset-0 rounded-full border-4 border-slate-100 dark:border-slate-800"></span>
+                          <span className="absolute inset-0 rounded-full border-4 border-amber-500 border-t-transparent animate-spin"></span>
+                          <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-amber-500 animate-pulse" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Creating Your Masterpiece</h3>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">{generationStep || "Thinking..."}</p>
+                        <div className="mt-6 flex justify-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-bounce [animation-delay:-0.3s]"></span>
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-bounce [animation-delay:-0.15s]"></span>
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-bounce"></span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* RESUME HEALTH SCORE CARD */}
+                  {resumeScore && !isGenerating && !generatedResume && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                          <Activity className="h-5 w-5 text-indigo-500" />
+                          Resume Health Score
+                        </h3>
+                        <div className={`px-3 py-1 rounded-full text-sm font-bold ${resumeScore.score >= 80 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                          resumeScore.score >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                          }`}>
+                          {resumeScore.score}/100 ({resumeScore.grade})
+                        </div>
+                      </div>
+
+                      {/* Score Bar */}
+                      <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-1000 ${resumeScore.score >= 80 ? 'bg-green-500' :
+                            resumeScore.score >= 50 ? 'bg-amber-500' :
+                              'bg-red-500'
+                            }`}
+                          style={{ width: `${resumeScore.score}%` }}
+                        />
+                      </div>
+
+                      {/* Breakdown */}
+                      <div className="grid grid-cols-2 gap-3 mb-4 text-xs text-slate-600 dark:text-slate-400">
+                        <div className="flex justify-between">
+                          <span>Contact Info:</span>
+                          <span className="font-medium">{resumeScore.breakdown.contactInfo.score}/{resumeScore.breakdown.contactInfo.max}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Sections:</span>
+                          <span className="font-medium">{resumeScore.breakdown.sections.score}/{resumeScore.breakdown.sections.max}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Quantifiable:</span>
+                          <span className="font-medium">{resumeScore.breakdown.quantifiableMetrics.score}/{resumeScore.breakdown.quantifiableMetrics.max}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Action Verbs:</span>
+                          <span className="font-medium">{resumeScore.breakdown.actionVerbs.score}/{resumeScore.breakdown.actionVerbs.max}</span>
+                        </div>
+                      </div>
+
+                      {/* Tips */}
+                      {resumeScore.tips.length > 0 && (
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg">
+                          <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 mb-1">💡 Optimization Tips:</p>
+                          <ul className="list-disc pl-4 space-y-1">
+                            {resumeScore.tips.map((tip: string, i: number) => (
+                              <li key={i} className="text-xs text-indigo-700/80 dark:text-indigo-400/80">{tip}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
                   {/* ... existing input code remains ... */}
                   {/* Since we can't easily preserve inner content with replace_file_content if it's too large, 
                       I will trust the user to manually verify if I truncated too much. 
