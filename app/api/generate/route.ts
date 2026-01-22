@@ -743,8 +743,16 @@ Generate the cover letter now:`;
     try {
       const { calculateResumeScore } = await import("@/lib/resume-scorer");
       // Stitch header + body for accurate scoring
+      // Stitch header + body for accurate scoring
+      // Prefer contactOverrides (from user input in UI) over parsed data
+      const scoringName = contactOverrides?.fullName || normalizedResume.name || structuredResume.name || "Candidate Name";
+      const scoringEmail = contactOverrides?.email || normalizedResume.email || structuredResume.email || "candidate@email.com";
+      const scoringPhone = contactOverrides?.phone || normalizedResume.phone || structuredResume.phone || "555-555-5555";
+      const scoringLinkedin = contactOverrides?.linkedin || normalizedResume.linkedin || "linkedin.com/in/candidate";
+      const scoringLocation = contactOverrides?.location || normalizedResume.location || "City, State";
+
       const fullTextForScoring = `
-${normalizedResume.name} | ${normalizedResume.email} | ${normalizedResume.phone} | ${normalizedResume.linkedin} | ${normalizedResume.location}
+${scoringName} | ${scoringEmail} | ${scoringPhone} | ${scoringLinkedin} | ${scoringLocation}
 ${cleanResume}
       `.trim();
       generatedScore = calculateResumeScore(fullTextForScoring);
