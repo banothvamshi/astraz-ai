@@ -16,8 +16,47 @@ function ResetPasswordContent() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isCheckingSession, setIsCheckingSession] = useState(true);
+    const [isRecoveryMode, setIsRecoveryMode] = useState(false);
     const [error, setError] = useState("");
     const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
+    // Check for recovery session on mount
+    useEffect(() => {
+        const supabase = getSupabaseBrowserClient();
+
+        // Listen for auth state changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === "PASSWORD_RECOVERY") {
+                setIsRecoveryMode(true);
+                setIsCheckingSession(false);
+            } else if (event === "SIGNED_IN" && !isRecoveryMode) {
+                // If signed in but not in recovery mode, check if we came from recovery link
+                // The URL hash contains the recovery token
+                if (window.location.hash.includes("type=recovery")) {
+                    setIsRecoveryMode(true);
+                }
+                setIsCheckingSession(false);
+            }
+        });
+
+        // Also check current session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                // Check if this is a recovery session by looking at the URL
+                if (window.location.hash.includes("type=recovery") ||
+                    window.location.search.includes("type=recovery")) {
+                    setIsRecoveryMode(true);
+                } else {
+                    // User is just signed in, show the form anyway for first login
+                    setIsRecoveryMode(true);
+                }
+            }
+            setIsCheckingSession(false);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     useEffect(() => {
         if (password) {
@@ -79,6 +118,14 @@ function ResetPasswordContent() {
             setIsLoading(false);
         }
     };
+
+    if (isCheckingSession) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
+                <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
