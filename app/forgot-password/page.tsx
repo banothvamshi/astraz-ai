@@ -19,9 +19,23 @@ export default function ForgotPasswordPage() {
 
         try {
             const supabase = getSupabaseBrowserClient();
+            const emailLower = email.toLowerCase().trim();
+
+            // Check if email exists in profiles table first
+            const { data: profile, error: profileError } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("email", emailLower)
+                .single();
+
+            if (profileError || !profile) {
+                setError("No account found with this email address. Please check your email or sign up.");
+                setIsLoading(false);
+                return;
+            }
 
             const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-                email.toLowerCase().trim(),
+                emailLower,
                 {
                     redirectTo: `${window.location.origin}/reset-password`,
                 }

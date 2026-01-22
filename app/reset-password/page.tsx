@@ -21,41 +21,37 @@ function ResetPasswordContent() {
     const [error, setError] = useState("");
     const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
-    // Check for recovery session on mount
+    // Check for session on mount - this page is only accessed via email recovery link
     useEffect(() => {
         const supabase = getSupabaseBrowserClient();
 
-        // Listen for auth state changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === "PASSWORD_RECOVERY") {
-                setIsRecoveryMode(true);
-                setIsCheckingSession(false);
-            } else if (event === "SIGNED_IN" && !isRecoveryMode) {
-                // If signed in but not in recovery mode, check if we came from recovery link
-                // The URL hash contains the recovery token
-                if (window.location.hash.includes("type=recovery")) {
-                    setIsRecoveryMode(true);
-                }
-                setIsCheckingSession(false);
-            }
-        });
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
 
-        // Also check current session
-        supabase.auth.getSession().then(({ data: { session } }) => {
+            // If we have a session, we're in recovery mode (user clicked the email link)
             if (session) {
-                // Check if this is a recovery session by looking at the URL
-                if (window.location.hash.includes("type=recovery") ||
-                    window.location.search.includes("type=recovery")) {
-                    setIsRecoveryMode(true);
-                } else {
-                    // User is just signed in, show the form anyway for first login
-                    setIsRecoveryMode(true);
+                setIsRecoveryMode(true);
+            } else {
+                // Try to get session from URL hash (for PKCE flow)
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                const type = hashParams.get('type');
+
+                if (accessToken && type === 'recovery') {
+                    // Set the session manually for recovery
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: hashParams.get('refresh_token') || '',
+                    });
+                    if (data.session) {
+                        setIsRecoveryMode(true);
+                    }
                 }
             }
             setIsCheckingSession(false);
-        });
+        };
 
-        return () => subscription.unsubscribe();
+        checkSession();
     }, []);
 
     useEffect(() => {
