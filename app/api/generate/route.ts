@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { resume, jobDescription, companyName, includeCoverLetter, userId } = body;
+    const { resume, jobDescription, companyName, includeCoverLetter, userId, contactOverrides } = body;
 
     // Comprehensive validation
     if (!resume) {
