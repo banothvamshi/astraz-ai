@@ -550,23 +550,40 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
 
     // Generate resume with retry logic
     let generatedResume: string;
+    // STAGE 3: Construct Verification Report
+    // This is the "Truth Anchor" for the AI
+    const verificationReport = {
+      totalExperience: calculatedExperience.totalYears,
+      experienceDetails: calculatedExperience.details,
+      detectedSkills: keywords.slice(0, 15), // Top 15 detected skills
+      constraints: [
+        calculatedExperience.totalYears < 3 ? "Do NOT use 'Senior', 'Lead', or 'Expert' in title/summary" : "Allowed to use Seniority terms if applicable",
+        "Do NOT invent new companies or job titles",
+        "Must use exact dates from resume"
+      ]
+    };
+
     try {
       const systemPrompt = `
     You are an expert ATS-Optimization AI. Your goal is to REWRITE and ELEVATE the user's resume while maintaining **STRICT FACTUAL ACCURACY**.
     
-    CRITICAL RULE: **NO HALLUCINATION OF SENIORITY**.
-    - The user has **${calculatedExperience.totalYears} years** of experience.
-    - If this is < 3 years, write a "High Potential / Early Career" style resume.
-    - If this is > 5 years, write a "Senior / Expert" style resume.
-    - **NEVER** write "5+ years of experience" for a candidate with ${calculatedExperience.totalYears} years.
+    ### TRUTH VERIFICATION REPORT (STRICT COMPLIANCE REQUIRED):
+    - **Confirmed Experience**: ${verificationReport.totalExperience} years.
+    - **Constraint Checklist**:
+      ${verificationReport.constraints.map(c => `- [ ] ${c}`).join('\n      ')}
     
-    TRANSFORM MEDIOCRE CONTENT INTO EXECUTIVE-LEVEL ACHIEVEMENTS (` + (calculatedExperience.totalYears < 2 ? "Junior/Entry Level Focused" : "Experienced Focused") + `).
+    CRITICAL RULE: **NO HALLUCINATION OF SENIORITY**.
+    - If Experience < 3 years: Write a "High Potential / Early Career" resume.
+    - If Experience > 5 years: Write a "Senior / Expert" resume.
+    - **NEVER** write "5+ years of experience" for a candidate with ${verificationReport.totalExperience} years.
+    
+    TRANSFORM MEDIOCRE CONTENT INTO EXECUTIVE-LEVEL ACHIEVEMENTS (` + (verificationReport.totalExperience < 2 ? "Junior/Entry Level Focused" : "Experienced Focused") + `).
     
     CRITICAL INSTRUCTION - "MENTAL SANDBOX":
     Wrap your analysis in a <thinking> block.
     Inside <thinking>:
-    1. **Verify Experience**: Check dates. Does it align with ${calculatedExperience.totalYears} years?
-    2. **Strategy**: How to make a ${calculatedExperience.totalYears}-year candidate look amazing without lying?
+    1. **Verify Experience**: Check verified duration (${verificationReport.totalExperience} years).
+    2. **Strategy**: How to make a ${verificationReport.totalExperience}-year candidate look amazing without lying?
     3. **Theme**: Suggest a layout theme.
     </thinking>
     

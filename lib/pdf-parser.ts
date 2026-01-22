@@ -159,6 +159,12 @@ export async function parseResumePDF(pdfBuffer: Buffer): Promise<ParsedResume> {
           const hiddenLinks = scanBufferForLinks(pdfBuffer);
           let finalText = cleanedText;
 
+          // Use the advanced sanitizer
+          try {
+            const { sanitizeText } = require("./text-sanitizer");
+            finalText = sanitizeText(finalText);
+          } catch (e) { console.warn("Sanitizer missing"); }
+
           if (hiddenLinks.length > 0) {
             console.log(`Found ${hiddenLinks.length} hidden LinkedIn links in raw buffer`);
             const uniqueLinks = [...new Set(hiddenLinks)];
