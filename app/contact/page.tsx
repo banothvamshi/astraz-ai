@@ -6,6 +6,7 @@ import { ArrowLeft, Send, Mail, User, MessageSquare, HelpCircle } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FloatingNav } from "@/components/ui/floating-navbar";
+import { Footer } from "@/components/ui/footer";
 import { Spotlight } from "@/components/ui/spotlight";
 import { motion } from "framer-motion";
 
@@ -156,6 +157,7 @@ export default function ContactPage() {
                     </div>
                 </div>
             </motion.div>
+            <Footer />
         </div>
     );
 }

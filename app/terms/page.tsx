@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { FloatingNav } from "@/components/ui/floating-navbar";
+import { Footer } from "@/components/ui/footer";
 import { Spotlight } from "@/components/ui/spotlight";
 import { motion } from "framer-motion";
 
@@ -85,6 +86,7 @@ export default function TermsPage() {
                     </p>
                 </div>
             </motion.div>
+            <Footer />
         </div>
     );
 }

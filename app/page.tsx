@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 
 import { FloatingNav } from "@/components/ui/floating-navbar";
+import { Footer } from "@/components/ui/footer";
 
 // --- Components for the Page ---
 
@@ -121,18 +122,30 @@ export default function Home() {
             >
               Get Your Unfair Advantage <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-14 px-8 rounded-full text-lg border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-white/10"
-            >
-              <Github className="mr-2 h-5 w-5" /> Star on GitHub
-            </Button>
+
           </motion.div>
         </div>
 
         {/* Abstract Background Elements */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[500px] bg-indigo-500/20 opacity-30 blur-[120px] rounded-full pointer-events-none" />
+      </section>
+
+      {/* Trusted By Section */}
+      <section className="py-10 border-b border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/50 backdrop-blur-sm">
+        <div className="container mx-auto px-6 text-center">
+          <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-6">
+            Trusted by professionals from
+          </p>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
+            {/* Using text representations since we don't have SVG logos handy, styled to look like logos */}
+            <span className="text-xl md:text-2xl font-bold font-sans text-slate-700 dark:text-slate-300">Google</span>
+            <span className="text-xl md:text-2xl font-bold font-serif text-slate-700 dark:text-slate-300">Microsoft</span>
+            <span className="text-xl md:text-2xl font-bold font-mono text-slate-700 dark:text-slate-300">Amazon</span>
+            <span className="text-xl md:text-2xl font-extrabold text-slate-700 dark:text-slate-300 tracking-tighter">Netflix</span>
+            <span className="text-xl md:text-2xl font-bold text-slate-700 dark:text-slate-300 italic">Meta</span>
+            <span className="text-xl md:text-2xl font-bold text-slate-700 dark:text-slate-300">Uber</span>
+          </div>
+        </div>
       </section>
 
       {/* 2. Stats with Counter Animation */}
@@ -222,7 +235,7 @@ export default function Home() {
         />
       </section>
 
-      {/* 5. CTA Section */}
+      {/* CTA Section */}
       <section className="py-32 bg-white dark:bg-black relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-30" />
         <div className="container mx-auto px-6 relative z-10 text-center">
@@ -240,42 +253,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-50 dark:bg-neutral-950 border-t border-slate-200 dark:border-white/10 py-16">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-16">
-            <div className="col-span-2">
-              <div className="flex items-center gap-2 mb-6">
-                <span className="font-bold text-2xl">Astraz AI</span>
-              </div>
-              <p className="text-slate-500 max-w-sm">
-                Advanced resume engineering for the modern professional. Built with love and plenty of caffeine.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold mb-6">Product</h4>
-              <ul className="space-y-4 text-slate-500">
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Templates</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-6">Legal</h4>
-              <ul className="space-y-4 text-slate-500">
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-amber-500 transition-colors">Terms</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="flex items-center justify-between pt-8 border-t border-slate-200 dark:border-white/10 text-slate-500 text-sm">
-            <div>© {new Date().getFullYear()} Astraz AI Inc.</div>
-            <div className="flex gap-4">
-              <Github className="w-5 h-5 cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors" />
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
