@@ -12,6 +12,8 @@ interface ResumeEditorProps {
 
 export function ResumeEditor({ content, onSave, onCancel }: ResumeEditorProps) {
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
+  const [editedContent, setEditedContent] = useState(content);
+  const [isSaving, setIsSaving] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
