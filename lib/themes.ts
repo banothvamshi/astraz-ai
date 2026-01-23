@@ -48,7 +48,7 @@ export const THEMES: Record<string, ResumeTheme> = {
         name: "Modern",
         description: "Sleek, sans-serif design with a bold header.",
         colors: {
-            primary: [255, 255, 255], // White text for banner
+            primary: [31, 41, 55],    // Dark Gray (Was White - Fixed for Section Headers)
             secondary: [75, 85, 99],  // Gray 600
             text: [31, 41, 55],       // Gray 800
             accent: [16, 185, 129],   // Emerald 500
@@ -69,7 +69,7 @@ export const THEMES: Record<string, ResumeTheme> = {
         name: "Creative",
         description: "Bold colors and unique layout for creative fields.",
         colors: {
-            primary: [255, 255, 255], // White text
+            primary: [126, 34, 206],  // Purple 700 (Was White)
             secondary: [107, 33, 168], // Purple 700
             text: [17, 24, 39],       // Gray 900
             accent: [219, 39, 119],   // Pink 600

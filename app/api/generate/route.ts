@@ -12,6 +12,7 @@ import { parseJobDescription, extractKeywords } from "@/lib/job-description-pars
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
 import { getCachedResponse, setCachedResponse } from "@/lib/cache";
 import { validatePDF, validateJobDescription, validateBase64, sanitizeJobDescription } from "@/lib/validation";
+import { createClient } from "@/utils/supabase/server"; // Authentication & DB
 import { retry } from "@/lib/retry";
 import { shouldAllowAPICall, getBillingStatusMessage } from "@/lib/billing-guard";
 import { estimateCost, getCostOptimizationTips } from "@/lib/cost-optimizer";
@@ -57,6 +58,29 @@ export async function POST(request: NextRequest) {
         },
         { status: 503 } // Service Unavailable
       );
+    }
+
+    // ==========================================
+    // USER CREDIT CHECK (Account Level)
+    // ==========================================
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("credits, is_admin")
+        .eq("id", user.id)
+        .single();
+
+      if (profile && !profile.is_admin) {
+        if (profile.credits <= 0) {
+          return NextResponse.json(
+            { error: "Insufficient credits. Please top up to generate resumes." },
+            { status: 402 } // Payment Required
+          );
+        }
+      }
     }
     // Parse request body with timeout protection
     let body;
@@ -453,7 +477,13 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - **No Placeholders**: Never use "[Not provided]". Omit missing fields.
 
 2. **ATS Optimization (Critical)**:
-   - Use EXACT standard section headers: "Professional Summary", "Professional Experience", "Education", "Technical Skills", "Certifications", "Projects"
+   - Use EXACT standard section headers in THIS ORDER:
+     1. "Professional Summary"
+     2. "Professional Experience"
+     3. "Education"
+     4. "Technical Skills"
+     5. "Certifications" (if any)
+     6. "Projects" (if any)
    - NO tables, columns, graphics, or complex formatting (ATS Death Traps)
    - Use simple, clean bullet points (•)
    - Include ALL relevant keywords naturally: ${keywords.slice(0, 40).join(", ")}

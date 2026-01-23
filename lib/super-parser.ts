@@ -49,15 +49,32 @@ export async function superParseResume(fileBuffer: Buffer): Promise<ParsedResume
     const startTime = Date.now();
 
     try {
-        // 1. Parallel Execution of Extraction Layers
-        const [rawTextResult, images] = await Promise.all([
-            pdf(fileBuffer).catch((e: any) => ({ text: "" })), // Layer 1: Raw Text
-            convertPdfToImages(fileBuffer)      // Layer 2: Visual Images
-        ]);
+        // 0. Detect File Type (PDF vs Image)
+        const isPdf = fileBuffer.lastIndexOf("%PDF-") === 0 || fileBuffer.indexOf("%PDF-") === 0;
 
-        const rawText = rawTextResult.text || "";
-        console.log(`✅ Layer 1: Raw text extracted (${rawText.length} chars)`);
-        console.log(`✅ Layer 2: PDF rendered to ${images.length} images`);
+        let rawText = "";
+        let images: string[] = [];
+
+        if (isPdf) {
+            console.log("📄 Detected PDF format. Running full pipeline...");
+            // 1. Parallel Execution of Extraction Layers
+            const [rawTextResult, pdfImages] = await Promise.all([
+                pdf(fileBuffer).catch((e: any) => ({ text: "" })), // Layer 1: Raw Text
+                convertPdfToImages(fileBuffer)      // Layer 2: Visual Images
+            ]);
+            rawText = rawTextResult.text || "";
+            images = pdfImages;
+            console.log(`✅ Layer 1: Raw text extracted (${rawText.length} chars)`);
+            console.log(`✅ Layer 2: PDF rendered to ${images.length} images`);
+        } else {
+            console.log("🖼️ Detected Image format (PNG/JPG). Skipping PDF extraction...");
+            // Treat the input buffer as the single image
+            // We assume it's an image if it's not a PDF.
+            // Convert buffer to base64 data URI
+            const base64Image = `data:image/png;base64,${fileBuffer.toString('base64')}`;
+            images = [base64Image];
+            console.log(`✅ Layer 2: Loaded 1 image from prompt input`);
+        }
 
         // Layer 3: OCR (Run on images)
         // We run this only if we have images. It adds a few seconds but ensures we catch text in graphics.
