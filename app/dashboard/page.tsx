@@ -606,8 +606,8 @@ export default function Dashboard() {
       </nav>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
-        <div className="mx-auto max-w-7xl">
+      <div className={`container mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 transition-all duration-300 ${activeTab === "builder" ? "max-w-[95vw]" : "max-w-7xl"}`}>
+        <div className="mx-auto w-full">
 
           {/* Tab Navigation */}
           <div className="flex gap-1 border-b border-slate-200 dark:border-slate-800 mb-10">
@@ -678,7 +678,8 @@ export default function Dashboard() {
                   )}
 
                   {/* RESUME HEALTH SCORE CARD (GENERATED) */}
-                  {(resumeScore || (resumeMeta && resumeMeta.score)) && !isGenerating && !generatedResume && (
+                  {/* FIX: Make Score Always Visible if available, regardless of generation state */}
+                  {(resumeScore || (resumeMeta && resumeMeta.score)) && !isGenerating && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}

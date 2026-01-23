@@ -125,10 +125,11 @@ export async function POST(request: NextRequest) {
       } else {
         // LOGGED IN USER CHECK
 
-        // Check Logic: Must be Premium OR Have Credits OR Unlimited
-        if (!effectiveIsPremium && !hasCredits && !isUnlimited) {
+        // Check Logic: Must be Unlimited OR Have Credits
+        // Fix: Premium users with finite credits (not -1) must also be blocked if credits are 0
+        if (!isUnlimited && !hasCredits) {
           return NextResponse.json(
-            { error: "No credits remaining. Please upgrade to download." },
+            { error: "No credits remaining. Please top up to download." },
             { status: 403 }
           );
         }
