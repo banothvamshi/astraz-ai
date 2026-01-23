@@ -143,12 +143,14 @@ export async function superParseResume(fileBuffer: Buffer): Promise<ParsedResume
             data: img.replace(/^data:image\/\w+;base64,/, "")
         }));
 
-        // Part B: The Raw PDF File (Direct File Layer)
-        // We append the actual PDF so Gemini can use its internal PDF parser as well
-        multimodalParts.push({
-            mimeType: "application/pdf",
-            data: fileBuffer.toString("base64")
-        });
+        if (isPdf) {
+            // Part B: The Raw PDF File (Direct File Layer)
+            // We append the actual PDF so Gemini can use its internal PDF parser as well
+            multimodalParts.push({
+                mimeType: "application/pdf",
+                data: fileBuffer.toString("base64")
+            });
+        }
 
         console.log(`🤖 Sending payload to Gemini 2.0 Flash (Super Parser Mode)...`);
         console.log(`   - ${images.length} Page Screenshots`);

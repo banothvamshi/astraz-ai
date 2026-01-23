@@ -81,6 +81,20 @@ export async function POST(request: NextRequest) {
           );
         }
       }
+    } else {
+      // GUEST USERS: Strict blocking or Rate Limit
+      // User Requirement: "generations should not work if non account user already used free 1 use"
+      // Since we cannot reliably track "1 use" across serverless executions without DB, we will BLOCK guests or use IP rate limit.
+      // For safety/strictness as requested: BLOCK. Force them to sign up.
+      // OR: Allow 1 request per IP using rate-limiter.
+      const ip = getClientIdentifier(request);
+      const { success } = await checkRateLimit(ip);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Free trial limit reached. Please sign up to continue." },
+          { status: 429 }
+        );
+      }
     }
     // Parse request body with timeout protection
     let body;
