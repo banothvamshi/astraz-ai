@@ -261,17 +261,23 @@ export async function POST(request: NextRequest) {
     console.log("=".repeat(50));
 
     let resumeText: string;
+    let superParsedData: any = null; // Store high-quality parsed data
     try {
       // SUPER PARSER: Multi-modal extraction (Text + Visual + OCR)
       // This guarantees "100/100" accuracy by seeing what the human sees
       const { superParseResume } = await import("@/lib/super-parser");
       console.log("🚀 Starting Super Parser Pipeline...");
 
-      const structuredResume = await superParseResume(pdfBuffer);
+      // Get ALL artifacts from the Super Parser
+      const { parsed, ocrText, images } = await superParseResume(pdfBuffer);
+
+      // Store artifacts for later use in Generation
+      (global as any).processingArtifacts = { ocrText, images, parsed };
+      superParsedData = parsed;
 
       // Serialize to JSON string for the generator prompt
       // The generator prompt understands JSON perfectly
-      resumeText = JSON.stringify(structuredResume, null, 2);
+      resumeText = JSON.stringify(parsed, null, 2);
 
       console.log(`✅ Super Parser success. Extracted ${resumeText.length} chars of structured data.`);
 
@@ -650,23 +656,26 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     try {
       const { generateMultimodal } = await import("@/lib/gemini");
 
+      // Retrieve artifacts (OCR, Images) from the parser scope
+      const artifacts = (global as any).processingArtifacts || { ocrText: "", images: [] };
+      const { ocrText, images } = artifacts;
+
       const systemPrompt = `
     You are an elite Resume Reconstruction & Optimization AI. 
     
-    ### THE "DUAL VERIFICATION" PROTOCOL:
-    You are provided with TWO inputs:
-    1. **VISUAL PDF** (The actual file): Use this to understand the LAYOUT, HEADERS, DATES, and SECTION BOUNDARIES.
-    2. **EXTRACTED TEXT** (The raw OCR): Use this to copy exact text data (phone numbers, emails, specific metrics).
+    ### THE "4-LAYER VERIFICATION" PROTOCOL:
+    You are provided with FOUR inputs:
+    
+    1. **VISUAL IMAGES** (Attached): High-res screenshots of every page. Use these for LAYOUT, DATES, and SECTION HIERARCHY.
+    2. **VISUAL PDF** (Attached): The raw file.
+    3. **OCR TEXT** (Below): Extracted text from the images.
+    4. **PARSED JSON** (Below): Structured data extracted by a specialized parser.
+    5. **EXTRACTED TEXT** (The raw PDF text): Use for copy-paste accuracy.
     
     ### YOUR MISSION:
-    Reconstruct the resume by CROSS-REFERENCING these two inputs.
-    - **Visual Check**: Look at the PDF. Does "Project Manager" look like a Job Title (Bold/Large) or a sub-bullet? Trust the Visual Layout for hierarchy.
-    - **Text Check**: If the visual text is blurry, use the Extracted Text to get the correct spelling.
-    
-    ### CRITICAL FIXES FOR PREVIOUS ISSUES:
-    - **Verify Roles**: Do NOT merge separate roles into one. If the PDF shows two distinct date ranges for "Software Engineer", they are TWO roles.
-    - **Verify Spacing**: Do NOT add random spaces in Company names (e.g. "GoogleInc" -> "Google Inc", but "BioTech" -> "BioTech").
-    - **Verify Headers**: Ensure "Work Experience" is not confused with "Projects".
+    Reconstruct the resume by CROSS-REFERENCING all inputs.
+    - **Visual Check**: Look at the IMAGES. Does "Project Manager" look like a Job Title (Bold/Large) or a sub-bullet? Trust the Visual Layout for hierarchy.
+    - **Text Check**: If the visual text is blurry, use the Extracted/OCR Text.
     
     ### TRUTH VERIFICATION REPORT:
     - **Confirmed Experience**: ${verificationReport.totalExperience} years.
@@ -674,15 +683,10 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
       ${verificationReport.constraints.map(c => `- [ ] ${c}`).join('\n      ')}
     
     CRITICAL RULE: **NO HALLUCINATION**.
-    - If Experience < 3 years: Write a "High Potential / Early Career" resume.
-    - If Experience > 5 years: Write a "Senior / Expert" resume.
-    
-    TRANSFORM MEDIOCRE CONTENT INTO EXECUTIVE-LEVEL ACHIEVEMENTS.
     
     ### MENTAL SANDBOX (REQUIRED):
     Wrap your analysis in a <thinking> block.
-    Inside <thinking>:
-    1. **Visual Scan**: I see X number of distinct roles in the PDF.
+    1. **Visual Scan**: I see X number of distinct roles in the PDF images.
     2. **Role Verification**: "Project Lead" is a title, not a bullet.
     3. **Strategy**: How to optimize this for the target job?
     </thinking>
@@ -690,12 +694,29 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     Then, output the final Markdown Resume.
     `;
 
-      // Pass both the Base64 PDF and the Text Prompt
-      // The prompt includes the TEXT extraction as a reference
+      // Prepare Multimodal Payload (Images + PDF)
+      const multimodalPayload: { mimeType: string; data: string }[] = [];
+
+      // 1. Add Page Images (Visual Layer)
+      if (images && Array.isArray(images)) {
+        images.forEach((img: string) => {
+          multimodalPayload.push({
+            mimeType: "image/png",
+            data: img.replace(/^data:image\/\w+;base64,/, "")
+          });
+        });
+      }
+
+      // 2. Add Raw PDF (File Layer)
+      multimodalPayload.push({ mimeType: "application/pdf", data: base64Data });
+
       const multimodalPrompt = `${resumePrompt}
       
       --------------------------------------------------
-      SECONDARY INPUT (EXTRACTED TEXT FOR COPY-PASTE):
+      ADDITIONAL INPUT 1: OCR TEXT FROM IMAGES
+      ${ocrText || "No OCR available"}
+      --------------------------------------------------
+      ADDITIONAL INPUT 2: RAW TEXT / PARSED DATA
       ${finalResumeText}
       --------------------------------------------------
       `;
@@ -704,9 +725,7 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
         () =>
           generateMultimodal(
             multimodalPrompt,
-            [
-              { mimeType: "application/pdf", data: base64Data } // Pass the original PDF for visual context
-            ],
+            multimodalPayload,
             systemPrompt
           ),
         {
@@ -886,11 +905,11 @@ ${cleanResume}
       coverLetter: generatedCoverLetter,
       meta: {
         ...structuredResume,
-        name: normalizedResume.name || structuredResume.name,
-        email: normalizedResume.email || structuredResume.email,
-        phone: normalizedResume.phone || structuredResume.phone,
-        location: normalizedResume.location,
-        linkedin: normalizedResume.linkedin,
+        name: (superParsedData?.name) || normalizedResume.name,
+        email: (superParsedData?.email) || normalizedResume.email,
+        phone: (superParsedData?.phone) || normalizedResume.phone,
+        location: (superParsedData?.location) || normalizedResume.location,
+        linkedin: (superParsedData?.linkedin) || normalizedResume.linkedin,
         github: normalizedResume.github,
         website: normalizedResume.website,
         score: generatedScore, // Return the NEW score

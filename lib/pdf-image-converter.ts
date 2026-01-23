@@ -31,8 +31,9 @@ export async function convertPdfToImages(pdfBuffer: Buffer, scale: number = 1.5)
         const numPages = pdfDocument.numPages;
         const images: string[] = [];
 
-        // Limit pages to prevent payload explosion (e.g. max 5 pages for a resume)
-        const maxPages = Math.min(numPages, 5);
+        // Process ALL pages as requested (High Quality)
+        const maxPages = numPages; // No limit
+
 
         for (let i = 1; i <= maxPages; i++) {
             const page = await pdfDocument.getPage(i);

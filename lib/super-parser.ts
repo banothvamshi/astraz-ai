@@ -8,6 +8,7 @@ export interface ParsedResume {
     email: string;
     phone: string;
     location: string;
+    linkedin?: string;
     links: string[];
     professional_summary: string;
     experience: {
@@ -44,7 +45,7 @@ export interface ParsedResume {
  * 3. OCR (tesseract.js)
  * 4. Multi-modal AI Synthesis (Gemini 2.0 Flash)
  */
-export async function superParseResume(fileBuffer: Buffer): Promise<ParsedResume> {
+export async function superParseResume(fileBuffer: Buffer): Promise<{ parsed: ParsedResume; ocrText: string; images: string[] }> {
     console.log("🚀 Starting Super Parser Pipeline...");
     const startTime = Date.now();
 
@@ -85,38 +86,49 @@ export async function superParseResume(fileBuffer: Buffer): Promise<ParsedResume
             console.log(`✅ Layer 3: OCR complete (${ocrText.length} chars)`);
         }
 
-        // 2. Construct the Super Prompt
+        // 2. Construct the Super Prompt (Strict 4-Layer Protocol)
         const systemPrompt = `
-      You are an expert ATS Resume Parser with "Vision" capabilities.
+      You are an elite ATS Resume Parser with "God Mode" Vision capabilities.
       Your goal is to extract structured JSON data from a resume with 100% accuracy.
       
-      You have access to THREE sources of truth:
-      1. VISUAL IMAGES of the resume pages (Use these to understand layout, headers, and structure).
-      2. RAW TEXT extracted from the file (Use this for precise character data).
-      3. OCR TEXT extracted from the images (Use this to verify text that might be encoded weirdly).
+      You must utilize the "4-LAYER TRUTH PROTOCOL" to verify every data point:
+      
+      ### LAYER 1: VISUAL IMAGES (The Human Truth)
+      - Look at the provided images of EVERY page.
+      - **NAME EXTRACTION**: The Name is ALMOST ALWAYS the largest bold text at the top of Page 1.
+      - **CRITICAL NEGATIVE CONSTRAINT**: "Experience", "Resume", "CV", "Curriculum Vitae", "Contact", "Summary" are **NEVER** the name. If the biggest text says "Experience", IGNORE IT and look for the actual name (likely smaller, or above/below it).
+      - **CONTACT INFO**: Visually locate the email, phone, and links. They are often entering icons or column headers.
+      - **STRUCTURE**: Use visual gaps and bold headers to distinguish "Experience" from "Projects".
+      
+      ### LAYER 2: OCR TEXT (The Scanned Truth)
+      - Use the provided OCR text to decipher blurry or stylized fonts.
+      - If Visual Layer is ambiguous, check OCR for exact spelling.
+      
+      ### LAYER 3: RAW TEXT (The Digital Truth)
+      - Use provided raw text for precise character extraction (e.g. email addresses, URLs).
+      - If OCR mistakes 'l' for '1', Raw Text usually has it right.
+      
+      ### LAYER 4: RAW FILE (The Source Truth)
+      - You have the actual PDF file attached. Use internal metadata if all else fails.
 
-      INSTRUCTIONS:
-      - CROSS-REFERENCE all three sources (Visual, Text, OCR).
-      - **CRITICAL**: The 'name' field must be a PERSON'S NAME. 
-      - **NEGATIVE CONSTRAINT**: 'Experience', 'Resume', 'Curriculum Vitae', 'CV', 'Bio-data', 'Contact', 'Summary', 'Profile', 'Highlights', 'Education' are NOT names. Never use these as the name value.
-      - If the top text says "Experience", ignore it and look for the actual name (usually strictly above contact details).
-      - **CONTACT INFO**: Search Header and Footer aggressively for Name, Email, Phone, and Location. 
-      - **ANTI-HALLUCINATION RULE**: Do NOT invent data. But if you see it, capture it even if formatting is weird.
-      - **SUMMARY vs EXPERIENCE**: A paragraph at the top without a "Experience" header is usually a Summary. Extract it as 'professional_summary'.
-      - If Raw Text is garbled, trust the Visual/OCR.
-      - If Visual is blurry, trust the Raw Text.
-      - Infer the structure (Experience vs Education) based on the Visual Layout (bold headers, sizes).
-      - Correct common OCR errors (e.g., '1' vs 'l', '0' vs 'O').
-      - Split combined lines properly based on visual gap.
-      - **Critical**: Ensure the 'description' arrays in 'experience' contain the FULL original content, just cleaned up. Do not summarize yet.
+      ### INSTRUCTIONS:
+      1. **NAME**: Find the person's name. It is NOT "Experience". It is NOT "Resume". It is a human name.
+      2. **CONTACT**: Extract Email, Phone, LinkedIn, Portfolio, Location.
+      3. **SUMMARY**: If there is a paragraph at the start without a specific header, it is the Professional Summary.
+      4. **EXPERIENCE vs PROJECTS**:
+         - Experience = Employment history (Company, Title, Dates).
+         - Projects = Specific work/apps built (often has 'Project' in header or description).
+         - Do not mix them.
+      5. **DATES**: Extract exact start/end dates.
 
-      OUTPUT FORMAT:
+      ### OUTPUT FORMAT:
       Return ONLY valid JSON matching this TypeScript interface:
       {
         name: string,
         email: string,
         phone: string,
         location: string,
+        linkedin: string,
         links: string[],
         professional_summary: string, 
         experience: [{ title, company, location, duration, description[] }],
@@ -128,13 +140,16 @@ export async function superParseResume(fileBuffer: Buffer): Promise<ParsedResume
     `;
 
         const userPrompt = `
-      Here is the Raw Text:
-      ${rawText.substring(0, 20000)}
+      ### INPUT DATA FOR ANALYSIS
 
-      Here is the OCR Text:
-      ${ocrText.substring(0, 20000)}
+      [LAYER 2: OCR TEXT FROM IMAGES]
+      ${ocrText.substring(0, 30000)}
 
-      Please process the attached images and texts to generate the perfect JSON.
+      [LAYER 3: RAW TEXT FROM PDF PARSER]
+      ${rawText.substring(0, 30000)}
+
+      [Instructions]
+      Please process the attached IMAGES (Layer 1) and PDF FILE (Layer 4) along with the text above to generate the JSON.
     `;
 
         // 3. Prepare Files for Gemini
@@ -156,7 +171,7 @@ export async function superParseResume(fileBuffer: Buffer): Promise<ParsedResume
         }
 
         console.log(`🤖 Sending payload to Gemini 2.0 Flash (Super Parser Mode)...`);
-        console.log(`   - ${images.length} Page Screenshots`);
+        console.log(`   - ${images.length} High-Res Page Screenshots`);
         console.log(`   - 1 Raw PDF File`);
         console.log(`   - Raw Text (${rawText.length} chars)`);
         console.log(`   - OCR Text (${ocrText.length} chars)`);
@@ -171,7 +186,11 @@ export async function superParseResume(fileBuffer: Buffer): Promise<ParsedResume
         const parsedData = JSON.parse(cleanJson);
 
         console.log(`✨ Super Parse Complete in ${((Date.now() - startTime) / 1000).toFixed(2)}s`);
-        return parsedData;
+        return {
+            parsed: parsedData,
+            ocrText,
+            images
+        };
 
     } catch (error) {
         console.error("❌ Super Parse Failed:", error);
