@@ -156,8 +156,9 @@ export default function Dashboard() {
         setUserId(user.id);
 
         // Set email from auth user
-        // REMOVED: Do not pre-fill contact info from account data (Data Integrity)
-        // setContactInfo(prev => ({ ...prev, email: user.email || "" }));
+        // Set email from auth user
+        // Pre-fill contact info from account data
+        setContactInfo(prev => ({ ...prev, email: user.email || "" }));
       }
 
       if (user) {
@@ -169,14 +170,12 @@ export default function Dashboard() {
 
         if (profile) {
           // Pre-populate contact info from profile
-          // REMOVED: Do not pre-fill contact info from account data (Data Integrity)
-          /* 
+          // Pre-populate contact info from profile
           setContactInfo(prev => ({
             ...prev,
-            fullName: profile.full_name || "",
-            phone: profile.phone || ""
+            fullName: profile.full_name || prev.fullName,
+            phone: profile.phone || prev.phone
           }));
-          */
 
           // Redirect admins to admin panel
           if (profile.is_admin) {
@@ -606,7 +605,7 @@ export default function Dashboard() {
       </nav>
 
       {/* Main Content */}
-      <div className={`container mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 transition-all duration-300 ${activeTab === "builder" ? "max-w-[95vw]" : "max-w-7xl"}`}>
+      <div className={`mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 transition-all duration-300 ${activeTab === "builder" ? "w-full max-w-[98vw]" : "container max-w-7xl"}`}>
         <div className="mx-auto w-full">
 
           {/* Tab Navigation */}
@@ -677,9 +676,8 @@ export default function Dashboard() {
                     <ImmersiveLoading status={generationStep} />
                   )}
 
-                  {/* RESUME HEALTH SCORE CARD (GENERATED) */}
-                  {/* FIX: Make Score Always Visible if available, regardless of generation state */}
-                  {(resumeScore || (resumeMeta && resumeMeta.score)) && !isGenerating && (
+                  {/* RESUME HEALTH SCORE CARD (Only show during checking phase, hide when Editor is active to avoid duplicates) */}
+                  {(resumeScore && !generatedResume && !resumeMeta?.score) && !isGenerating && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
