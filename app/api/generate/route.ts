@@ -73,13 +73,13 @@ export async function POST(request: NextRequest) {
         .eq("id", authUser.id)
         .single();
 
-      if (profile && !profile.is_admin) {
-        if (profile.credits <= 0) {
-          return NextResponse.json(
-            { error: "Insufficient credits. Please top up to generate resumes." },
-            { status: 402 } // Payment Required
-          );
-        }
+      // PARANOID BILLING CHECK
+      // If profile is missing (DB Error) OR credits <= 0, BLOCK.
+      if (!profile || (!profile.is_admin && (profile.credits === null || Number(profile.credits) <= 0))) {
+        return NextResponse.json(
+          { error: "Insufficient credits. Please top up to generate resumes." },
+          { status: 402 } // Payment Required
+        );
       }
     } else {
       // GUEST USERS: Strict blocking or Rate Limit
@@ -498,6 +498,10 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
      3. "Education"
      4. "Technical Skills"
      5. "Certifications" (if any)
+   
+   - **DO NOT** include the Name, Email, Phone, or Location at the top. These are managed separately by the system.
+   - **START** the output directly with the Markdown comment: <!-- Name and Contact Info are managed in the Form above. Edit them there. -->
+   - Followed by the Professional Summary.
      6. "Projects" (if any)
    - NO tables, columns, graphics, or complex formatting (ATS Death Traps)
    - Use simple, clean bullet points (•)
