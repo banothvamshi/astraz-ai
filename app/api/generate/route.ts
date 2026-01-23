@@ -878,11 +878,11 @@ ${cleanResume}
 
     // Log the successful generation data
     // Also deduct credits/increment usage via RPC
-    if (userId) {
+    if (authorizedUserId) {
       try {
         const { getSupabaseAdmin } = await import("@/lib/auth");
         const supabase = getSupabaseAdmin();
-        await supabase.rpc("increment_generation_count", { user_uuid: userId });
+        await supabase.rpc("increment_generation_count", { user_uuid: authorizedUserId });
       } catch (err) {
         console.error("Failed to increment generation count", err);
       }
@@ -890,7 +890,7 @@ ${cleanResume}
     // Intentionally not awaiting to avoid delaying response
     logGenerationData({
       clientId,
-      isPremium,
+      isPremium: effectiveIsPremium,
       resumeData: structuredResume,
       jobDescription: parsedJob,
       generatedResume: cleanResume,
@@ -910,7 +910,7 @@ ${cleanResume}
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId: userId || null,
+        userId: authorizedUserId || null,
         jobTitle: parsedJob.title,
         companyName: parsedJob.company,
         jobLocation: parsedJob.location,
@@ -918,7 +918,7 @@ ${cleanResume}
         coverLetterContent: generatedCoverLetter,
         originalResumeText: finalResumeText?.substring(0, 5000), // Truncate for storage
         jobDescriptionText: jobDescription?.substring(0, 5000),
-        isFreeGeneration: !isPremium,
+        isFreeGeneration: !effectiveIsPremium,
       }),
     }).catch(() => { }); // Ignore errors, don't block response
 
