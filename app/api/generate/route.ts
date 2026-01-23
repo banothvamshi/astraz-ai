@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     // Authenticate and Authorize
     // const { createClient } = await import("@/utils/supabase/server"); // Removed to fix shadowing
-    const supabase = await createClient(); // Await cookie store
+
     const supabase = await createClient(); // Await cookie store
     const { data: { user } } = await supabase.auth.getUser();
 
