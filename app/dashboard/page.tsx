@@ -154,11 +154,7 @@ export default function Dashboard() {
 
       if (user) {
         setUserId(user.id);
-
-        // Set email from auth user
-        // Set email from auth user
-        // Pre-fill contact info from account data
-        setContactInfo(prev => ({ ...prev, email: user.email || "" }));
+        // Do NOT pre-fill contactInfo from account (User Request: Keep separate)
       }
 
       if (user) {
@@ -169,13 +165,13 @@ export default function Dashboard() {
           .single();
 
         if (profile) {
-          // Pre-populate contact info from profile
-          // Pre-populate contact info from profile
-          setContactInfo(prev => ({
-            ...prev,
-            fullName: profile.full_name || prev.fullName,
-            phone: profile.phone || prev.phone
-          }));
+          // Set Account Profile Data (Read-Only State)
+          setAccountProfile({
+            fullName: profile.full_name || "",
+            phone: profile.phone || "",
+            email: user.email || ""
+          });
+          // Do NOT pre-fill contactInfo for Builder (Keep separate)
 
           // Redirect admins to admin panel
           if (profile.is_admin) {
@@ -842,65 +838,32 @@ export default function Dashboard() {
 
                 <div className="mt-8">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Contact Details</h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        const supabase = getSupabaseBrowserClient();
-                        const { data: { session } } = await supabase.auth.getSession();
-                        if (!session?.access_token) {
-                          alert("Please log in again");
-                          return;
-                        }
-
-                        const res = await fetch("/api/user/profile", {
-                          method: "PUT",
-                          headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${session.access_token}`
-                          },
-                          body: JSON.stringify({
-                            full_name: contactInfo.fullName,
-                            phone: contactInfo.phone
-                          })
-                        });
-
-                        if (res.ok) {
-                          alert("Profile updated successfully!");
-                        } else {
-                          alert("Failed to update profile");
-                        }
-                      }}
-                      className="text-amber-600 border-amber-600 hover:bg-amber-50"
-                    >
-                      Save Changes
-                    </Button>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Account Details (Locked)</h3>
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="block text-sm font-medium text-slate-500 mb-1">Full Name</label>
                       <input
                         type="text"
-                        value={contactInfo.fullName}
-                        onChange={(e) => setContactInfo({ ...contactInfo, fullName: e.target.value })}
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                        placeholder="Enter your full name"
+                        value={accountProfile?.fullName || ""}
+                        disabled
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 cursor-not-allowed"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-500 mb-1">Phone (Optional)</label>
+                      <label className="block text-sm font-medium text-slate-500 mb-1">Phone</label>
                       <input
                         type="tel"
-                        value={contactInfo.phone}
-                        onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                        placeholder="Enter your phone number"
+                        value={accountProfile?.phone || ""}
+                        disabled
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 cursor-not-allowed"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-500 mb-1">Email</label>
-                      <div className="mt-1 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400">{contactInfo.email || "Not provided"}</div>
+                      <div className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 cursor-not-allowed">
+                        {accountProfile?.email || "Not provided"}
+                      </div>
                     </div>
                   </div>
                 </div>
