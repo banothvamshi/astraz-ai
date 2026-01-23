@@ -513,6 +513,18 @@ export function extractResumeSections(text: string): {
     }
 
     // Check if line looks like a name (has at least 2 words or is a proper noun pattern)
+    // AND is not a forbidden global keyword
+    const forbiddenNames = [
+      "EXPERIENCE", "RESUME", "CURRICULUM VITAE", "CV", "BIO-DATA", "BIODATA",
+      "CONTACT", "SUMMARY", "PROFILE", "EDUCATION", "SKILLS", "PROJECTS",
+      "WORK HISTORY", "PROFESSIONAL", "CERTIFICATIONS", "LANGUAGES"
+    ];
+
+    // Skip if it matches a forbidden keyword (exact or partial matches if it looks like a header)
+    if (forbiddenNames.includes(lineUpper)) continue;
+    if (lineUpper.includes("EXPERIENCE") && lineUpper.length < 20) continue; // "My Experience"
+    if (line.includes("http") || line.includes("www.")) continue; // Skip links
+
     const namePattern = /^[A-Z][a-z]+(\s+[A-Z][a-z]+)+$|^[A-Z][a-z]+$|^[A-Z]\.?\s*[A-Z][a-z]+/;
     if (line.match(namePattern)) {
       name = line;

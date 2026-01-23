@@ -97,6 +97,9 @@ export async function superParseResume(fileBuffer: Buffer): Promise<ParsedResume
 
       INSTRUCTIONS:
       - CROSS-REFERENCE all three sources (Visual, Text, OCR).
+      - **CRITICAL**: The 'name' field must be a PERSON'S NAME. 
+      - **NEGATIVE CONSTRAINT**: 'Experience', 'Resume', 'Curriculum Vitae', 'CV', 'Bio-data', 'Contact', 'Summary', 'Profile', 'Highlights', 'Education' are NOT names. Never use these as the name value.
+      - If the top text says "Experience", ignore it and look for the actual name (usually strictly above contact details).
       - **CONTACT INFO**: Search Header and Footer aggressively for Name, Email, Phone, and Location. 
       - **ANTI-HALLUCINATION RULE**: Do NOT invent data. But if you see it, capture it even if formatting is weird.
       - **SUMMARY vs EXPERIENCE**: A paragraph at the top without a "Experience" header is usually a Summary. Extract it as 'professional_summary'.
