@@ -105,7 +105,7 @@ export default function Dashboard() {
 
   const analyzeResume = async (file: File) => {
     setIsAnalyzing(true);
-    setResumeScore(null);
+    // setResumeScore(null); // Stop clearing score immediately on new file, wait for new score to replace it
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -119,14 +119,14 @@ export default function Dashboard() {
           const data = await res.json();
           setResumeScore(data.score);
 
-          // Auto-fill contact info from parsed resume if fields are empty
+          // Auto-fill contact info ONLY if fields are empty (No Overwrite Policy)
           if (data.parsed) {
             setContactInfo(prev => ({
-              fullName: prev.fullName || data.parsed.name || "",
-              email: prev.email || data.parsed.email || "",
-              phone: prev.phone || data.parsed.phone || "",
-              linkedin: prev.linkedin || data.parsed.linkedin || "",
-              location: prev.location || data.parsed.location || "",
+              fullName: prev.fullName.trim() !== "" ? prev.fullName : (data.parsed.name || ""),
+              email: prev.email.trim() !== "" ? prev.email : (data.parsed.email || ""),
+              phone: prev.phone.trim() !== "" ? prev.phone : (data.parsed.phone || ""),
+              linkedin: prev.linkedin.trim() !== "" ? prev.linkedin : (data.parsed.linkedin || ""),
+              location: prev.location.trim() !== "" ? prev.location : (data.parsed.location || ""),
             }));
           }
         }
@@ -264,14 +264,15 @@ export default function Dashboard() {
   }, [router]);
 
   // Update contact info from parsed resume meta
+  // Update contact info from parsed resume meta (Determine No Overwrite Policy)
   useEffect(() => {
     if (resumeMeta) {
       setContactInfo(prev => ({
-        fullName: resumeMeta.name || prev.fullName,
-        email: resumeMeta.email || prev.email,
-        phone: resumeMeta.phone || prev.phone,
-        linkedin: resumeMeta.linkedin || prev.linkedin,
-        location: resumeMeta.location || prev.location,
+        fullName: prev.fullName.trim() !== "" ? prev.fullName : (resumeMeta.name || ""),
+        email: prev.email.trim() !== "" ? prev.email : (resumeMeta.email || ""),
+        phone: prev.phone.trim() !== "" ? prev.phone : (resumeMeta.phone || ""),
+        linkedin: prev.linkedin.trim() !== "" ? prev.linkedin : (resumeMeta.linkedin || ""),
+        location: prev.location.trim() !== "" ? prev.location : (resumeMeta.location || ""),
       }));
     }
   }, [resumeMeta]);
@@ -288,6 +289,16 @@ export default function Dashboard() {
       alert(`File is too large (${(resumeFile.size / 1024 / 1024).toFixed(2)}MB). Maximum size is 10MB.`);
       return;
     }
+
+    // MANDATORY CONTACT INFO VALIDATION
+    if (!contactInfo.fullName.trim() || !contactInfo.email.trim()) {
+      alert("Name and Email are mandatory. Please fill in your Contact Information.");
+      setShowContactInfo(true); // Open the accordion
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+
 
     // Validate file type
     if (resumeFile.type !== "application/pdf") {
@@ -310,6 +321,11 @@ export default function Dashboard() {
 
     setIsGenerating(true);
     setGenerationStep("Parsing your resume...");
+    // Do NOT clear resumeScore here from previous generations.
+    // setResumeScore(null); 
+
+    // Do NOT clear resumeScore here. We want to show the improved score comparisons.
+
 
     try {
       // Convert PDF to base64
@@ -1420,6 +1436,7 @@ export default function Dashboard() {
                               </div>
                             ) : pdfPreviewUrl ? (
                               <iframe
+                                key={pdfPreviewUrl} // FORCE REFRESH on URL change
                                 src={`${pdfPreviewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
                                 className="w-full h-full rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 bg-white"
                                 title="Resume Preview"
