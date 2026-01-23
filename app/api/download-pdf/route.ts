@@ -156,74 +156,34 @@ export async function POST(request: NextRequest) {
           );
         }
       }
+    }
 
-      // Generate PDF with retry logic
-      let pdfBuffer: Buffer;
-      try {
-        pdfBuffer = await retry(
-          () =>
-            generateProfessionalPDF({
-              type,
-              content,
-              name: name || undefined,
-              email: email || undefined,
-              phone: phone || undefined,
-              linkedin: linkedin || undefined,
-              location: location || undefined,
-              company: company || undefined,
-              jobTitle: jobTitle || undefined,
-              themeId: theme || undefined,
-              watermark: watermarkText, // Pass watermark if set
-            }),
-          {
-            maxRetries: 2,
-            initialDelay: 1000,
-            retryableErrors: ["timeout"],
-          }
-        );
-      } catch (error: any) {
-        console.error("PDF generation error:", error);
-        return NextResponse.json(
-          {
-            error: error.message || "Failed to generate PDF. Please try again.",
-            details: process.env.NODE_ENV === "development" ? error.stack : undefined,
-          },
-          { status: 500 }
-        );
-      }
-
-      // Validate PDF buffer
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        return NextResponse.json(
-          { error: "Generated PDF is empty" },
-          { status: 500 }
-        );
-      }
-
-      // Check PDF size (safety check)
-      const maxPdfSize = 10 * 1024 * 1024; // 10MB
-      if (pdfBuffer.length > maxPdfSize) {
-        return NextResponse.json(
-          { error: "Generated PDF is too large" },
-          { status: 500 }
-        );
-      }
-
-
-
-      return new NextResponse(pdfBuffer as any, {
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": `${preview ? 'inline' : 'attachment'}; filename="${filename}"`,
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
-          "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-          "X-RateLimit-Reset": rateLimit.resetAt.toString(),
-        },
-      });
+    // Generate PDF with retry logic
+    let pdfBuffer: Buffer;
+    try {
+      pdfBuffer = await retry(
+        () =>
+          generateProfessionalPDF({
+            type,
+            content,
+            name: name || undefined,
+            email: email || undefined,
+            phone: phone || undefined,
+            linkedin: linkedin || undefined,
+            location: location || undefined,
+            company: company || undefined,
+            jobTitle: jobTitle || undefined,
+            themeId: theme || undefined,
+            watermark: watermarkText, // Pass watermark if set
+          }),
+        {
+          maxRetries: 2,
+          initialDelay: 1000,
+          retryableErrors: ["timeout"],
+        }
+      );
     } catch (error: any) {
-      console.error("Download PDF error:", error);
+      console.error("PDF generation error:", error);
       return NextResponse.json(
         {
           error: error.message || "Failed to generate PDF. Please try again.",
@@ -232,4 +192,46 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Validate PDF buffer
+    if (!pdfBuffer || pdfBuffer.length === 0) {
+      return NextResponse.json(
+        { error: "Generated PDF is empty" },
+        { status: 500 }
+      );
+    }
+
+    // Check PDF size (safety check)
+    const maxPdfSize = 10 * 1024 * 1024; // 10MB
+    if (pdfBuffer.length > maxPdfSize) {
+      return NextResponse.json(
+        { error: "Generated PDF is too large" },
+        { status: 500 }
+      );
+    }
+
+
+
+    return new NextResponse(pdfBuffer as any, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `${preview ? 'inline' : 'attachment'}; filename="${filename}"`,
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+        "X-RateLimit-Reset": rateLimit.resetAt.toString(),
+      },
+    });
+  } catch (error: any) {
+    console.error("Download PDF error:", error);
+    return NextResponse.json(
+      {
+        error: error.message || "Failed to generate PDF. Please try again.",
+        details: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      },
+      { status: 500 }
+    );
+  }
+}
   }
