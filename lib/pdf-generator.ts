@@ -429,7 +429,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     // Watermark
     if (options.watermark) {
       doc.saveGraphicsState();
-      doc.setGState(new doc.GState({ opacity: 0.2 }));
+      doc.setGState(new (doc as any).GState({ opacity: 0.2 }));
       doc.setFont("helvetica", "bold");
       doc.setFontSize(60);
       doc.setTextColor(200, 200, 200);
