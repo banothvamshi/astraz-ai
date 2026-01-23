@@ -76,14 +76,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Rate limiting
-    const clientId = getClientIdentifier(request);
-    const rateLimit = checkRateLimit(clientId, "download", effectiveIsPremium);
+    // Rate limiting (Skip for Previews to allow seamless editing)
+    if (!preview) {
+      const clientId = getClientIdentifier(request);
+      const rateLimit = checkRateLimit(clientId, "download", effectiveIsPremium);
 
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: "Rate limit exceeded. Please try again later.", retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000) },
-        { status: 429 }
-      );
+      if (!rateLimit.allowed) {
+        return NextResponse.json(
+          { error: "Rate limit exceeded. Please try again later.", retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000) },
+          { status: 429 }
+        );
+      }
     }
 
     // Generate filename - moved up for activity log

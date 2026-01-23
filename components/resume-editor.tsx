@@ -121,7 +121,7 @@ export function ResumeEditor({ content, contactInfo, onSave, onCancel }: ResumeE
         </div>
       </div>
 
-      <div className="flex-1 min-h-[700px] grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="flex-1 min-h-[85vh] grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Editor Pane */}
         <div className={`flex flex-col h-full ${activeTab === 'preview' ? 'hidden md:flex' : 'flex'}`}>
           <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-t-lg border border-slate-200 dark:border-slate-700 border-b-0 flex items-center justify-between">

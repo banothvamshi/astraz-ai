@@ -314,7 +314,7 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
 
     // DUPLICATION GUARD: If line matches name or is "Professional Summary" header when we just started
     // Actually, AI sometimes outputs "# Name". We detect that.
-    if (i < 5 && name && line.toLowerCase().includes(name.toLowerCase())) {
+    if (i < 5 && name && line.toLowerCase().includes(name.toLowerCase()) && line.length < 60) {
       i++; // Skip name if generated in markdown
       continue;
     }
