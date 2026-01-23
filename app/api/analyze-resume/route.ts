@@ -35,9 +35,11 @@ export async function POST(request: NextRequest) {
         // Calculate Score
         const scoreData = calculateResumeScore(textForScoring);
 
-        success: true,
+        return NextResponse.json({
+            success: true,
             score: scoreData,
-                parsed: parsed, // Return parsed data for auto-filling
+            parsed: parsed // Return parsed data for auto-filling
+        });
 
     } catch (error: any) {
         console.error("Analysis error:", error);
