@@ -75,6 +75,9 @@ export default function Dashboard() {
   });
   const [showContactInfo, setShowContactInfo] = useState(false);
 
+  // New: Separate state for Account Tab Profile (Read-Only)
+  const [accountProfile, setAccountProfile] = useState<{ fullName: string; email: string; phone: string } | null>(null);
+
   // New: Job details state
   const [jobDetails, setJobDetails] = useState<JobDetails>({
     companyName: "",
