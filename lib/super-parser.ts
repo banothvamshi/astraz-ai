@@ -183,7 +183,16 @@ export async function superParseResume(fileBuffer: Buffer): Promise<{ parsed: Pa
         // 5. Parse and Validate JSON
         // Clean markdown code blocks if present
         const cleanJson = jsonString.replace(/```json/g, "").replace(/```/g, "").trim();
-        const parsedData = JSON.parse(cleanJson);
+        let parsedData = JSON.parse(cleanJson);
+
+        // DETERMINISTIC CLEANING: Forcefully fix common AI hallucinations
+        if (parsedData.name) {
+            const invalidNames = ["experience", "resume", "curriculum vitae", "cv", "bio-data", "contact", "summary", "profile", "education", "work experience"];
+            if (invalidNames.includes(parsedData.name.toLowerCase().trim())) {
+                console.warn(`⚠️ Parser hallucinated name '${parsedData.name}'. Wiping it.`);
+                parsedData.name = ""; // Wipe it so we don't auto-fill garbage
+            }
+        }
 
         console.log(`✨ Super Parse Complete in ${((Date.now() - startTime) / 1000).toFixed(2)}s`);
         return {
