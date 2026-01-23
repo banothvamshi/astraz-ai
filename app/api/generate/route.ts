@@ -88,8 +88,8 @@ export async function POST(request: NextRequest) {
       // For safety/strictness as requested: BLOCK. Force them to sign up.
       // OR: Allow 1 request per IP using rate-limiter.
       const ip = getClientIdentifier(request);
-      const { success } = await checkRateLimit(ip);
-      if (!success) {
+      const { allowed } = checkRateLimit(ip, "generate", false);
+      if (!allowed) {
         return NextResponse.json(
           { error: "Free trial limit reached. Please sign up to continue." },
           { status: 429 }
