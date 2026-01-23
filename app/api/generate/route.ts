@@ -446,10 +446,11 @@ CRITICAL: Generate a COMPLETE resume with ALL sections filled out. Do NOT use pl
 CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
 
 1. **STRICT DATA INTEGRITY (ZERO HALLUCINATIONS)**:
-   - **ABSOLUTE RULE**: You MUST NOT invent potential employers, job titles, or dates.
-   - **NO PLACEHOLDERS**: Never use text like "[Not provided]", "[City, State]", "Assuming...", or "Beneficial". If data is missing, **OMIT** the field or the entire section.
+   - **SOURCE OF TRUTH**: The Content is derived **ONLY** from the [ORIGINAL RESUME]. The [Job Description] is for **FILTERING/PRIORITIZATION ONLY**.
+   - **ABSOLUTE BAN**: DO NOT include any skill, language, or certification just because it is in the Job Description. If the candidate does not have it, OMIT IT.
+   - **Languages**: List **ONLY** languages explicitly found in the [ORIGINAL RESUME]. DO NOT COPY "Beneficial" or "Optional" languages from the JD. If the resume lists "English", "Hindi", output ONLY "English", "Hindi".
    - **Education**: If the input has no education, do NOT create an Education section.
-   - **Languages**: Lists ONLY languages explicitly found in the resume. Do NOT infer languages from location.
+   - **No Placeholders**: Never use "[Not provided]". Omit missing fields.
 
 2. **ATS Optimization (Critical)**:
    - Use EXACT standard section headers: "Professional Summary", "Professional Experience", "Education", "Technical Skills", "Certifications", "Projects"
@@ -472,11 +473,12 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Highlight leadership, innovation, and measurable business impact
    - Match each experience point to job requirements
 
-3. **Professional Summary (Critical)**:
-   - 3-4 lines maximum
-   - Include: Years of experience, core expertise, key achievement, value proposition
-   - Must be compelling and keyword-rich
-   - Example format: "Results-driven [Role] with [X] years of experience in [Domain]. Proven track record of [Key Achievement]. Expert in [Top 3 Skills]."
+3. **Professional Summary (MANDATORY)**:
+   - You MUST generate a "Professional Summary" section at the top.
+   - 3-4 lines maximum.
+   - Synthesis of: Years of Experience + Key Achievement + Top JD Keyword Match.
+   - Example data: "Results-driven [Role] with [X] years of experience... Expert in [Skill 1], [Skill 2]."
+   - **DO NOT** omit this section.
 
 4. **Experience Section**:
    - Format: Company Name | Location | Dates (MM/YYYY - MM/YYYY)
