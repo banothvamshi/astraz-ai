@@ -65,15 +65,14 @@ export async function generateText(
 
     // Use BEST models for HIGH QUALITY results while optimizing costs
     // Priority: Quality > Speed > Cost
-    // gemini-2.0-flash: Best balance (high quality, fast, cost-efficient)
-    // gemini-2.5-flash: Higher quality but slightly more expensive
+    // Updated to latest BEST stable models (Jan 2026)
     const modelNamesToTry = modelName
       ? [modelName]
       : [
-        "gemini-2.0-flash-exp",     // LATEST: Gemini 2.0
-        "gemini-1.5-pro",           // SMARTEST: 1.5 Pro
-        "gemini-1.5-flash",         // FASTEST: 1.5 Flash
-        "gemini-1.0-pro",           // FALLBACK
+        "gemini-2.5-flash",       // NEW STABLE: Best balance (June 2025 release)
+        "gemini-2.0-flash",       // STABLE FAST: High performance
+        "gemini-2.5-pro",         // HIGH INTELLECT: For complex reasoning
+        "gemini-1.5-pro",         // LEGACY FALLBACK
       ];
 
     let lastError: Error | null = null;
@@ -208,11 +207,11 @@ export async function generateMultimodal(
     // Multimodal requires flash-1.5 or pro-1.5 usually
     const modelName = "gemini-1.5-flash-latest";
 
-    // We prioritize the NEWEST and BEST models as requested (Gemini 2.0 / 1.5 Pro)
+    // We prioritize the NEWEST and BEST models as requested (Gemini 2.5 / 2.0)
     const modelsToTry = [
-      "gemini-2.0-flash-exp",     // BLEEDING EDGE: Valid availability check required
-      "gemini-1.5-pro",           // HIGH INTELLIGENCE: Best for complex visual parsing
-      "gemini-1.5-flash",         // FAST & STABLE
+      "gemini-2.5-flash",       // BEST FOR VISION: Optimized for multimodal
+      "gemini-2.0-flash",       // FAST VISION
+      "gemini-1.5-pro",         // LEGACY HIGH RESOLUTION
     ];
 
     let text: string | null = null;

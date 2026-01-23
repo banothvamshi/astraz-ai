@@ -19,7 +19,7 @@ const RATE_LIMITS = {
     premium: { requests: 100, window: 60 * 60 * 1000 }, // 100 per hour
   },
   download: {
-    free: { requests: 10, window: 60 * 60 * 1000 }, // 10 per hour
+    free: { requests: 1, window: 24 * 60 * 60 * 1000 }, // 1 per 24 hours (Strict "1 Free Use")
     premium: { requests: 500, window: 60 * 60 * 1000 }, // 500 per hour
   },
 };

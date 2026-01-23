@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut, Calendar, Activity } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut, Calendar, Activity, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { UploadArea } from "@/components/upload-area";
@@ -40,7 +40,9 @@ export default function Dashboard() {
   const [isAnalyzing, setIsAnalyzing] = useState(false); // New state for analysis
   const [generatedResume, setGeneratedResume] = useState<string | null>(null);
   const [generatedCoverLetter, setGeneratedCoverLetter] = useState<string | null>(null);
+  const [generatedPdf, setGeneratedPdf] = useState<{ pdf: string | null, atsPDF: string | null } | null>(null); // New state for instant PDF download
   const [showPaywall, setShowPaywall] = useState(false);
+  const [subscriptionExpiry, setSubscriptionExpiry] = useState<string | null>(null); // New state for expiry
   const [canTrial, setCanTrial] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   const [editingResume, setEditingResume] = useState(false);
@@ -189,6 +191,7 @@ export default function Dashboard() {
           setIsPremium(isEffectivePremium || false);
           setCreditsRemaining(profile.credits_remaining ?? 0);
           setTotalGenerations(profile.total_generations || 0);
+          setSubscriptionExpiry(profile.subscription_end_date || null); // Store expiry
 
           // Set User Plan from Profile (Source of Truth for Admin Upgrades)
           if (isEffectivePremium && profile.premium_type) {
@@ -225,15 +228,8 @@ export default function Dashboard() {
 
         if (paymentsData) {
           setPayments(paymentsData);
-          // Detect user plan from most recent successful payment
-          const lastPayment = paymentsData.find((p: any) => p.status === "completed");
-          if (lastPayment) {
-            const planType = lastPayment.plan_type?.toLowerCase();
-            if (planType === "enterprise") setUserPlan("enterprise");
-            else if (planType === "professional") setUserPlan("professional");
-            else if (planType === "starter") setUserPlan("starter");
-            else setUserPlan("free");
-          }
+          // DO NOT override userPlan from payments. Profiles table is the source of truth.
+          // Admin updates update profiles, so profiles.premium_type is the correct current status.
         }
 
         // 2. Generations
@@ -355,7 +351,16 @@ export default function Dashboard() {
 
       const data = await response.json();
 
-      setGeneratedResume(data.resume);
+      if (data.resume && typeof data.resume === 'object') {
+        setGeneratedResume(data.resume.markdown);
+        setGeneratedPdf({
+          pdf: data.resume.pdf,
+          atsPDF: data.resume.atsPDF
+        });
+      } else {
+        setGeneratedResume(data.resume);
+      }
+
       setGeneratedCoverLetter(data.coverLetter);
       setResumeMeta(data.meta);
 
@@ -435,6 +440,30 @@ export default function Dashboard() {
   };
 
   const handleDownload = async (type: "resume" | "coverLetter") => {
+    // INSTANT DOWNLOAD: Check if we already have the PDF base64
+    if (type === "resume" && generatedPdf?.pdf) {
+      try {
+        const link = document.createElement("a");
+        link.href = `data:application/pdf;base64,${generatedPdf.pdf}`;
+
+        // Generate filename
+        const userName = (contactInfo.fullName || resumeMeta?.name || "Resume")
+          .replace(/[^a-zA-Z\s]/g, "")
+          .trim()
+          .split(/\s+/)
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join("_");
+
+        link.download = `${userName}_Optimized_Resume.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      } catch (e) {
+        console.error("Instant download failed, falling back to server...", e);
+      }
+    }
+
     // Re-use preview URL if available and content matches (optimization)
     // For now, simple download logic is safer to ensure latest state
     const content = type === "resume" ? generatedResume : generatedCoverLetter;
@@ -742,19 +771,57 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Account Overview</h2>
 
                 <div className="grid gap-6 md:grid-cols-2">
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
                     <div className="text-sm text-slate-500 mb-1">Current Plan</div>
-                    <div className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      {isPremium ? "Premium Plan" : "Free Trial"}
-                      {isPremium && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs">Active</span>}
+                    <div className="flex items-center justify-between">
+                      <div className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        {isPremium ? (userPlan.charAt(0).toUpperCase() + userPlan.slice(1)) : "Free Trial"}
+                        {isPremium && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-xs">Active</span>}
+                      </div>
+                      <Shield className="h-5 w-5 text-amber-500" />
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
                     <div className="text-sm text-slate-500 mb-1">Generations Remaining</div>
-                    <div className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      {creditsRemaining === -1 ? "Unlimited" : creditsRemaining}
-                      <FileText className="h-4 w-4 text-amber-500" />
+                    <div className="flex items-center justify-between">
+                      <div className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        {creditsRemaining === -1 ? "Unlimited" : creditsRemaining}
+                        <FileText className="h-4 w-4 text-emerald-500" />
+                      </div>
+                      <span className="text-xs text-slate-400">Total used: {totalGenerations}</span>
+                    </div>
+                  </div>
+
+                  {/* Expiry Status Card */}
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 col-span-full md:col-span-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-4 w-4 text-slate-400" />
+                      <span className="text-sm text-slate-500">Subscription Status</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        {isPremium && resumeMeta?.subscription_end_date ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-900 dark:text-white">
+                              Expires on {new Date(resumeMeta.subscription_end_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </span>
+                            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full">
+                              {Math.ceil((new Date(resumeMeta.subscription_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days left
+                            </span>
+                          </div>
+                        ) : isPremium ? (
+                          <span className="font-semibold text-slate-900 dark:text-white">Active (No expiry set)</span>
+                        ) : (
+                          <span className="font-semibold text-slate-500">Free Plan (No active subscription)</span>
+                        )}
+                      </div>
+                      {/* If expired or near expiry, show Renew button (link to payment) */}
+                      {(!isPremium || (resumeMeta?.subscription_end_date && new Date(resumeMeta.subscription_end_date) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000))) && (
+                        <Button variant="outline" size="sm" onClick={() => router.push("/payment")} className="h-8">
+                          {isPremium ? "Renew" : "Upgrade"}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

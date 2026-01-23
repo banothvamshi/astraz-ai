@@ -49,18 +49,22 @@ export async function generateResumePDF(
       // ============================================
       // COLOR SCHEME & STYLING
       // ============================================
+      // ============================================
+      // COLOR SCHEME & STYLING (2026 NEO-MODERN)
+      // ============================================
       const colors = {
-        primary: "#1a3a52", // Deep blue
-        secondary: "#2c5aa0", // Brighter blue
-        accent: "#e74c3c", // Red accent
-        text: "#2c3e50", // Dark gray
-        lightText: "#7f8c8d", // Light gray
-        background: "#ecf0f1", // Light gray bg
+        primary: "#0f172a",    // Slate 900 (Deep, Executive)
+        secondary: "#4f46e5",  // Indigo 600 (Modern Tech/Creative)
+        accent: "#0ea5e9",     // Sky 500 (Subtle Highlight)
+        text: "#334155",       // Slate 700 (High Readability)
+        lightText: "#64748b",  // Slate 500 (Meta info)
+        background: "#ffffff", // Pure White (Cleanest)
+        divider: "#e2e8f0"     // Slate 200 (Very subtle)
       };
 
       const fonts = {
         heading: "Helvetica-Bold",
-        subheading: "Helvetica-Bold",
+        subheading: "Helvetica-Bold", // Modernist approach usually uses same family with weight diff
         body: "Helvetica",
         mono: "Courier",
       };
@@ -68,16 +72,21 @@ export async function generateResumePDF(
       // ============================================
       // HEADER SECTION
       // ============================================
-      doc.fontSize(28);
+      // ============================================
+      // HEADER SECTION (Minimalist Centered)
+      // ============================================
+      doc.fontSize(24); // Slightly smaller, more elegant
       doc.font(fonts.heading);
       doc.fillColor(colors.primary);
       doc.text((data.name || "Your Name").toUpperCase(), {
         align: "center",
-        lineGap: 5,
+        characterSpacing: 1, // Modern tracking
       });
 
+      doc.moveDown(0.3);
+
       // Contact info line
-      doc.fontSize(10);
+      doc.fontSize(9);
       doc.font(fonts.body);
       doc.fillColor(colors.lightText);
 
@@ -85,29 +94,28 @@ export async function generateResumePDF(
         data.email,
         data.phone,
         data.location,
-        "linkedin.com/in/yourprofile",
+        data.links && data.links.length > 0 ? data.links[0] : "linkedin.com/in/profile",
       ]
         .filter(Boolean)
-        .join(" • ");
+        .join("  •  "); // Wide spacing for airiness
 
       doc.text(contactInfo, {
         align: "center",
-        link: data.email
-          ? `mailto:${data.email}`
-          : "https://linkedin.com",
+        link: data.email ? `mailto:${data.email}` : undefined,
       });
 
-      doc.moveDown(0.8);
+      doc.moveDown(1.5); // More whitespace
 
-      // Divider line
-      doc.strokeColor(colors.secondary);
-      doc.lineWidth(2);
-      doc.lineCap("round");
-      doc.moveTo(doc.page.margins.left, doc.y);
-      doc.lineTo(doc.page.width - doc.page.margins.right, doc.y);
-      doc.stroke();
+      // Subtle Divider (Partial width)
+      const dividerWidth = 100;
+      const centerX = doc.page.width / 2;
+      doc.lineWidth(1);
+      doc.strokeColor(colors.divider);
+      doc.moveTo(centerX - dividerWidth, doc.y)
+        .lineTo(centerX + dividerWidth, doc.y)
+        .stroke();
 
-      doc.moveDown(0.8);
+      doc.moveDown(1.5);
 
       // ============================================
       // PROFESSIONAL SUMMARY
@@ -159,8 +167,8 @@ export async function generateResumePDF(
           doc.fillColor(colors.text);
 
           // Handle description as string or string array
-          const descriptionText = Array.isArray(exp.description) 
-            ? exp.description.join("\n") 
+          const descriptionText = Array.isArray(exp.description)
+            ? exp.description.join("\n")
             : exp.description;
 
           // Format description as bullet points
@@ -409,10 +417,10 @@ export async function generateATSResumePDF(
           doc.fontSize(9);
           doc.font("Helvetica");
           doc.text(exp.duration);
-          
+
           // Handle description as string or string array
-          const descriptionText = Array.isArray(exp.description) 
-            ? exp.description.join("\n") 
+          const descriptionText = Array.isArray(exp.description)
+            ? exp.description.join("\n")
             : exp.description;
           doc.text(descriptionText);
           doc.moveDown(0.4);

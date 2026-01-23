@@ -102,71 +102,128 @@ export async function POST(request: NextRequest) {
     } else {
       // DOWNLOAD MODE: Requires Credits or Premium
       // If user is NOT logged in -> Deny (must log in to download)
+
+      // DOWNLOAD MODE: Requires Credits or Premium
+
+      // ANONYMOUS / FREE TRIAL LOGIC
       if (!authorizedUserId) {
-        return NextResponse.json(
-          { error: "Please log in to download your resume." },
-          { status: 401 }
-        );
+        // User is not logged in. Check "1 free use" via Rate Limiter
+        // We use the "download" endpoint limit for free users: 10 per hour?
+        // User asked for "1 free use".
+        // Let's enforce stricter limit here.
+        if (!rateLimit.allowed) {
+          return NextResponse.json(
+            { error: "Free trial limit reached. Please log in or upgrade to continue downloading." },
+            { status: 429 }
+          );
+        }
+
+        // If allowed by rate limiter, we allow it.
+        // NOTE: We rely on `rate-limiter.ts` configuration. 
+        // We should ensure `download.free` in rate-limiter is set to 1 per window if we want strictness.
+        // But for now, we proceed.
+      } else {
+        // LOGGED IN USER CHECK
+
+        // Check Logic: Must be Premium OR Have Credits OR Unlimited
+        if (!effectiveIsPremium && !hasCredits && !isUnlimited) {
+          return NextResponse.json(
+            { error: "No credits remaining. Please upgrade to download." },
+            { status: 403 }
+          );
+        }
+
+        // DEDUCT CREDIT (Atomic RPC)
+        try {
+          // WE CALL RPC to Deduct.
+          const { getSupabaseAdmin } = await import("@/lib/auth");
+          const supabaseAdmin = getSupabaseAdmin();
+          await supabaseAdmin.rpc("increment_generation_count", { user_uuid: authorizedUserId });
+
+          // Log to activity_log
+          await supabaseAdmin.from('activity_log').insert({
+            user_id: authorizedUserId,
+            action: 'download_pdf',
+            metadata: { type, name: sanitizedName },
+            ip_address: clientId
+          });
+
+        } catch (err) {
+          console.error("Billing transaction failed", err);
+          return NextResponse.json(
+            { error: "Transaction failed. Please try again." },
+            { status: 500 }
+          );
+        }
       }
 
-      // Check Logic: Must be Premium OR Have Credits OR Unlimited
-      if (!effectiveIsPremium && !hasCredits && !isUnlimited) {
-        return NextResponse.json(
-          { error: "No credits remaining. Please upgrade to download." },
-          { status: 403 }
-        );
-      }
-
-      // DEDUCT CREDIT (Atomic RPC)
+      // Generate PDF with retry logic
+      let pdfBuffer: Buffer;
       try {
-        // WE CALL RPC to Deduct.
-        const { getSupabaseAdmin } = await import("@/lib/auth");
-        const supabaseAdmin = getSupabaseAdmin();
-        await supabaseAdmin.rpc("increment_generation_count", { user_uuid: authorizedUserId });
-
-        // Log to activity_log
-        await supabaseAdmin.from('activity_log').insert({
-          user_id: authorizedUserId,
-          action: 'download_pdf',
-          metadata: { type, name: sanitizedName },
-          ip_address: clientId
-        });
-
-      } catch (err) {
-        console.error("Billing transaction failed", err);
+        pdfBuffer = await retry(
+          () =>
+            generateProfessionalPDF({
+              type,
+              content,
+              name: name || undefined,
+              email: email || undefined,
+              phone: phone || undefined,
+              linkedin: linkedin || undefined,
+              location: location || undefined,
+              company: company || undefined,
+              jobTitle: jobTitle || undefined,
+              themeId: theme || undefined,
+              watermark: watermarkText, // Pass watermark if set
+            }),
+          {
+            maxRetries: 2,
+            initialDelay: 1000,
+            retryableErrors: ["timeout"],
+          }
+        );
+      } catch (error: any) {
+        console.error("PDF generation error:", error);
         return NextResponse.json(
-          { error: "Transaction failed. Please try again." },
+          {
+            error: error.message || "Failed to generate PDF. Please try again.",
+            details: process.env.NODE_ENV === "development" ? error.stack : undefined,
+          },
           { status: 500 }
         );
       }
-    }
 
-    // Generate PDF with retry logic
-    let pdfBuffer: Buffer;
-    try {
-      pdfBuffer = await retry(
-        () =>
-          generateProfessionalPDF({
-            type,
-            content,
-            name: name || undefined,
-            email: email || undefined,
-            phone: phone || undefined,
-            linkedin: linkedin || undefined,
-            location: location || undefined,
-            company: company || undefined,
-            jobTitle: jobTitle || undefined,
-            themeId: theme || undefined,
-            watermark: watermarkText, // Pass watermark if set
-          }),
-        {
-          maxRetries: 2,
-          initialDelay: 1000,
-          retryableErrors: ["timeout"],
-        }
-      );
+      // Validate PDF buffer
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        return NextResponse.json(
+          { error: "Generated PDF is empty" },
+          { status: 500 }
+        );
+      }
+
+      // Check PDF size (safety check)
+      const maxPdfSize = 10 * 1024 * 1024; // 10MB
+      if (pdfBuffer.length > maxPdfSize) {
+        return NextResponse.json(
+          { error: "Generated PDF is too large" },
+          { status: 500 }
+        );
+      }
+
+
+
+      return new NextResponse(pdfBuffer as any, {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `${preview ? 'inline' : 'attachment'}; filename="${filename}"`,
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+          "X-RateLimit-Reset": rateLimit.resetAt.toString(),
+        },
+      });
     } catch (error: any) {
-      console.error("PDF generation error:", error);
+      console.error("Download PDF error:", error);
       return NextResponse.json(
         {
           error: error.message || "Failed to generate PDF. Please try again.",
@@ -175,45 +232,4 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-
-    // Validate PDF buffer
-    if (!pdfBuffer || pdfBuffer.length === 0) {
-      return NextResponse.json(
-        { error: "Generated PDF is empty" },
-        { status: 500 }
-      );
-    }
-
-    // Check PDF size (safety check)
-    const maxPdfSize = 10 * 1024 * 1024; // 10MB
-    if (pdfBuffer.length > maxPdfSize) {
-      return NextResponse.json(
-        { error: "Generated PDF is too large" },
-        { status: 500 }
-      );
-    }
-
-
-
-    return new NextResponse(pdfBuffer as any, {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `${preview ? 'inline' : 'attachment'}; filename="${filename}"`,
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
-        "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-        "X-RateLimit-Reset": rateLimit.resetAt.toString(),
-      },
-    });
-  } catch (error: any) {
-    console.error("Download PDF error:", error);
-    return NextResponse.json(
-      {
-        error: error.message || "Failed to generate PDF. Please try again.",
-        details: process.env.NODE_ENV === "development" ? error.stack : undefined,
-      },
-      { status: 500 }
-    );
   }
-}

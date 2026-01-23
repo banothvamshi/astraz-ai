@@ -72,20 +72,33 @@ export async function POST(request: NextRequest) {
       // Get current credits
       const { data: currentProfile } = await supabase
         .from("profiles")
-        .select("credits_remaining")
+        .select("credits_remaining, subscription_end_date")
         .eq("id", userId)
         .single();
 
       const currentCredits = currentProfile?.credits_remaining || 0;
       const newCredits = currentCredits + planCredits;
 
+      // SMART RENEWAL LOGIC
+      const now = new Date();
+      const currentExpiry = currentProfile?.subscription_end_date ? new Date(currentProfile.subscription_end_date) : null;
+
+      let newExpiryDate: Date;
+      if (currentExpiry && currentExpiry > now) {
+        // Active subscription: Extend from current expiry
+        newExpiryDate = new Date(currentExpiry.getTime() + 30 * 24 * 60 * 60 * 1000); // Add 30 days to existing expiry
+      } else {
+        // Expired or no subscription: Start 30 days from now
+        newExpiryDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      }
+
       await supabase
         .from("profiles")
         .update({
           is_premium: true,
           premium_type: plan_type || "premium",
-          credits_remaining: newCredits,
-          subscription_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // +30 days
+          credits_remaining: newCredits, // Rollover (Current + Plan)
+          subscription_end_date: newExpiryDate.toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);

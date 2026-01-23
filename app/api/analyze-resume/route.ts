@@ -25,11 +25,15 @@ export async function POST(request: NextRequest) {
         let base64Data = resume.includes(",") ? resume.split(",")[1] : resume;
         const pdfBuffer = Buffer.from(base64Data, "base64");
 
-        // Parse PDF
-        const parsed = await parseResumePDF(pdfBuffer);
+        // Parse PDF (Super Parser Mode)
+        const { superParseResume } = await import("@/lib/super-parser");
+        const parsed = await superParseResume(pdfBuffer);
+
+        // Convert the structural summary to a text block for the scoring engine
+        const textForScoring = JSON.stringify(parsed, null, 2) + "\n\n" + (parsed.professional_summary || "");
 
         // Calculate Score
-        const scoreData = calculateResumeScore(parsed.text);
+        const scoreData = calculateResumeScore(textForScoring);
 
         return NextResponse.json({
             success: true,
