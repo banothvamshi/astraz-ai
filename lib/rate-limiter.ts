@@ -15,7 +15,7 @@ const store: RateLimitStore = {};
 // Rate limit configurations
 const RATE_LIMITS = {
   generate: {
-    free: { requests: 5, window: 60 * 60 * 1000 }, // 5 per hour
+    free: { requests: 1, window: 24 * 60 * 60 * 1000 }, // 1 per 24 hours (Strict)
     premium: { requests: 100, window: 60 * 60 * 1000 }, // 100 per hour
   },
   download: {
