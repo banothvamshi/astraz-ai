@@ -12,6 +12,7 @@ interface ResumeData {
   phone?: string;
   location?: string;
   summary?: string;
+  links?: string[];
   experience?: Array<{
     title: string;
     company: string;
