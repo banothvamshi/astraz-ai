@@ -11,6 +11,7 @@ import { getSupabaseBrowserClient } from "@/lib/auth";
 import { PaywallModal } from "@/components/paywall-modal";
 import { ResumeEditor } from "@/components/resume-editor";
 import { ThemeSelector } from "@/components/theme-selector";
+import { ImmersiveLoading } from "@/components/immersive-loading";
 
 
 interface ContactInfo {
@@ -629,35 +630,11 @@ export default function Dashboard() {
 
                   {/* LIVE GENERATION STATUS OVERLAY */}
                   {isGenerating && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm">
-                      <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-800 text-center">
-                        <div className="mx-auto w-16 h-16 mb-4 relative">
-                          <span className="absolute inset-0 rounded-full border-4 border-slate-100 dark:border-slate-800"></span>
-                          <span className="absolute inset-0 rounded-full border-4 border-amber-500 border-t-transparent animate-spin"></span>
-                          <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-amber-500 animate-pulse" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Creating Your Masterpiece</h3>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">{generationStep || "Thinking..."}</p>
-
-                        {/* Visual Progress Steps */}
-                        <div className="mt-6 flex justify-center gap-2">
-                          {["Parsing", "Analyzing", "Crafting", "Finalizing"].map((step, idx) => {
-                            const currentStepList = ["Parsing your resume...", "Analyzing job structure...", "AI is crafting your resume...", "Finalizing formatting..."];
-                            const currentIdx = currentStepList.indexOf(generationStep);
-                            const isActive = idx === currentIdx;
-                            const isCompleted = idx < currentIdx;
-
-                            return (
-                              <div key={step} className={`h-2 w-full rounded-full transition-all duration-500 ${isCompleted ? 'bg-amber-500' : isActive ? 'bg-amber-300 animate-pulse' : 'bg-slate-200 dark:bg-slate-700'}`} />
-                            )
-                          })}
-                        </div>
-                      </div>
-                    </div>
+                    <ImmersiveLoading status={generationStep} />
                   )}
 
                   {/* RESUME HEALTH SCORE CARD (GENERATED) */}
-                  {(resumeScore || (resumeMeta && resumeMeta.score)) && !isGenerating && (
+                  {(resumeScore || (resumeMeta && resumeMeta.score)) && !isGenerating && !generatedResume && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -1369,7 +1346,7 @@ export default function Dashboard() {
                             className="h-8 text-xs bg-amber-600 hover:bg-amber-700"
                           >
                             <Download className="mr-1.5 h-3.5 w-3.5" />
-                            PDF
+                            Download (Clean / No Watermark)
                           </Button>
                         </div>
                       </div>

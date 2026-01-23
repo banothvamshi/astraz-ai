@@ -16,7 +16,7 @@ export interface ResumeTheme {
     layout: {
         contentWidthOffset: number; // For margins
         lineHeight: number;
-        headerStyle?: "clean" | "banner" | "sidebar"; // NEW: Header style options
+        headerStyle?: "clean" | "banner" | "sidebar" | "left-border"; // NEW: Left-border style
     };
     isPremium?: boolean;
 }
@@ -102,6 +102,69 @@ export const THEMES: Record<string, ResumeTheme> = {
         layout: {
             contentWidthOffset: 0,
             lineHeight: 5.5,
+            headerStyle: "clean",
+        },
+        isPremium: true
+    },
+    harvard: {
+        id: "harvard",
+        name: "Harvard",
+        description: "Classic Ivy League style. Serious and academic.",
+        colors: {
+            primary: [164, 16, 52],     // Harvard Crimson
+            secondary: [0, 0, 0],       // Black
+            text: [0, 0, 0],            // Black
+            accent: [164, 16, 52],      // Crimson
+        },
+        fonts: {
+            header: "times",
+            body: "times",
+        },
+        layout: {
+            contentWidthOffset: 0,
+            lineHeight: 5.4,
+            headerStyle: "clean",
+        },
+        isPremium: false
+    },
+    minimalist: {
+        id: "minimalist",
+        name: "Minimalist",
+        description: "Maximum whitespace, elegant typography.",
+        colors: {
+            primary: [0, 0, 0],
+            secondary: [100, 100, 100],
+            text: [50, 50, 50],
+            accent: [0, 0, 0], // Monochrome
+        },
+        fonts: {
+            header: "helvetica",
+            body: "helvetica",
+        },
+        layout: {
+            contentWidthOffset: 10, // Narrower content
+            lineHeight: 7.0, // Airy
+            headerStyle: "left-border", // Stylish left border
+        },
+        isPremium: true
+    },
+    tech: {
+        id: "tech",
+        name: "Tech / Code",
+        description: "Monospaced font for software engineers.",
+        colors: {
+            primary: [37, 99, 235],    // Royal Blue
+            secondary: [75, 85, 99],
+            text: [17, 24, 39],
+            accent: [245, 158, 11],    // Amber
+        },
+        fonts: {
+            header: "courier",
+            body: "courier",
+        },
+        layout: {
+            contentWidthOffset: 0,
+            lineHeight: 5.0, // Dense
             headerStyle: "clean",
         },
         isPremium: true

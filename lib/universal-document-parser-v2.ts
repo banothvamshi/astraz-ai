@@ -129,7 +129,7 @@ async function parseMultiPagePDF(buffer: Buffer, options: ParseOptions): Promise
 // STRATEGY 3: OCR with Multi-Page Support and Mixed Content
 // ============================================================================
 
-async function parseWithOCRStrategy(
+export async function parseWithOCRStrategy(
   buffer: Buffer,
   options: ParseOptions
 ): Promise<string> {

@@ -28,6 +28,7 @@ export interface GenerationLog {
     generatedCoverLetter?: string;
     contactInfo?: any;
     error?: string;
+    userId?: string;
 }
 
 /**
@@ -60,5 +61,26 @@ export async function logGenerationData(data: Omit<GenerationLog, 'timestamp'>) 
             // If file write fails, we already logged to console, so just warn
             console.warn('Failed to write to local data file:', error);
         }
+    }
+
+    // 3. Log to Supabase "activity_log" for Admin Dashboard Analytics
+    try {
+        const { getSupabaseAdmin } = await import("@/lib/auth");
+        const supabase = getSupabaseAdmin();
+
+        // Map GenerationLog to activity_log schema
+        // We do this in a fire-and-forget manner to not block the response
+        supabase.from('activity_log').insert({
+            user_id: data.userId ? data.userId : null, // Ensure your Log interface has userId or we map from context
+            action: data.error ? 'generation_error' : 'generate_resume',
+            metadata: logEntry,
+            ip_address: data.clientId || 'unknown',
+            created_at: new Date().toISOString()
+        }).then(({ error }) => {
+            if (error) console.error("Failed to log to DB:", error);
+        });
+
+    } catch (dbError) {
+        console.error("Failed to initialize DB logger:", dbError);
     }
 }

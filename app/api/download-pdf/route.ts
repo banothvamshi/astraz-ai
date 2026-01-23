@@ -49,27 +49,96 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Authenticate User
+    const { createClient } = await import("@/utils/supabase/server");
+    const supabase = await createClient(); // Await cookie store
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let authorizedUserId: string | null = null;
+    let effectiveIsPremium = false;
+    let hasCredits = false;
+    let isUnlimited = false;
+
+    if (user) {
+      authorizedUserId = user.id;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_premium, credits_remaining, subscription_end_date")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        const isExpired = profile.subscription_end_date && new Date(profile.subscription_end_date) < new Date();
+        effectiveIsPremium = profile.is_premium && !isExpired;
+        hasCredits = (profile.credits_remaining !== null && profile.credits_remaining > 0);
+        isUnlimited = (profile.credits_remaining === -1);
+      }
+    }
+
     // Rate limiting
     const clientId = getClientIdentifier(request);
-    const isPremium = request.headers.get("x-premium-user") === "true";
-    const rateLimit = checkRateLimit(clientId, "download", isPremium);
+    const rateLimit = checkRateLimit(clientId, "download", effectiveIsPremium);
 
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        {
-          error: "Rate limit exceeded. Please try again later.",
-          retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000),
-        },
-        {
-          status: 429,
-          headers: {
-            "X-RateLimit-Limit": isPremium ? "500" : "10",
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": rateLimit.resetAt.toString(),
-            "Retry-After": Math.ceil((rateLimit.resetAt - Date.now()) / 1000).toString(),
-          },
-        }
+        { error: "Rate limit exceeded. Please try again later.", retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000) },
+        { status: 429 }
       );
+    }
+
+    // Generate filename - moved up for activity log
+    const timestamp = new Date().toISOString().split("T")[0];
+    const sanitizedName = name
+      ? name.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 50)
+      : "";
+    const filename = `Resume${sanitizedName ? `_${sanitizedName}` : ""}_${timestamp}.pdf`;
+
+    // SECURITY & BILLING LOGIC
+    let watermarkText: string | undefined = undefined;
+
+    if (preview) {
+      // PREVIEW MODE: Always Allowed but WATERMARKED
+      watermarkText = "PREVIEW ONLY  •  ASTRAZ AI";
+    } else {
+      // DOWNLOAD MODE: Requires Credits or Premium
+      // If user is NOT logged in -> Deny (must log in to download)
+      if (!authorizedUserId) {
+        return NextResponse.json(
+          { error: "Please log in to download your resume." },
+          { status: 401 }
+        );
+      }
+
+      // Check Logic: Must be Premium OR Have Credits OR Unlimited
+      if (!effectiveIsPremium && !hasCredits && !isUnlimited) {
+        return NextResponse.json(
+          { error: "No credits remaining. Please upgrade to download." },
+          { status: 403 }
+        );
+      }
+
+      // DEDUCT CREDIT (Atomic RPC)
+      try {
+        // WE CALL RPC to Deduct.
+        const { getSupabaseAdmin } = await import("@/lib/auth");
+        const supabaseAdmin = getSupabaseAdmin();
+        await supabaseAdmin.rpc("increment_generation_count", { user_uuid: authorizedUserId });
+
+        // Log to activity_log
+        await supabaseAdmin.from('activity_log').insert({
+          user_id: authorizedUserId,
+          action: 'download_pdf',
+          metadata: { type, name: sanitizedName },
+          ip_address: clientId
+        });
+
+      } catch (err) {
+        console.error("Billing transaction failed", err);
+        return NextResponse.json(
+          { error: "Transaction failed. Please try again." },
+          { status: 500 }
+        );
+      }
     }
 
     // Generate PDF with retry logic
@@ -88,6 +157,7 @@ export async function POST(request: NextRequest) {
             company: company || undefined,
             jobTitle: jobTitle || undefined,
             themeId: theme || undefined,
+            watermark: watermarkText, // Pass watermark if set
           }),
         {
           maxRetries: 2,
@@ -123,12 +193,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate filename
-    const timestamp = new Date().toISOString().split("T")[0];
-    const sanitizedName = name
-      ? name.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 50)
-      : "";
-    const filename = `Resume${sanitizedName ? `_${sanitizedName}` : ""}_${timestamp}.pdf`;
+
 
     return new NextResponse(pdfBuffer as any, {
       headers: {

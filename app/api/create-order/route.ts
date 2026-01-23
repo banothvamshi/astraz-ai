@@ -30,33 +30,29 @@ export async function POST(request: NextRequest) {
     let finalAmount = amount;
     let couponId = null;
 
-    // Server-side coupon validation
+    // Server-side coupon validation (Atomic)
     if (coupon_code) {
       const supabase = getSupabaseAdmin();
-      const { data: coupon } = await supabase
-        .from("coupons")
-        .select("*")
-        .eq("code", coupon_code)
-        .single();
 
-      if (coupon && coupon.is_active) {
-        // Double check expiry and usage
-        const isValidDate = !coupon.valid_until || new Date(coupon.valid_until) > new Date();
-        const isValidUsage = coupon.max_uses === null || coupon.uses_count < coupon.max_uses;
+      // Use the new atomic RPC function
+      const { data: couponResult, error: couponError } = await supabase
+        .rpc("redeem_coupon", { coupon_code: coupon_code });
 
-        if (isValidDate && isValidUsage) {
-          const originalAmount = amount; // in paise/cents
-          if (coupon.discount_type === 'percent') {
-            const discount = Math.floor(originalAmount * (coupon.discount_value / 100));
+      if (couponResult && couponResult.length > 0) {
+        const { success, discount_val, discount_type_result } = couponResult[0];
+
+        if (success) {
+          const originalAmount = amount;
+          if (discount_type_result === 'percent') {
+            const discount = Math.floor(originalAmount * (discount_val / 100));
             finalAmount = Math.max(0, originalAmount - discount);
           } else {
-            // Flat discount (value assumed to be in same currency unit or handle conversion)
-            // Let's assume input discount_value is in WHOLE units (Rupees), so multiply by 100
-            // Update migration comment says "cents/paise". Let's assume stored in paise.
-            const discount = coupon.discount_value * 100;
+            // Flat discount
+            const discount = discount_val * 100;
             finalAmount = Math.max(0, originalAmount - discount);
           }
-          couponId = coupon.code;
+          // Use the coupon code as ID/Reference
+          couponId = coupon_code;
         }
       }
     }

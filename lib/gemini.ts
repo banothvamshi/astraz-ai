@@ -50,9 +50,9 @@ export async function generateText(
         `Please set DISABLE_BILLING=false only if you want to enable paid billing (not recommended).`
       );
     }
-    
+
     const gemini = getGemini();
-    
+
     // Validate prompt length (Gemini has limits)
     const maxPromptLength = 1000000; // ~1M characters
     if (prompt.length > maxPromptLength) {
@@ -62,34 +62,33 @@ export async function generateText(
     // Use configurable model name - try multiple options if first fails
     // Can be overridden via GEMINI_MODEL environment variable
     const modelName = process.env.GEMINI_MODEL;
-    
+
     // Use BEST models for HIGH QUALITY results while optimizing costs
     // Priority: Quality > Speed > Cost
     // gemini-2.0-flash: Best balance (high quality, fast, cost-efficient)
     // gemini-2.5-flash: Higher quality but slightly more expensive
-    const modelNamesToTry = modelName 
+    const modelNamesToTry = modelName
       ? [modelName]
       : [
-          "gemini-2.0-flash",         // BEST CHOICE: High quality, fast, cost-efficient (FREE tier)
-          "gemini-2.0-flash-001",     // Stable version (same quality)
-          "gemini-2.5-flash",         // Higher quality (use if 2.0-flash unavailable)
-          "gemini-flash-latest",      // Latest flash (fallback)
-          "gemini-2.0-flash-lite",    // Lite version (only if others fail - lower quality)
-        ];
-    
+        "gemini-2.0-flash-exp",     // LATEST: Gemini 2.0
+        "gemini-1.5-pro",           // SMARTEST: 1.5 Pro
+        "gemini-1.5-flash",         // FASTEST: 1.5 Flash
+        "gemini-1.0-pro",           // FALLBACK
+      ];
+
     let lastError: Error | null = null;
     let text: string | null = null;
     let successfulModel: string | null = null;
-    
+
     // Try each model until one works
     for (const name of modelNamesToTry) {
       try {
         // Clean model name (remove 'models/' prefix if present in some configs)
         const cleanName = name.replace(/^models\//, "");
-        
+
         // Remove 'models/' prefix if present (SDK handles it)
         const modelNameForSDK = cleanName.replace(/^models\//, "");
-        
+
         const model = gemini.getGenerativeModel({
           model: modelNameForSDK,
           systemInstruction: systemInstruction,
@@ -112,36 +111,36 @@ export async function generateText(
         const response = await result.response;
         text = response.text();
         successfulModel = cleanName;
-        
+
         // Log successful model for debugging
         console.log(`Successfully used Gemini model: ${cleanName}`);
-        
+
         // If we get here, generation was successful
         break;
       } catch (modelError: any) {
         lastError = modelError;
         const errorMsg = modelError.message || String(modelError);
-        
+
         // Log which model failed for debugging
         console.log(`Model ${name} failed: ${errorMsg.substring(0, 100)}`);
-        
+
         // If it's a model not found error, try next model
         if (errorMsg.includes("not found") || errorMsg.includes("404") || errorMsg.includes("is not found")) {
           // Continue to next model
           continue;
         }
-        
+
         // For other errors (quota, safety, etc.), don't retry with different models
         throw modelError;
       }
     }
-    
+
     if (!text) {
       // Provide helpful error message with troubleshooting
       const errorDetails = lastError?.message || "Unknown error";
       const apiKey = process.env.GOOGLE_GEMINI_API_KEY || "";
       const apiKeyPreview = apiKey.length > 10 ? `${apiKey.substring(0, 10)}...` : "not set";
-      
+
       throw new Error(
         `No available Gemini model found. Tried: ${modelNamesToTry.join(", ")}. ` +
         `Last error: ${errorDetails}. ` +
@@ -194,5 +193,68 @@ export async function generateText(
 
     // Re-throw with context
     throw new Error(`AI generation failed: ${errorMsg}`);
+  }
+}
+
+// New Multimodal Helper
+export async function generateMultimodal(
+  prompt: string,
+  files: { mimeType: string; data: string }[], // data is base64 string
+  systemInstruction?: string
+): Promise<string> {
+  try {
+    const gemini = getGemini();
+
+    // Multimodal requires flash-1.5 or pro-1.5 usually
+    const modelName = "gemini-1.5-flash-latest";
+
+    // We prioritize the NEWEST and BEST models as requested (Gemini 2.0 / 1.5 Pro)
+    const modelsToTry = [
+      "gemini-2.0-flash-exp",     // BLEEDING EDGE: Valid availability check required
+      "gemini-1.5-pro",           // HIGH INTELLIGENCE: Best for complex visual parsing
+      "gemini-1.5-flash",         // FAST & STABLE
+    ];
+
+    let text: string | null = null;
+    let lastError: Error | null = null;
+
+    for (const modelId of modelsToTry) {
+      try {
+        const model = gemini.getGenerativeModel({
+          model: modelId,
+          systemInstruction: systemInstruction,
+        });
+
+        // Construct parts: [prompt, file1, file2...]
+        const parts: any[] = [prompt];
+        files.forEach(f => {
+          parts.push({
+            inlineData: {
+              mimeType: f.mimeType,
+              data: f.data
+            }
+          });
+        });
+
+        const result = await model.generateContent(parts);
+        const response = await result.response;
+        text = response.text();
+
+        if (text) break;
+      } catch (e: any) {
+        console.log(`Multimodal model ${modelId} failed:`, e.message);
+        lastError = e;
+        continue;
+      }
+    }
+
+    if (!text) {
+      throw lastError || new Error("All multimodal models failed");
+    }
+
+    return text;
+  } catch (error: any) {
+    console.error("Multimodal generation failed:", error);
+    throw error;
   }
 }

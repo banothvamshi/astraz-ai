@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, TrendingUp, Users, CreditCard, FileText, DollarSign, Calendar, Globe, Eye, UserPlus, Activity, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Loader2, TrendingUp, Users, CreditCard, FileText, DollarSign, Calendar, Globe, Eye, UserPlus, Activity, ArrowUpRight, ArrowDownRight, AlertTriangle } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/auth";
 
 interface AnalyticsData {
@@ -16,6 +16,9 @@ interface AnalyticsData {
     usersByMonth: { month: string; users: number }[];
     generationsByDay: { day: string; count: number }[];
     topCountries: { country: string; count: number }[];
+    errorRate: number;
+    recentErrors: { action: string; message: string; date: string }[];
+    dailyActiveUsers: { day: string; count: number }[];
 }
 
 export default function AnalyticsPage() {
@@ -106,7 +109,38 @@ export default function AnalyticsPage() {
         const topCountries = Object.entries(countriesMap)
             .map(([country, count]) => ({ country, count }))
             .sort((a, b) => b.count - a.count)
+            .sort((a, b) => b.count - a.count)
             .slice(0, 5);
+
+        // Fetch Error Logs & DAU from activity_log
+        const { data: activityLogs } = await supabase
+            .from('activity_log')
+            .select('action, metadata, created_at, user_id')
+            .order('created_at', { ascending: false })
+            .limit(1000); // Fetch last 1000 logs for analysis
+
+        const errors = (activityLogs || []).filter(l => l.action.includes('error'));
+        const errorRate = (activityLogs || []).length > 0 ? (errors.length / (activityLogs || []).length) * 100 : 0;
+
+        const recentErrors = errors.slice(0, 5).map(e => ({
+            action: e.action,
+            message: (e.metadata as any)?.error || 'Unknown error',
+            date: e.created_at
+        }));
+
+        // Calculate DAU from activity_log
+        const dauMap: Record<string, Set<string>> = {};
+        (activityLogs || []).forEach(log => {
+            if (log.user_id) {
+                const day = getDayKey(log.created_at);
+                if (!dauMap[day]) dauMap[day] = new Set();
+                dauMap[day].add(log.user_id);
+            }
+        });
+
+        const dailyActiveUsers = Object.entries(dauMap)
+            .map(([day, usersSet]) => ({ day, count: usersSet.size }))
+            .sort((a, b) => a.day.localeCompare(b.day));
 
         setData({
             totalRevenue,
@@ -119,7 +153,10 @@ export default function AnalyticsPage() {
             revenueByMonth,
             usersByMonth,
             generationsByDay,
-            topCountries
+            topCountries,
+            errorRate,
+            recentErrors,
+            dailyActiveUsers
         });
         setIsLoading(false);
     };
@@ -140,7 +177,9 @@ export default function AnalyticsPage() {
         { title: "Total Generations", value: data?.totalGenerations.toLocaleString() || 0, icon: FileText, color: "indigo", change: "+24.7%" },
         { title: "Anonymous Users", value: data?.anonymousGenerations || 0, icon: Globe, color: "slate", change: "Trial Users" },
         { title: "Avg. Revenue/User", value: `₹${data?.avgRevenuePerUser.toFixed(0) || 0}`, icon: Activity, color: "rose", change: "ARPU" },
+        { title: "Avg. Revenue/User", value: `₹${data?.avgRevenuePerUser.toFixed(0) || 0}`, icon: Activity, color: "rose", change: "ARPU" },
         { title: "Registered Gens", value: (data?.totalGenerations || 0) - (data?.anonymousGenerations || 0), icon: UserPlus, color: "cyan", change: "Logged In" },
+        { title: "Error Rate", value: `${data?.errorRate.toFixed(1) || 0}%`, icon: AlertTriangle, color: "red", change: "Last 1000 ops" },
     ];
 
     const colorMap: Record<string, string> = {
@@ -319,6 +358,29 @@ export default function AnalyticsPage() {
                             <p className="text-sm text-slate-500 text-center py-4">No location data</p>
                         )}
                     </div>
+                </div>
+            </div>
+
+            {/* Error Logs Section */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-red-500" />
+                    Recent System Errors
+                </h3>
+                <div className="space-y-3">
+                    {(data?.recentErrors || []).length > 0 ? (
+                        (data?.recentErrors || []).map((err, i) => (
+                            <div key={i} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/20">
+                                <div>
+                                    <p className="text-sm font-semibold text-red-700 dark:text-red-400 capitalize">{err.action.replace(/_/g, ' ')}</p>
+                                    <p className="text-xs text-red-600/70 dark:text-red-400/70 truncate max-w-md">{err.message}</p>
+                                </div>
+                                <span className="text-xs text-slate-500">{new Date(err.date).toLocaleTimeString()}</span>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-sm text-slate-500 text-center py-4">No recent errors detected</p>
+                    )}
                 </div>
             </div>
         </div>

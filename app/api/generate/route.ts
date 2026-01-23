@@ -74,7 +74,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { resume, jobDescription, companyName, includeCoverLetter, userId, contactOverrides } = body;
+    const { resume, jobDescription, companyName, includeCoverLetter, contactOverrides } = body;
+    // Note: 'userId' from body is IGNORED in favor of authorizedUserId from session
+
 
     // Comprehensive validation
     if (!resume) {
@@ -110,10 +112,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limiting
+    // Authenticate and Authorize
+    const { createClient } = await import("@/utils/supabase/server");
+    const supabase = await createClient(); // Await cookie store
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let authorizedUserId: string | null = null;
+    let effectiveIsPremium = false;
+
+    if (user) {
+      authorizedUserId = user.id;
+
+      // Server-side Truth Source for Premium/Credits
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_premium, credits_remaining, subscription_end_date, free_generations_used")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        // Check expiry
+        let isExpired = false;
+        if (profile.subscription_end_date && new Date(profile.subscription_end_date) < new Date()) {
+          isExpired = true;
+        }
+
+        effectiveIsPremium = profile.is_premium && !isExpired;
+
+        // Credit Check
+        const hasCredits = (profile.credits_remaining !== null && profile.credits_remaining > 0);
+        const isUnlimited = (profile.credits_remaining === -1);
+
+        // STRICT QUOTA ENFORCEMENT
+        if (!effectiveIsPremium && !hasCredits && !isUnlimited) {
+          // Check if they are trying to use a free generation?
+          // Usually, logged in users have exhausted "Anonymous Trial".
+          // If we give logged in users specifically allocated free generations, check logic here.
+          // Currently assuming: Logged in = Uses Credits or Plan.
+          // If you want to allow a free tier for logged in users, logic goes here.
+          // For now, blocking if no credits/plan.
+          return NextResponse.json(
+            { error: "You have run out of credits. Please upgrade your plan." },
+            { status: 403 }
+          );
+        }
+      }
+    } else {
+      // Anonymous User - Rate Limit Only
+      // Ensure we don't accidentally attribute this to a spoofer
+      authorizedUserId = null;
+    }
+
+    // Rate limiting (Secondary Defense)
     const clientId = getClientIdentifier(request);
-    const isPremium = request.headers.get("x-premium-user") === "true";
-    const rateLimit = checkRateLimit(clientId, "generate", isPremium);
+    // Trust DB over Header for IsPremium
+    const rateLimit = checkRateLimit(clientId, "generate", effectiveIsPremium);
 
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -124,7 +177,7 @@ export async function POST(request: NextRequest) {
         {
           status: 429,
           headers: {
-            "X-RateLimit-Limit": isPremium ? "100" : "5",
+            "X-RateLimit-Limit": effectiveIsPremium ? "100" : "5",
             "X-RateLimit-Remaining": "0",
             "X-RateLimit-Reset": rateLimit.resetAt.toString(),
             "Retry-After": Math.ceil((rateLimit.resetAt - Date.now()) / 1000).toString(),
@@ -578,40 +631,66 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     };
 
     try {
+      const { generateMultimodal } = await import("@/lib/gemini");
+
       const systemPrompt = `
-    You are an expert ATS-Optimization AI. Your goal is to REWRITE and ELEVATE the user's resume while maintaining **STRICT FACTUAL ACCURACY**.
+    You are an elite Resume Reconstruction & Optimization AI. 
     
-    ### TRUTH VERIFICATION REPORT (STRICT COMPLIANCE REQUIRED):
+    ### THE "DUAL VERIFICATION" PROTOCOL:
+    You are provided with TWO inputs:
+    1. **VISUAL PDF** (The actual file): Use this to understand the LAYOUT, HEADERS, DATES, and SECTION BOUNDARIES.
+    2. **EXTRACTED TEXT** (The raw OCR): Use this to copy exact text data (phone numbers, emails, specific metrics).
+    
+    ### YOUR MISSION:
+    Reconstruct the resume by CROSS-REFERENCING these two inputs.
+    - **Visual Check**: Look at the PDF. Does "Project Manager" look like a Job Title (Bold/Large) or a sub-bullet? Trust the Visual Layout for hierarchy.
+    - **Text Check**: If the visual text is blurry, use the Extracted Text to get the correct spelling.
+    
+    ### CRITICAL FIXES FOR PREVIOUS ISSUES:
+    - **Verify Roles**: Do NOT merge separate roles into one. If the PDF shows two distinct date ranges for "Software Engineer", they are TWO roles.
+    - **Verify Spacing**: Do NOT add random spaces in Company names (e.g. "GoogleInc" -> "Google Inc", but "BioTech" -> "BioTech").
+    - **Verify Headers**: Ensure "Work Experience" is not confused with "Projects".
+    
+    ### TRUTH VERIFICATION REPORT:
     - **Confirmed Experience**: ${verificationReport.totalExperience} years.
     - **Constraint Checklist**:
       ${verificationReport.constraints.map(c => `- [ ] ${c}`).join('\n      ')}
     
-    CRITICAL RULE: **NO HALLUCINATION OF SENIORITY**.
+    CRITICAL RULE: **NO HALLUCINATION**.
     - If Experience < 3 years: Write a "High Potential / Early Career" resume.
     - If Experience > 5 years: Write a "Senior / Expert" resume.
-    - **NEVER** write "5+ years of experience" for a candidate with ${verificationReport.totalExperience} years.
     
-    TRANSFORM MEDIOCRE CONTENT INTO EXECUTIVE-LEVEL ACHIEVEMENTS (` + (verificationReport.totalExperience < 2 ? "Junior/Entry Level Focused" : "Experienced Focused") + `).
+    TRANSFORM MEDIOCRE CONTENT INTO EXECUTIVE-LEVEL ACHIEVEMENTS.
     
-    CRITICAL INSTRUCTION - "MENTAL SANDBOX":
+    ### MENTAL SANDBOX (REQUIRED):
     Wrap your analysis in a <thinking> block.
     Inside <thinking>:
-    1. **Verify Experience**: Check verified duration (${verificationReport.totalExperience} years).
-    2. **Strategy**: How to make a ${verificationReport.totalExperience}-year candidate look amazing without lying?
-    3. **Theme**: Suggest a layout theme.
+    1. **Visual Scan**: I see X number of distinct roles in the PDF.
+    2. **Role Verification**: "Project Lead" is a title, not a bullet.
+    3. **Strategy**: How to optimize this for the target job?
     </thinking>
     
     Then, output the final Markdown Resume.
     `;
+
+      // Pass both the Base64 PDF and the Text Prompt
+      // The prompt includes the TEXT extraction as a reference
+      const multimodalPrompt = `${resumePrompt}
+      
+      --------------------------------------------------
+      SECONDARY INPUT (EXTRACTED TEXT FOR COPY-PASTE):
+      ${finalResumeText}
+      --------------------------------------------------
+      `;
+
       generatedResume = await retry(
         () =>
-          generateText(
-            resumePrompt,
-            systemPrompt,
-            {
-              temperature: 0.4, // Lower for more consistent, professional output
-              maxOutputTokens: 15000, // Maximized for PERFECTION and detail
-            }
+          generateMultimodal(
+            multimodalPrompt,
+            [
+              { mimeType: "application/pdf", data: base64Data } // Pass the original PDF for visual context
+            ],
+            systemPrompt
           ),
         {
           maxRetries: 2,
@@ -798,6 +877,16 @@ ${cleanResume}
     });
 
     // Log the successful generation data
+    // Also deduct credits/increment usage via RPC
+    if (userId) {
+      try {
+        const { getSupabaseAdmin } = await import("@/lib/auth");
+        const supabase = getSupabaseAdmin();
+        await supabase.rpc("increment_generation_count", { user_uuid: userId });
+      } catch (err) {
+        console.error("Failed to increment generation count", err);
+      }
+    }
     // Intentionally not awaiting to avoid delaying response
     logGenerationData({
       clientId,

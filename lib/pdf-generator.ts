@@ -13,6 +13,7 @@ export interface PDFOptions {
   company?: string;
   jobTitle?: string;
   themeId?: string; // NEW: Accept theme ID
+  watermark?: string; // NEW: Watermark text
 }
 
 /**
@@ -202,6 +203,47 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     // Reset cursor to below banner
     cursorY = bannerHeight + 10;
 
+  } else if (theme.layout.headerStyle === "left-border") {
+    // LEFT BORDER STYLE (For Minimalist)
+    checkPageBreak(40);
+
+    // Thick Left Border
+    doc.setDrawColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+    doc.setLineWidth(2);
+    doc.line(MARGIN, cursorY, MARGIN, cursorY + 25);
+
+    // Content indented
+    const indent = 6;
+
+    // Name
+    doc.setFont(FONTS.header, "bold");
+    doc.setFontSize(SIZE_NAME);
+    doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+    doc.text(displayName, MARGIN + indent, cursorY + 8);
+
+    // Contact
+    const contactParts: string[] = [];
+    if (displayEmail) contactParts.push(displayEmail);
+    if (displayPhone) contactParts.push(displayPhone);
+    if (displayLocation) contactParts.push(displayLocation);
+    if (displayLinkedin) contactParts.push(displayLinkedin.replace(/^https?:\/\//, '').replace(/\/$/, ''));
+
+    if (contactParts.length > 0) {
+      doc.setFont(FONTS.header, "normal");
+      doc.setFontSize(SIZE_BODY);
+      doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
+
+      // Stack contact info for minimalist look
+      let contactCursor = cursorY + 16;
+      contactParts.forEach(part => {
+        doc.text(part, MARGIN + indent, contactCursor);
+        contactCursor += 5;
+      });
+      cursorY = contactCursor + 10;
+    } else {
+      cursorY += 30;
+    }
+
   } else {
     // CLEAN/TRADITIONAL HEADER
     checkPageBreak(40);
@@ -242,12 +284,16 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
       cursorY += 5;
     }
 
-    // Divider Line
-    cursorY += 3;
-    doc.setLineWidth(0.5);
-    doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-    doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
-    cursorY += 10;
+    // Divider Line (Only for standard layouts, Minimalist might skip it or use different style)
+    if (theme.id !== 'minimalist') {
+      cursorY += 3;
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
+      doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
+      cursorY += 10;
+    } else {
+      cursorY += 10;
+    }
   }
 
   // COVER LETTER: ADD RECIPIENT BLOCK & DATE
@@ -369,14 +415,33 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     i++;
   }
 
-  // ADD PAGE NUMBERS
+  // ADD PAGE NUMBERS & WATERMARK
   const pageCount = doc.getNumberOfPages();
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p);
+
+    // Page Numbers
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text(`Page ${p} of ${pageCount}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 10, { align: "center" });
+
+    // Watermark
+    if (options.watermark) {
+      doc.saveGraphicsState();
+      doc.setGState(new doc.GState({ opacity: 0.2 }));
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(60);
+      doc.setTextColor(200, 200, 200);
+
+      // Draw diagonal watermark centered
+      doc.text(options.watermark.toUpperCase(), PAGE_WIDTH / 2, PAGE_HEIGHT / 2, {
+        align: "center",
+        angle: 45,
+        renderingMode: "fill"
+      });
+      doc.restoreGraphicsState();
+    }
   }
 
   return Buffer.from(doc.output("arraybuffer"));
