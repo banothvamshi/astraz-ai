@@ -80,7 +80,9 @@ export async function superParseResume(fileBuffer: Buffer): Promise<ParsedResume
 
       INSTRUCTIONS:
       - CROSS-REFERENCE all three sources (Visual, Text, OCR).
-      - **ANTI-HALLUCINATION RULE**: Do NOT invent ANY data. If a phone number or email is missing, leave it as empty string. Do not guess.
+      - **CONTACT INFO**: Search Header and Footer aggressively for Name, Email, Phone, and Location. 
+      - **ANTI-HALLUCINATION RULE**: Do NOT invent data. But if you see it, capture it even if formatting is weird.
+      - **SUMMARY vs EXPERIENCE**: A paragraph at the top without a "Experience" header is usually a Summary. Extract it as 'professional_summary'.
       - If Raw Text is garbled, trust the Visual/OCR.
       - If Visual is blurry, trust the Raw Text.
       - Infer the structure (Experience vs Education) based on the Visual Layout (bold headers, sizes).

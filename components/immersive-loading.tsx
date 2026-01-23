@@ -134,7 +134,7 @@ export function ImmersiveLoading({ status }: ImmersiveLoadingProps) {
                             </div>
                             <div className="flex-1">
                                 <div className="flex justify-between mb-1">
-                                    <span>Gemini 2.0 Synthesis</span>
+                                    <span>Astraz AI Synthesis</span>
                                     <span className="text-purple-500 text-xs">PENDING</span>
                                 </div>
                                 <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
