@@ -79,16 +79,16 @@ export async function POST(request: NextRequest) {
             const newCredits = Math.max(0, currentCredits - 1);
 
             // 3. Update profiles table
-            await supabase
-                .from("profiles")
-                .update({
-                    credits_remaining: newCredits,
-                    total_generations: (profile?.total_generations || 0) + 1,
-                    updated_at: new Date().toISOString()
-                })
-                .eq("id", userId);
-
-            console.log(`[Sync] Deducted credit for ${userId}. New balance: ${newCredits}`);
+            // BILLING DISABLED FOR GENERATION DRAFTS (Moved to Download)
+            // await supabase
+            //     .from("profiles")
+            //     .update({
+            //         credits_remaining: newCredits,
+            //         total_generations: (profile?.total_generations || 0) + 1,
+            //         updated_at: new Date().toISOString()
+            //     })
+            //     .eq("id", userId);
+            console.log(`[Sync] Draft saved for ${userId} (No charge).`);
         } else if (userId && isFreeGeneration) {
             // Just track the generation count for free usage
             await supabase.rpc("increment_generation_count", { user_uuid: userId });

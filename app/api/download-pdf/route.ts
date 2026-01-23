@@ -138,8 +138,8 @@ export async function POST(request: NextRequest) {
           // WE CALL RPC to Deduct.
           const { getSupabaseAdmin } = await import("@/lib/auth");
           const supabaseAdmin = getSupabaseAdmin();
-          // CREDIT DEDUCTION DISABLED FOR DOWNLOADS (Already charged at Generation)
-          // await supabaseAdmin.rpc("increment_generation_count", { user_uuid: authorizedUserId });
+          // CREDIT DEDUCTION ENABLED (Pay on Download)
+          await supabaseAdmin.rpc("increment_generation_count", { user_uuid: authorizedUserId });
 
           // Log to activity_log
           await supabaseAdmin.from('activity_log').insert({
