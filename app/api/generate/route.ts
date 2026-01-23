@@ -69,13 +69,13 @@ export async function POST(request: NextRequest) {
     if (authUser) {
       const { data: profile } = await authClient
         .from("profiles")
-        .select("credits, is_admin")
+        .select("credits_remaining, is_admin")
         .eq("id", authUser.id)
         .single();
 
       // PARANOID BILLING CHECK
       // If profile is missing (DB Error) OR credits <= 0, BLOCK.
-      if (!profile || (!profile.is_admin && (profile.credits === null || Number(profile.credits) <= 0))) {
+      if (!profile || (!profile.is_admin && (profile.credits_remaining === null || Number(profile.credits_remaining) <= 0))) {
         return NextResponse.json(
           { error: "Insufficient credits. Please top up to generate resumes." },
           { status: 402 } // Payment Required

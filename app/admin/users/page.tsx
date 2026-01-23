@@ -106,13 +106,15 @@ export default function UsersPage() {
 
     // CSV Export function
     const handleExportCSV = () => {
-        const headers = ["Email", "Name", "Role", "Premium", "Credits", "Joined"];
+        const headers = ["Email", "Name", "Role", "Premium", "Credits", "Expiry", "Joined"];
         const rows = filteredUsers.map(user => [
             user.email || "",
             user.full_name || "",
             user.is_admin ? "Admin" : "User",
             user.is_premium ? "Yes" : "No",
             user.credits_remaining === -1 ? "Unlimited" : (user.credits_remaining || 0),
+            user.credits_remaining === -1 ? "Unlimited" : (user.credits_remaining || 0),
+            user.subscription_end_date ? new Date(user.subscription_end_date).toLocaleDateString() : "N/A",
             new Date(user.created_at).toLocaleDateString()
         ]);
 
@@ -173,6 +175,7 @@ export default function UsersPage() {
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">User</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Role</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Expiry</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Credits</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Generations</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-slate-500">Joined</th>
