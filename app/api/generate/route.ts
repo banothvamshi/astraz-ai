@@ -63,14 +63,14 @@ export async function POST(request: NextRequest) {
     // ==========================================
     // USER CREDIT CHECK (Account Level)
     // ==========================================
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const authClient = await createClient();
+    const { data: { user: authUser } } = await authClient.auth.getUser();
 
-    if (user) {
-      const { data: profile } = await supabase
+    if (authUser) {
+      const { data: profile } = await authClient
         .from("profiles")
         .select("credits, is_admin")
-        .eq("id", user.id)
+        .eq("id", authUser.id)
         .single();
 
       if (profile && !profile.is_admin) {
