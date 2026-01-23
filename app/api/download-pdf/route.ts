@@ -76,10 +76,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Rate limiting
-    // Rate limiting (Skip for Previews to allow seamless editing)
+    // Default allowed for previews (Skipping strict checks)
+    let rateLimit = { allowed: true, remaining: 1, resetAt: Date.now() + 3600000 };
+    const clientId = getClientIdentifier(request);
+
     if (!preview) {
-      const clientId = getClientIdentifier(request);
-      const rateLimit = checkRateLimit(clientId, "download", effectiveIsPremium);
+      rateLimit = checkRateLimit(clientId, "download", effectiveIsPremium);
 
       if (!rateLimit.allowed) {
         return NextResponse.json(
