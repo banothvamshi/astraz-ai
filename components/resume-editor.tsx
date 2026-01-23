@@ -6,11 +6,18 @@ import { Button } from "@/components/ui/button";
 
 interface ResumeEditorProps {
   content: string;
+  contactInfo?: {
+    fullName: string;
+    email: string;
+    phone: string;
+    linkedin: string;
+    location: string;
+  };
   onSave: (editedContent: string) => void;
   onCancel: () => void;
 }
 
-export function ResumeEditor({ content, onSave, onCancel }: ResumeEditorProps) {
+export function ResumeEditor({ content, contactInfo, onSave, onCancel }: ResumeEditorProps) {
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
   const [editedContent, setEditedContent] = useState(content);
   const [isSaving, setIsSaving] = useState(false);
@@ -35,7 +42,13 @@ export function ResumeEditor({ content, onSave, onCancel }: ResumeEditorProps) {
         body: JSON.stringify({
           content: editedContent,
           type: "resume", // Default to resume, could be prop
-          preview: true
+          preview: true,
+          // Pass contact info for header rendering
+          name: contactInfo?.fullName,
+          email: contactInfo?.email,
+          phone: contactInfo?.phone,
+          linkedin: contactInfo?.linkedin,
+          location: contactInfo?.location
         }),
       });
 

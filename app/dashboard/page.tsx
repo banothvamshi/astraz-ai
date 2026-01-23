@@ -115,6 +115,17 @@ export default function Dashboard() {
         if (res.ok) {
           const data = await res.json();
           setResumeScore(data.score);
+
+          // Auto-fill contact info from parsed resume if fields are empty
+          if (data.parsed) {
+            setContactInfo(prev => ({
+              fullName: prev.fullName || data.parsed.name || "",
+              email: prev.email || data.parsed.email || "",
+              phone: prev.phone || data.parsed.phone || "",
+              linkedin: prev.linkedin || data.parsed.linkedin || "",
+              location: prev.location || data.parsed.location || "",
+            }));
+          }
         }
       };
       reader.readAsDataURL(file);
@@ -145,7 +156,8 @@ export default function Dashboard() {
         setUserId(user.id);
 
         // Set email from auth user
-        setContactInfo(prev => ({ ...prev, email: user.email || "" }));
+        // REMOVED: Do not pre-fill contact info from account data (Data Integrity)
+        // setContactInfo(prev => ({ ...prev, email: user.email || "" }));
       }
 
       if (user) {
@@ -157,11 +169,14 @@ export default function Dashboard() {
 
         if (profile) {
           // Pre-populate contact info from profile
+          // REMOVED: Do not pre-fill contact info from account data (Data Integrity)
+          /* 
           setContactInfo(prev => ({
             ...prev,
             fullName: profile.full_name || "",
             phone: profile.phone || ""
           }));
+          */
 
           // Redirect admins to admin panel
           if (profile.is_admin) {
@@ -1422,6 +1437,7 @@ export default function Dashboard() {
                         {editingResume ? (
                           <ResumeEditor
                             content={generatedResume}
+                            contactInfo={contactInfo}
                             onSave={(edited) => {
                               setGeneratedResume(edited);
                               setEditingResume(false);
