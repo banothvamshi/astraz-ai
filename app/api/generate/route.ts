@@ -445,7 +445,13 @@ CRITICAL: Generate a COMPLETE resume with ALL sections filled out. Do NOT use pl
 
 CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
 
-1. **ATS Optimization (Critical)**:
+1. **STRICT DATA INTEGRITY (ZERO HALLUCINATIONS)**:
+   - **ABSOLUTE RULE**: You MUST NOT invent potential employers, job titles, or dates.
+   - **NO PLACEHOLDERS**: Never use text like "[Not provided]", "[City, State]", "Assuming...", or "Beneficial". If data is missing, **OMIT** the field or the entire section.
+   - **Education**: If the input has no education, do NOT create an Education section.
+   - **Languages**: Lists ONLY languages explicitly found in the resume. Do NOT infer languages from location.
+
+2. **ATS Optimization (Critical)**:
    - Use EXACT standard section headers: "Professional Summary", "Professional Experience", "Education", "Technical Skills", "Certifications", "Projects"
    - NO tables, columns, graphics, or complex formatting (ATS Death Traps)
    - Use simple, clean bullet points (•)
