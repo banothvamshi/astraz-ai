@@ -437,7 +437,7 @@ export async function POST(request: NextRequest) {
     }
 
     // PREMIUM resume generation prompt - Highest quality output
-    const resumePrompt = `You are an elite executive resume writer with 25+ years of experience helping candidates secure positions at Fortune 500 companies, FAANG, and top-tier organizations. Your resumes consistently pass ATS systems and impress C-level executives.
+    const resumePrompt = `You are an elite executive resume writer (Expert) with 25+ years of experience helping candidates secure positions at Fortune 500 companies, FAANG, and top-tier organizations. Your resumes consistently pass ATS systems and impress C-level executives.
 
 TASK: Create a COMPLETE, PREMIUM, ATS-optimized resume that maximizes interview opportunities and showcases the candidate as an exceptional fit.
 

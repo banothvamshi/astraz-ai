@@ -3,7 +3,7 @@ import { parseResumePDF } from "@/lib/pdf-parser";
 import { calculateResumeScore } from "@/lib/resume-scorer";
 import { shouldAllowAPICall, getBillingStatusMessage } from "@/lib/billing-guard";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest) { // Sync v2
     try {
         // Check billing guard
         if (!shouldAllowAPICall()) {

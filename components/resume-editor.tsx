@@ -17,7 +17,7 @@ interface ResumeEditorProps {
   onCancel: () => void;
 }
 
-export function ResumeEditor({ content, contactInfo, onSave, onCancel }: ResumeEditorProps) {
+export function ResumeEditor({ content, contactInfo, onSave, onCancel }: ResumeEditorProps) { // Sync v2
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
   const [editedContent, setEditedContent] = useState(content);
   const [isSaving, setIsSaving] = useState(false);
