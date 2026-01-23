@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) { // Sync v2
 
         // Parse PDF (Super Parser Mode)
         const { superParseResume } = await import("@/lib/super-parser");
-        const parsed = await superParseResume(pdfBuffer);
+        const { parsed } = await superParseResume(pdfBuffer);
 
         // Convert the structural summary to a text block for the scoring engine
         const textForScoring = JSON.stringify(parsed, null, 2) + "\n\n" + (parsed.professional_summary || "");
