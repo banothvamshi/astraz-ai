@@ -1078,7 +1078,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="w-full mx-auto"
+          className="w-full max-w-[98vw] mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div className="grid gap-8 lg:grid-cols-12 items-start">
 
