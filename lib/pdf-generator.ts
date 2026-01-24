@@ -212,9 +212,19 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
       doc.setFont(FONTS.header, "normal");
       doc.setFontSize(TYPO.size.body);
       doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
+
       const contactLine = contactParts.join("  |  ");
-      doc.text(contactLine, alignX, cursorY, alignOpt);
-      cursorY += 8;
+      const contactWidth = doc.getTextWidth(contactLine);
+
+      if (contactWidth > CONTENT_WIDTH) {
+        // If line is too long, try to split nicely or just wrap
+        const lines = doc.splitTextToSize(contactLine, CONTENT_WIDTH);
+        doc.text(lines, alignX, cursorY, alignOpt);
+        cursorY += (lines.length * 5) + 3; // Adjust spacing for multi-line
+      } else {
+        doc.text(contactLine, alignX, cursorY, alignOpt);
+        cursorY += 8;
+      }
     }
 
     // Divider
