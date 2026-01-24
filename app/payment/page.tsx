@@ -401,7 +401,7 @@ function PaymentPageContent() {
                         {prices[currency].starter.display}
                       </span>
                     )}
-                    <span className="text-base text-slate-500">/month</span>
+                    <span className="text-base text-slate-500"></span>
                   </div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-grow">
@@ -454,7 +454,7 @@ function PaymentPageContent() {
                         {prices[currency].professional.display}
                       </span>
                     )}
-                    <span className="text-base text-slate-500">/month</span>
+                    <span className="text-base text-slate-500"></span>
                   </div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-grow">
@@ -504,7 +504,7 @@ function PaymentPageContent() {
                         {prices[currency].enterprise.display}
                       </span>
                     )}
-                    <span className="text-base text-slate-400">/month</span>
+                    <span className="text-base text-slate-400"></span>
                   </div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-grow relative z-10">

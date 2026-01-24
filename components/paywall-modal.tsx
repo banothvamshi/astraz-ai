@@ -116,7 +116,7 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
               {/* Price */}
               <div className={`text-3xl font-extrabold mb-4 ${plan.featured ? "text-amber-600" : plan.dark ? "text-white" : "text-slate-900 dark:text-white"}`}>
                 {prices[currency][plan.key as keyof typeof prices.INR]}
-                <span className={`text-sm font-normal ${plan.dark ? "text-slate-400" : "text-slate-500"}`}>/month</span>
+                <span className={`text-sm font-normal ${plan.dark ? "text-slate-400" : "text-slate-500"}`}></span>
               </div>
 
               {/* Features */}
