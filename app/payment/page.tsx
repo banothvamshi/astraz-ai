@@ -134,8 +134,14 @@ function PaymentPageContent() {
   };
 
   const handlePayment = async (planKey: string, amount: number) => {
-    setIsProcessing(true);
     setSelectedPlan(planKey);
+
+    // If guest, stop here. The modal will show because selectedPlan is set.
+    if (!userEmail) {
+      return;
+    }
+
+    setIsProcessing(true);
 
     try {
       const plan = PLANS[planKey as keyof typeof PLANS];
