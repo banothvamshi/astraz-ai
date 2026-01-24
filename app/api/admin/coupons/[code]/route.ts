@@ -25,3 +25,25 @@ export async function PUT(
         return NextResponse.json({ error: "Failed to update coupon" }, { status: 500 });
     }
 }
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ code: string }> }
+) {
+    try {
+        const { code } = await params;
+        const supabase = getSupabaseAdmin();
+
+        const { error } = await supabase
+            .from("coupons")
+            .delete()
+            .eq("code", code);
+
+        if (error) throw error;
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("Delete coupon error:", error);
+        return NextResponse.json({ error: "Failed to delete coupon" }, { status: 500 });
+    }
+}
