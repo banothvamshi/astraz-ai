@@ -1397,6 +1397,18 @@ export default function Dashboard() {
                         <div className="flex gap-2">
                           <Button
                             onClick={() => setEditingResume(!editingResume)}
+
+  // NEW: Effect to auto-refresh preview when Theme OR Contact Info changes
+  useEffect(() => {
+    if (generatedResume && resumeMeta) {
+      // Debounce slightly to avoid rapid re-renders if typing fast (though unlikely for theme)
+      const timer = setTimeout(() => {
+        generatePreviewPdf(generatedResume, resumeMeta, selectedTheme);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedTheme, contactInfo, generatedResume]); // Dependencies
+
                             size="sm"
                             variant="outline"
                             className="h-8 text-xs"
@@ -1422,8 +1434,12 @@ export default function Dashboard() {
                             onSave={(edited) => {
                               setGeneratedResume(edited);
                               setEditingResume(false);
-                              // Regenerate preview on save
-                              generatePreviewPdf(edited, resumeMeta, selectedTheme);
+                              // Preview auto-updates via useEffect now
+                            }}
+                            onCancel={() => setEditingResume(false)}
+                          />
+                        ) : (
+                          // ... existing preview logic ...                              generatePreviewPdf(edited, resumeMeta, selectedTheme);
                             }}
                             onCancel={() => setEditingResume(false)}
                           />
@@ -1451,172 +1467,175 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                  )}
+              )}
 
-                  {/* Cover Letter Card */}
-                  {generatedCoverLetter && (
-                    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden mb-8">
-                      <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
-                          <FileText className="w-5 h-5" />
-                          Cover Letter
-                        </div>
-                        <Button
-                          onClick={() => handleDownload("coverLetter")}
-                          size="sm"
-                          className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
-                        >
-                          <Download className="mr-1.5 h-3.5 w-3.5" />
-                          Download PDF
-                        </Button>
-                      </div>
-                      <div className="p-6 max-h-[500px] overflow-y-auto">
-                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed">
-                          {generatedCoverLetter}
-                        </div>
-                      </div>
+              {/* Cover Letter Card */}
+              {generatedCoverLetter && (
+                <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden mb-8">
+                  <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
+                      <FileText className="w-5 h-5" />
+                      Cover Letter
                     </div>
-                  )}
-
-                  {/* Bottom spacing */}
-                  <div className="h-12" />
-
-                </div>
-              ) : (
-                // Empty State / Placeholder
-                <div className="h-full min-h-[400px] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 dark:bg-slate-900/50">
-                  <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-400">
-                    <Sparkles className="h-8 w-8 opacity-50" />
+                    <Button
+                      onClick={() => handleDownload("coverLetter")}
+                      size="sm"
+                      className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      <Download className="mr-1.5 h-3.5 w-3.5" />
+                      Download PDF
+                    </Button>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">Ready to Engineer</h3>
-                  <p className="text-slate-500 max-w-sm">
-                    Your generated documents will appear here with a live preview and editing capabilities.
-                  </p>
+                  <div className="p-6 max-h-[500px] overflow-y-auto">
+                    <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed">
+                      {generatedCoverLetter}
+                    </div>
+                  </div>
                 </div>
               )}
+
+              {/* Bottom spacing */}
+              <div className="h-12" />
+
             </div>
+            ) : (
+            // Empty State / Placeholder
+            <div className="h-full min-h-[400px] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-400">
+                <Sparkles className="h-8 w-8 opacity-50" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">Ready to Engineer</h3>
+              <p className="text-slate-500 max-w-sm">
+                Your generated documents will appear here with a live preview and editing capabilities.
+              </p>
+            </div>
+              )}
           </div>
+        </div>
         </motion.div>
-      )}
+  )
+}
 
-      {activeTab === "settings" && userId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="max-w-3xl mx-auto space-y-8 mt-12"
-        >
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
-                <Download className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Export Data</h2>
-                <p className="text-sm text-slate-500">Download a copy of your personal data and resume history.</p>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-6 border border-slate-100 dark:border-slate-800">
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                Your export will include your profile information, generation history, and saved resume data in JSON format.
-              </p>
-              <Button
-                onClick={async () => {
-                  try {
-                    const supabase = getSupabaseBrowserClient();
-                    const { data: { session } } = await supabase.auth.getSession();
-                    const token = session?.access_token;
-
-                    if (!token) throw new Error("Authentication required");
-
-                    const res = await fetch("/api/user/export", {
-                      headers: {
-                        "Authorization": `Bearer ${token}`
-                      }
-                    });
-
-                    if (!res.ok) throw new Error("Export failed");
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `astraz-export-${new Date().toISOString().split("T")[0]}.json`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                  } catch (err) {
-                    alert("Failed to export data. Please try logging in again.");
-                  }
-                }}
-                variant="outline"
-                className="w-full sm:w-auto"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download My Data
-              </Button>
-            </div>
+{
+  activeTab === "settings" && userId && (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-3xl mx-auto space-y-8 mt-12"
+    >
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+            <Download className="w-6 h-6" />
           </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Export Data</h2>
+            <p className="text-sm text-slate-500">Download a copy of your personal data and resume history.</p>
+          </div>
+        </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30 p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
-                <LogOut className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-red-600 dark:text-red-400">Danger Zone</h2>
-                <p className="text-sm text-slate-500">Irreversible account actions.</p>
-              </div>
-            </div>
+        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-6 border border-slate-100 dark:border-slate-800">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+            Your export will include your profile information, generation history, and saved resume data in JSON format.
+          </p>
+          <Button
+            onClick={async () => {
+              try {
+                const supabase = getSupabaseBrowserClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                const token = session?.access_token;
 
-            <div className="bg-red-50 dark:bg-red-900/10 rounded-xl p-6 border border-red-100 dark:border-red-900/30">
-              <h3 className="font-semibold text-red-900 dark:text-red-200 mb-2">Delete Account</h3>
-              <p className="text-sm text-red-700 dark:text-red-300 mb-6">
-                Permanently delete your account and all associated data. This action cannot be undone.
-              </p>
-              <Button
-                onClick={async () => {
-                  if (confirm("Are you strictly sure you want to delete your account? This action is permanent and cannot be undone.")) {
-                    try {
-                      const supabase = getSupabaseBrowserClient();
-                      const { data: { session } } = await supabase.auth.getSession();
-                      const token = session?.access_token;
+                if (!token) throw new Error("Authentication required");
 
-                      if (!token) throw new Error("Authentication required");
+                const res = await fetch("/api/user/export", {
+                  headers: {
+                    "Authorization": `Bearer ${token}`
+                  }
+                });
 
-                      const res = await fetch("/api/user/delete", {
-                        method: "DELETE",
-                        headers: {
-                          "Authorization": `Bearer ${token}`
-                        }
-                      });
+                if (!res.ok) throw new Error("Export failed");
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `astraz-export-${new Date().toISOString().split("T")[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+              } catch (err) {
+                alert("Failed to export data. Please try logging in again.");
+              }
+            }}
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download My Data
+          </Button>
+        </div>
+      </div>
 
-                      if (res.ok) {
-                        alert("Account deleted.");
-                        window.location.href = "/";
-                      } else {
-                        throw new Error("Deletion failed");
-                      }
-                    } catch (err) {
-                      alert("Failed to delete account. Please try logging in again.");
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30 p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+            <LogOut className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-red-600 dark:text-red-400">Danger Zone</h2>
+            <p className="text-sm text-slate-500">Irreversible account actions.</p>
+          </div>
+        </div>
+
+        <div className="bg-red-50 dark:bg-red-900/10 rounded-xl p-6 border border-red-100 dark:border-red-900/30">
+          <h3 className="font-semibold text-red-900 dark:text-red-200 mb-2">Delete Account</h3>
+          <p className="text-sm text-red-700 dark:text-red-300 mb-6">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+          <Button
+            onClick={async () => {
+              if (confirm("Are you strictly sure you want to delete your account? This action is permanent and cannot be undone.")) {
+                try {
+                  const supabase = getSupabaseBrowserClient();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  const token = session?.access_token;
+
+                  if (!token) throw new Error("Authentication required");
+
+                  const res = await fetch("/api/user/delete", {
+                    method: "DELETE",
+                    headers: {
+                      "Authorization": `Bearer ${token}`
                     }
-                  }
-                }}
-                variant="destructive"
-                className="w-full sm:w-auto hover:bg-red-700 transition-colors"
-              >
-                Delete Account
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      )}
+                  });
 
-      <PaywallModal
-        open={showPaywall}
-        onOpenChange={setShowPaywall}
-        onUpgrade={() => router.push("/payment")}
-      />
-    </div>
+                  if (res.ok) {
+                    alert("Account deleted.");
+                    window.location.href = "/";
+                  } else {
+                    throw new Error("Deletion failed");
+                  }
+                } catch (err) {
+                  alert("Failed to delete account. Please try logging in again.");
+                }
+              }
+            }}
+            variant="destructive"
+            className="w-full sm:w-auto hover:bg-red-700 transition-colors"
+          >
+            Delete Account
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+<PaywallModal
+  open={showPaywall}
+  onOpenChange={setShowPaywall}
+  onUpgrade={() => router.push("/payment")}
+/>
+    </div >
   );
 }

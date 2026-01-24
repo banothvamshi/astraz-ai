@@ -1,3 +1,4 @@
+
 export interface ResumeTheme {
     id: string;
     name: string;
@@ -7,16 +8,33 @@ export interface ResumeTheme {
         secondary: number[]; // Subheaders (Role, Company)
         text: number[];      // Body Text
         accent: number[];    // Links, Dividers, Highlights
-        background?: number[]; // Optional background (usually white)
+        background?: number[]; // Optional background
     };
     fonts: {
         header: string; // "helvetica", "times", "courier"
         body: string;   // "helvetica", "times", "courier"
     };
     layout: {
-        contentWidthOffset: number; // For margins
-        lineHeight: number;
-        headerStyle?: "clean" | "banner" | "sidebar" | "left-border"; // NEW: Left-border style
+        headerStyle: "clean" | "banner" | "sidebar" | "left-border" | "centered";
+        margin: number;         // Page margin (mm)
+        headerBottomMargin: number; // Space after header (mm)
+        sectionSpacing: number; // Space between sections (mm)
+        itemSpacing: number;    // Space between job entries (mm)
+        lineHeight: number;     // Body line height multiplier
+        sidebarWidth?: number;  // For sidebar layouts (mm)
+    };
+    typography: {
+        size: {
+            name: number;
+            title: number;    // Section Headers (e.g. "Experience")
+            subtitle: number; // Job Titles / Companies
+            body: number;     // Bullet points
+            small: number;    // Dates, locations
+        };
+        weight: {
+            header: "normal" | "bold" | "italic" | "bolditalic";
+            body: "normal" | "bold" | "italic" | "bolditalic";
+        };
     };
     isPremium?: boolean;
 }
@@ -27,7 +45,7 @@ export const THEMES: Record<string, ResumeTheme> = {
         name: "Professional",
         description: "Clean, traditional layout perfect for corporate roles.",
         colors: {
-            primary: [15, 23, 42],    // Slate 900 (Deep Navy)
+            primary: [15, 23, 42],    // Slate 900
             secondary: [51, 65, 85],  // Slate 700
             text: [30, 41, 59],       // Slate 800
             accent: [79, 70, 229],    // Indigo 600
@@ -37,9 +55,16 @@ export const THEMES: Record<string, ResumeTheme> = {
             body: "times",
         },
         layout: {
-            contentWidthOffset: 0,
-            lineHeight: 5.5,
             headerStyle: "clean",
+            margin: 20,
+            headerBottomMargin: 10,
+            sectionSpacing: 6,
+            itemSpacing: 3,
+            lineHeight: 1.4,
+        },
+        typography: {
+            size: { name: 24, title: 14, subtitle: 12, body: 10.5, small: 9 },
+            weight: { header: "bold", body: "normal" },
         },
         isPremium: false
     },
@@ -48,7 +73,7 @@ export const THEMES: Record<string, ResumeTheme> = {
         name: "Modern",
         description: "Sleek, sans-serif design with a bold header.",
         colors: {
-            primary: [31, 41, 55],    // Dark Gray (Was White - Fixed for Section Headers)
+            primary: [31, 41, 55],    // Gray 800
             secondary: [75, 85, 99],  // Gray 600
             text: [31, 41, 55],       // Gray 800
             accent: [16, 185, 129],   // Emerald 500
@@ -58,9 +83,16 @@ export const THEMES: Record<string, ResumeTheme> = {
             body: "helvetica",
         },
         layout: {
-            contentWidthOffset: 0,
-            lineHeight: 6.0,
-            headerStyle: "banner", // Enable Banner
+            headerStyle: "banner",
+            margin: 18,
+            headerBottomMargin: 15,
+            sectionSpacing: 7,
+            itemSpacing: 4,
+            lineHeight: 1.5,
+        },
+        typography: {
+            size: { name: 28, title: 15, subtitle: 12, body: 10, small: 9 },
+            weight: { header: "bold", body: "normal" },
         },
         isPremium: false
     },
@@ -69,19 +101,27 @@ export const THEMES: Record<string, ResumeTheme> = {
         name: "Creative",
         description: "Bold colors and unique layout for creative fields.",
         colors: {
-            primary: [126, 34, 206],  // Purple 700 (Was White)
+            primary: [126, 34, 206],  // Purple 700
             secondary: [107, 33, 168], // Purple 700
             text: [17, 24, 39],       // Gray 900
             accent: [219, 39, 119],   // Pink 600
+            background: [250, 245, 255] // Very light purple bg hint? No, PDF background is complex. Keep white for now.
         },
         fonts: {
             header: "helvetica",
             body: "helvetica",
         },
         layout: {
-            contentWidthOffset: 0,
-            lineHeight: 5.8,
-            headerStyle: "banner", // Enable Banner
+            headerStyle: "banner",
+            margin: 15,
+            headerBottomMargin: 12,
+            sectionSpacing: 8,
+            itemSpacing: 5,
+            lineHeight: 1.6,
+        },
+        typography: {
+            size: { name: 32, title: 16, subtitle: 13, body: 10.5, small: 9.5 },
+            weight: { header: "bold", body: "normal" },
         },
         isPremium: true
     },
@@ -100,9 +140,16 @@ export const THEMES: Record<string, ResumeTheme> = {
             body: "times",
         },
         layout: {
-            contentWidthOffset: 0,
-            lineHeight: 5.5,
-            headerStyle: "clean",
+            headerStyle: "centered",
+            margin: 25.4, // 1 inch
+            headerBottomMargin: 15,
+            sectionSpacing: 7,
+            itemSpacing: 4,
+            lineHeight: 1.5,
+        },
+        typography: {
+            size: { name: 26, title: 16, subtitle: 14, body: 11, small: 10 },
+            weight: { header: "bold", body: "normal" },
         },
         isPremium: true
     },
@@ -121,9 +168,16 @@ export const THEMES: Record<string, ResumeTheme> = {
             body: "times",
         },
         layout: {
-            contentWidthOffset: 0,
-            lineHeight: 5.4,
             headerStyle: "clean",
+            margin: 15, // Compact
+            headerBottomMargin: 8,
+            sectionSpacing: 5,
+            itemSpacing: 2,
+            lineHeight: 1.3,
+        },
+        typography: {
+            size: { name: 22, title: 14, subtitle: 12, body: 10, small: 9 },
+            weight: { header: "bold", body: "normal" },
         },
         isPremium: false
     },
@@ -135,16 +189,23 @@ export const THEMES: Record<string, ResumeTheme> = {
             primary: [0, 0, 0],
             secondary: [100, 100, 100],
             text: [50, 50, 50],
-            accent: [0, 0, 0], // Monochrome
+            accent: [0, 0, 0],
         },
         fonts: {
             header: "helvetica",
             body: "helvetica",
         },
         layout: {
-            contentWidthOffset: 10, // Narrower content
-            lineHeight: 7.0, // Airy
-            headerStyle: "left-border", // Stylish left border
+            headerStyle: "left-border",
+            margin: 20,
+            headerBottomMargin: 20,
+            sectionSpacing: 10,
+            itemSpacing: 6,
+            lineHeight: 1.8,
+        },
+        typography: {
+            size: { name: 24, title: 12, subtitle: 11, body: 9.5, small: 8.5 },
+            weight: { header: "normal", body: "normal" },
         },
         isPremium: true
     },
@@ -163,9 +224,16 @@ export const THEMES: Record<string, ResumeTheme> = {
             body: "courier",
         },
         layout: {
-            contentWidthOffset: 0,
-            lineHeight: 5.0, // Dense
             headerStyle: "clean",
+            margin: 15,
+            headerBottomMargin: 10,
+            sectionSpacing: 6,
+            itemSpacing: 3,
+            lineHeight: 1.2,
+        },
+        typography: {
+            size: { name: 20, title: 14, subtitle: 12, body: 10, small: 9 },
+            weight: { header: "bold", body: "normal" },
         },
         isPremium: true
     }

@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import { removeAllPlaceholders } from "./placeholder-detector";
-import { getTheme, ResumeTheme } from "./themes";
+import { getTheme } from "./themes";
 
 export interface PDFOptions {
   type: "resume" | "coverLetter";
@@ -12,8 +12,8 @@ export interface PDFOptions {
   location?: string;
   company?: string;
   jobTitle?: string;
-  themeId?: string; // NEW: Accept theme ID
-  watermark?: string; // NEW: Watermark text
+  themeId?: string;
+  watermark?: string;
 }
 
 /**
@@ -32,22 +32,21 @@ function stripCodeBlocks(content: string): string {
 
 /**
  * Strips markdown bold/italic formatting from text
- * Converts **bold** and *italic* to plain text
  */
 function stripMarkdownFormatting(text: string): string {
   return text
-    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')  // ***bold italic*** -> text
-    .replace(/\*\*(.+?)\*\*/g, '$1')       // **bold** -> text
-    .replace(/\*(?!\s)(.+?)(?<!\s)\*/g, '$1')  // *italic* -> text (not bullet)
-    .replace(/__(.+?)__/g, '$1')           // __underline__ -> text
-    .replace(/_(.+?)_/g, '$1')             // _italic_ -> text
-    .replace(/\*\*/g, '')                  // Stray ** markers
+    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(?!\s)(.+?)(?<!\s)\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    .replace(/\*\*/g, '')
     .trim();
 }
 
 /**
  * Generates an ENTERPRISE-GRADE, premium-quality PDF from markdown content.
- * Optimized for ATS compatibility and human readability with professional design.
+ * Optimized for ATS compatibility and human readability with simple, robust logic.
  */
 export async function generateProfessionalPDF(options: PDFOptions): Promise<Buffer> {
   const { type, content, name, email, themeId } = options;
@@ -57,6 +56,8 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   const theme = getTheme(themeId);
   const COLORS = theme.colors;
   const FONTS = theme.fonts;
+  const LAYOUT = theme.layout;
+  const TYPO = theme.typography;
 
   const doc = new jsPDF({
     orientation: "portrait",
@@ -65,353 +66,249 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
     compress: true,
   });
 
-  // PROFESSIONAL LAYOUT CONSTANTS
+  // Dynamic Layout Constants
   const PAGE_HEIGHT = doc.internal.pageSize.getHeight();
   const PAGE_WIDTH = doc.internal.pageSize.getWidth();
-  const MARGIN = 20; // ~0.8 inch Standard Professional Margin
-  const CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
-  const BOTTOM_THRESHOLD = PAGE_HEIGHT - MARGIN;
+  const PAGE_MARGIN = LAYOUT.margin;
+  const CONTENT_WIDTH = PAGE_WIDTH - (2 * PAGE_MARGIN);
+  const BOTTOM_THRESHOLD = PAGE_HEIGHT - PAGE_MARGIN;
 
-  let cursorY = MARGIN;
+  let cursorY = PAGE_MARGIN;
 
-  // Typographic Scale
-  const SIZE_NAME = 22;
-  const SIZE_H1 = 14;
-  const SIZE_H2 = 12;
-  const SIZE_BODY = 10.5;
-  const LINE_HEIGHT_BODY = theme.layout.lineHeight;
-
-  // Helper: Check Page Break and Add Page if Needed
+  // Helper: Check Page Break
   const checkPageBreak = (heightNeeded: number) => {
     if (cursorY + heightNeeded > BOTTOM_THRESHOLD) {
       doc.addPage();
-      cursorY = MARGIN;
-      // Re-add Header (Name Only) on subsequent pages?
-      // Optional: For now, we prefer clean pages.
+      cursorY = PAGE_MARGIN;
     }
   };
 
-  // Helper: Render Text Block with Wrapping
+  // Helper: Render Text Paragraph
   const renderTextParagraph = (text: string, fontSize: number, fontName: string, fontStyle: string, color: number[], spacingAfter: number = 2) => {
     doc.setFont(fontName, fontStyle);
     doc.setFontSize(fontSize);
     doc.setTextColor(color[0], color[1], color[2]);
 
     const lines = doc.splitTextToSize(text, CONTENT_WIDTH);
-    checkPageBreak(lines.length * LINE_HEIGHT_BODY + spacingAfter);
+    checkPageBreak(lines.length * (fontSize * 0.35) + spacingAfter); // Approx height logic
 
     lines.forEach((line: string) => {
-      doc.text(line, MARGIN, cursorY);
-      cursorY += LINE_HEIGHT_BODY;
+      doc.text(line, PAGE_MARGIN, cursorY);
+      cursorY += (fontSize * 0.35 * LAYOUT.lineHeight); // Dynamic line height
     });
 
     cursorY += spacingAfter;
   };
 
-  // Helper: Render Bullet Point
+  // Helper: Render Bullet
   const renderBullet = (text: string) => {
     doc.setFont(FONTS.body, "normal");
-    doc.setFontSize(SIZE_BODY);
+    doc.setFontSize(TYPO.size.body);
     doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
 
     const bulletIndent = 5;
     const textWidth = CONTENT_WIDTH - bulletIndent;
     const lines = doc.splitTextToSize(text, textWidth);
+    const lineHeight = TYPO.size.body * 0.35 * LAYOUT.lineHeight;
 
-    checkPageBreak(lines.length * LINE_HEIGHT_BODY + 2);
+    checkPageBreak(lines.length * lineHeight + LAYOUT.itemSpacing);
 
     // Draw Bullet
-    doc.setFillColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]); // Dynamic bullet color
-    doc.circle(MARGIN + 2, cursorY - 1.5, 0.8, "F");
+    doc.setFillColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
+    doc.circle(PAGE_MARGIN + 2, cursorY - (lineHeight / 3), 0.7, "F");
 
     lines.forEach((line: string) => {
-      doc.text(line, MARGIN + bulletIndent, cursorY);
-      cursorY += LINE_HEIGHT_BODY;
+      doc.text(line, PAGE_MARGIN + bulletIndent, cursorY);
+      cursorY += lineHeight;
     });
 
-    cursorY += 1.5; // Slight spacing between bullets
+    cursorY += (LAYOUT.itemSpacing / 2);
   };
 
-  // 1. RENDER HEADER (Name & Contact)
+  // 1. RENDER HEADER
   const displayName = name || "Professional Resume";
   const displayEmail = options.email || "";
   const displayPhone = options.phone || "";
   const displayLinkedin = options.linkedin || "";
   const displayLocation = options.location || "";
 
-  // HEADER STYLE: BANNER vs CLEAN
-  const isBanner = theme.layout.headerStyle === "banner";
+  const contactParts: string[] = [];
+  if (displayEmail) contactParts.push(displayEmail);
+  if (displayPhone) contactParts.push(displayPhone);
+  if (displayLocation) contactParts.push(displayLocation);
+  if (displayLinkedin) contactParts.push(displayLinkedin.replace(/^https?:\/\//, '').replace(/\/$/, ''));
 
-  if (isBanner) {
-    // Draw Banner Background
+  // HEADER STRATEGY: BANNER
+  if (LAYOUT.headerStyle === "banner") {
     const bannerHeight = 50;
-    // Get theme primary color but maybe darker/brighter depending on theme definition
-    // Actually, for Modern/Creative we want background color to be the "Accent" or "Secondary" usually, 
-    // but let's strictly follow standard design: 
-    // Modern: Black/Dark Grey background? Or Emerald? 
-    // Let's use the ACCENT color for the banner background to make it pop, or Secondary.
-    // Wait, in the Theme update I set Primary text to White. So background must be dark.
-    // Let's use the 'Accent' color for Creative and 'Text' color (Dark Grey) for Modern?
-    // No, let's look at `colors` passed:
-    // Modern: Primary=White. Text=Gray800. Accent=Emerald.
-    // We need a background color. Let's assume Secondary or Text for background if Primary is white.
-    // Let's hardcode a good background based on theme for now or use Secondary.
-
-    const bannerColor = theme.id === 'modern' ? [31, 41, 55] : // Dark Gray
-      theme.id === 'creative' ? [88, 28, 135] : // Purple
-        [15, 23, 42]; // Default Navy
-
-    doc.setFillColor(bannerColor[0], bannerColor[1], bannerColor[2]);
+    doc.setFillColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
     doc.rect(0, 0, PAGE_WIDTH, bannerHeight, "F");
 
-    cursorY = 18; // Start text inside banner
+    cursorY = 20;
 
-    // Name (White, Centered)
-    doc.setFont(FONTS.header, "bold");
-    doc.setFontSize(SIZE_NAME + 4); // Larger for banner
+    // Name (White)
+    doc.setFont(FONTS.header, TYPO.weight.header);
+    doc.setFontSize(TYPO.size.name);
     doc.setTextColor(255, 255, 255);
     const nameWidth = doc.getTextWidth(displayName);
     doc.text(displayName, (PAGE_WIDTH - nameWidth) / 2, cursorY);
     cursorY += 10;
 
-    // Contact (White, Centered, Smaller)
-    const contactParts: string[] = [];
-    if (displayEmail) contactParts.push(displayEmail);
-    if (displayPhone) contactParts.push(displayPhone);
-    if (displayLocation) contactParts.push(displayLocation);
-
+    // Contact (White/Grey)
     if (contactParts.length > 0) {
       doc.setFont(FONTS.header, "normal");
-      doc.setFontSize(SIZE_BODY); // Slightly larger body
-      doc.setTextColor(220, 220, 220); // Off-white
+      doc.setFontSize(TYPO.size.body);
+      doc.setTextColor(230, 230, 230);
       const contactLine = contactParts.join("  |  ");
       const contactWidth = doc.getTextWidth(contactLine);
       doc.text(contactLine, (PAGE_WIDTH - contactWidth) / 2, cursorY);
-      cursorY += 6;
     }
+    cursorY = bannerHeight + LAYOUT.headerBottomMargin;
 
-    if (displayLinkedin) {
-      doc.setFont(FONTS.header, "normal");
-      doc.setFontSize(SIZE_BODY - 1);
-      doc.setTextColor(200, 200, 200);
-      const linkedinDisplay = displayLinkedin.replace(/^https?:\/\//, '').replace(/\/$/, '');
-      const linkedinWidth = doc.getTextWidth(linkedinDisplay);
-      doc.text(linkedinDisplay, (PAGE_WIDTH - linkedinWidth) / 2, cursorY);
-      cursorY += 6;
-    }
-
-    // Reset cursor to below banner
-    cursorY = bannerHeight + 10;
-
-  } else if (theme.layout.headerStyle === "left-border") {
-    // LEFT BORDER STYLE (For Minimalist)
-    checkPageBreak(40);
-
+  } else if (LAYOUT.headerStyle === "left-border") {
+    // HEADER STRATEGY: LEFT BORDER
     // Thick Left Border
     doc.setDrawColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
     doc.setLineWidth(2);
-    doc.line(MARGIN, cursorY, MARGIN, cursorY + 25);
+    doc.line(PAGE_MARGIN, PAGE_MARGIN, PAGE_MARGIN, PAGE_MARGIN + 35);
 
-    // Content indented
     const indent = 6;
+    cursorY = PAGE_MARGIN + 5;
 
     // Name
-    doc.setFont(FONTS.header, "bold");
-    doc.setFontSize(SIZE_NAME);
+    doc.setFont(FONTS.header, TYPO.weight.header);
+    doc.setFontSize(TYPO.size.name);
     doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-    doc.text(displayName, MARGIN + indent, cursorY + 8);
-
-    // Contact
-    const contactParts: string[] = [];
-    if (displayEmail) contactParts.push(displayEmail);
-    if (displayPhone) contactParts.push(displayPhone);
-    if (displayLocation) contactParts.push(displayLocation);
-    if (displayLinkedin) contactParts.push(displayLinkedin.replace(/^https?:\/\//, '').replace(/\/$/, ''));
-
-    if (contactParts.length > 0) {
-      doc.setFont(FONTS.header, "normal");
-      doc.setFontSize(SIZE_BODY);
-      doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
-
-      // Stack contact info for minimalist look
-      let contactCursor = cursorY + 16;
-      contactParts.forEach(part => {
-        doc.text(part, MARGIN + indent, contactCursor);
-        contactCursor += 5;
-      });
-      cursorY = contactCursor + 10;
-    } else {
-      cursorY += 30;
-    }
-
-  } else {
-    // CLEAN/TRADITIONAL HEADER
-    checkPageBreak(40);
-
-    // Name (Centered)
-    doc.setFont(FONTS.header, "bold");
-    doc.setFontSize(SIZE_NAME);
-    doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-    const nameWidth = doc.getTextWidth(displayName);
-    doc.text(displayName, (PAGE_WIDTH - nameWidth) / 2, cursorY);
+    doc.text(displayName, PAGE_MARGIN + indent, cursorY);
     cursorY += 10;
 
-    // Build contact info line with all available fields
-    const contactParts: string[] = [];
-    if (displayEmail) contactParts.push(displayEmail);
-    if (displayPhone) contactParts.push(displayPhone);
-    if (displayLocation) contactParts.push(displayLocation);
+    // Contact (Stacked)
+    doc.setFont(FONTS.header, "normal");
+    doc.setFontSize(TYPO.size.body);
+    doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
 
-    // Contact Line 1 (Email | Phone | Location)
+    contactParts.forEach(part => {
+      doc.text(part, PAGE_MARGIN + indent, cursorY);
+      cursorY += 5;
+    });
+
+    cursorY += LAYOUT.headerBottomMargin;
+
+  } else {
+    // HEADER STRATEGY: CLEAN / TRADITIONAL / CENTERED
+    const isCentered = LAYOUT.headerStyle === "centered";
+    const alignX = isCentered ? (PAGE_WIDTH / 2) : PAGE_MARGIN;
+    const alignOpt = isCentered ? { align: "center" } as any : undefined;
+
+    // Name
+    doc.setFont(FONTS.header, TYPO.weight.header);
+    doc.setFontSize(TYPO.size.name);
+    doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+    doc.text(displayName, alignX, cursorY, alignOpt);
+    cursorY += 8;
+
+    // Contact
     if (contactParts.length > 0) {
       doc.setFont(FONTS.header, "normal");
-      doc.setFontSize(SIZE_BODY);
+      doc.setFontSize(TYPO.size.body);
       doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
       const contactLine = contactParts.join("  |  ");
-      const contactWidth = doc.getTextWidth(contactLine);
-      doc.text(contactLine, (PAGE_WIDTH - contactWidth) / 2, cursorY);
-      cursorY += 5;
+      doc.text(contactLine, alignX, cursorY, alignOpt);
+      cursorY += 8;
     }
 
-    // Contact Line 2 (LinkedIn)
-    if (displayLinkedin) {
-      doc.setFont(FONTS.header, "normal");
-      doc.setFontSize(SIZE_BODY - 1);
-      doc.setTextColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-      const linkedinDisplay = displayLinkedin.replace(/^https?:\/\//, '').replace(/\/$/, '');
-      const linkedinWidth = doc.getTextWidth(linkedinDisplay);
-      doc.text(linkedinDisplay, (PAGE_WIDTH - linkedinWidth) / 2, cursorY);
-      cursorY += 5;
-    }
-
-    // Divider Line (Only for standard layouts, Minimalist might skip it or use different style)
-    if (theme.id !== 'minimalist') {
-      cursorY += 3;
-      doc.setLineWidth(0.5);
-      doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
-      doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
-      cursorY += 10;
-    } else {
-      cursorY += 10;
-    }
+    // Divider
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
+    doc.line(PAGE_MARGIN, cursorY, PAGE_WIDTH - PAGE_MARGIN, cursorY);
+    cursorY += LAYOUT.headerBottomMargin;
   }
 
-  // COVER LETTER: ADD RECIPIENT BLOCK & DATE
-  if (type === "coverLetter") {
-    // ... (Implement cover letter specific layout if needed, using same fonts) ...
-  }
-
-  // 2. PARSE AND RENDER CONTENT
+  // 2. PARSE BODY CONTENT
   const lines = cleanedContent.split("\n");
   let i = 0;
 
   while (i < lines.length) {
     let line = lines[i].trim();
-    if (!line) {
-      i++;
-      continue;
-    }
+    if (!line) { i++; continue; }
 
-    // DUPLICATION GUARD: If line matches name or is "Professional Summary" header when we just started
-    // Actually, AI sometimes outputs "# Name". We detect that.
-    if (i < 5 && name && line.toLowerCase().includes(name.toLowerCase()) && line.length < 60) {
-      i++; // Skip name if generated in markdown
-      continue;
-    }
-    // Also skip if it is just contact info (contains email)
-    if (i < 5 && email && line.toLowerCase().includes(email.toLowerCase())) {
-      i++;
-      continue;
-    }
+    // Skip Name/Email if found in markdown (duplicate guard)
+    if (i < 5 && name && line.toLowerCase().includes(name.toLowerCase())) { i++; continue; }
+    if (i < 5 && email && line.toLowerCase().includes(email.toLowerCase())) { i++; continue; }
 
-    // SECTION HEADER (e.g., # Professional Experience)
+    // SECTION HEADER (# Experience)
     if (line.startsWith("# ")) {
-      const headerText = line.replace(/^#\s+/, "").toUpperCase(); // Force Uppercase for Professional Look
+      const headerText = line.replace(/^#\s+/, "").toUpperCase();
       checkPageBreak(25);
 
-      if (cursorY > MARGIN + 20) cursorY += 5; // Extra space before new section
+      if (cursorY > PAGE_MARGIN + 20) cursorY += LAYOUT.sectionSpacing;
 
       doc.setFont(FONTS.header, "bold");
-      doc.setFontSize(SIZE_H1);
+      doc.setFontSize(TYPO.size.title);
       doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-      doc.text(headerText, MARGIN, cursorY);
-      cursorY += 7;
+      doc.text(headerText, PAGE_MARGIN, cursorY);
+      cursorY += 2;
 
-      // Section Underline (Thicker)
+      // Underline
       doc.setLineWidth(0.7);
-      doc.setDrawColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
-      doc.line(MARGIN, cursorY, PAGE_WIDTH - MARGIN, cursorY);
+      doc.setDrawColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
+      doc.line(PAGE_MARGIN, cursorY + 2, PAGE_WIDTH - PAGE_MARGIN, cursorY + 2);
       cursorY += 8;
 
-      i++;
-      continue;
+      i++; continue;
     }
 
-    // SUB-HEADER / JOB TITLE (e.g., ### Senior Engineer)
-    // Supports both `### Title` and `## Title`
+    // SUB-HEADER (## Job Title)
     if (line.startsWith("##") || line.startsWith("###")) {
-      const subHeaderText = line.replace(/^#+\s+/, "");
+      const subText = line.replace(/^#+\s+/, "");
       checkPageBreak(20);
-
-      if (cursorY > MARGIN) cursorY += 4;
+      if (cursorY > PAGE_MARGIN) cursorY += LAYOUT.itemSpacing;
 
       doc.setFont(FONTS.header, "bold");
-      doc.setFontSize(SIZE_H2);
-      doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-      doc.text(subHeaderText, MARGIN, cursorY);
+      doc.setFontSize(TYPO.size.subtitle);
+      doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
+      doc.text(subText, PAGE_MARGIN, cursorY);
       cursorY += 6;
-      i++;
-      continue;
+      i++; continue;
     }
 
-    // METADATA LINE (Company | Date | Location)
-    // STRICTER CHECK: Must contain "|" or be a known pattern, not just ANY bold text
-    // We want to avoid catching "**Team Lead**" as metadata if it's actually a sub-header.
-    const isMetadata = (
-      (line.includes("|") && /\d{4}|Present|Current/i.test(line)) || // Standard metadata line
-      (line.startsWith("**") && line.includes("|")) // Bold metadata with pipe
-    );
-
-    if (isMetadata) {
-      const metaText = line.replace(/\*\*/g, "").trim(); // Strip bold markers for clean text
+    // METADATA (Date | Location)
+    // Detect pipe + date/present/current
+    if ((line.includes("|") && /\d{4}|Present|Current/i.test(line)) || (line.startsWith("**") && line.includes("|"))) {
+      const metaText = line.replace(/\*\*/g, "").trim();
       checkPageBreak(10);
 
-      doc.setFont(FONTS.header, "normal"); // Sans-serif for metadata looks cleaner
-      doc.setFontSize(SIZE_BODY - 0.5);
-      doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]); // Dark Grey
-      doc.text(metaText, MARGIN, cursorY);
-      cursorY += 6;
-      i++;
-      continue;
+      doc.setFont(FONTS.header, "normal");
+      doc.setFontSize(TYPO.size.small);
+      doc.setTextColor(COLORS.secondary[0], COLORS.secondary[1], COLORS.secondary[2]);
+      doc.text(metaText, PAGE_MARGIN, cursorY);
+      cursorY += 5;
+      i++; continue;
     }
 
-    // BOLD "HEADERS" that aren't Markdown Headers (fallback)
-    // If a line is just "**Text**" and short, treat it as a small sub-header
+    // BOLD TEXT (Fallback Sub-header)
     if (line.startsWith("**") && line.endsWith("**") && line.length < 50) {
       const boldText = line.replace(/\*\*/g, "").trim();
       checkPageBreak(15);
-      if (cursorY > MARGIN) cursorY += 3;
+      if (cursorY > PAGE_MARGIN) cursorY += 2;
 
-      doc.setFont(FONTS.header, "bold");
-      doc.setFontSize(SIZE_BODY); // Same as body but bold
-      doc.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-      doc.text(boldText, MARGIN, cursorY);
+      doc.setFont(FONTS.body, "bold");
+      doc.setFontSize(TYPO.size.body);
+      doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
+      doc.text(boldText, PAGE_MARGIN, cursorY);
       cursorY += 6;
-      i++;
-      continue;
+      i++; continue;
     }
 
-    // BULLET POINTS
+    // BULLETS
     if (line.startsWith("- ") || line.startsWith("* ") || line.startsWith("• ")) {
       const bulletText = stripMarkdownFormatting(line.replace(/^[-*•]\s+/, ""));
       renderBullet(bulletText);
-      i++;
-      continue;
+      i++; continue;
     }
 
-    // REGULAR PARAGRAPH
-    const cleanedLine = stripMarkdownFormatting(line);
-    renderTextParagraph(cleanedLine, SIZE_BODY, FONTS.body, "normal", COLORS.text);
+    // REGULAR TEXT
+    renderTextParagraph(stripMarkdownFormatting(line), TYPO.size.body, FONTS.body, "normal", COLORS.text);
     i++;
   }
 
@@ -419,22 +316,17 @@ export async function generateProfessionalPDF(options: PDFOptions): Promise<Buff
   const pageCount = doc.getNumberOfPages();
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p);
-
-    // Page Numbers
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text(`Page ${p} of ${pageCount}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 10, { align: "center" });
 
-    // Watermark
     if (options.watermark) {
       doc.saveGraphicsState();
       doc.setGState(new (doc as any).GState({ opacity: 0.2 }));
       doc.setFont("helvetica", "bold");
       doc.setFontSize(60);
       doc.setTextColor(200, 200, 200);
-
-      // Draw diagonal watermark centered
       doc.text(options.watermark.toUpperCase(), PAGE_WIDTH / 2, PAGE_HEIGHT / 2, {
         align: "center",
         angle: 45,

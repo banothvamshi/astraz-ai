@@ -505,9 +505,10 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
      4. "Technical Skills"
      5. "Certifications" (if any)
    
-   - **DO NOT** include the Name, Email, Phone, or Location at the top. These are managed separately by the system.
-   - **START** the output directly with the Markdown comment: <!-- Name and Contact Info are managed in the Form above. Edit them there. -->
-   - Followed by the Professional Summary.
+   - **DO NOT** include the candidate's Name, Email, Phone, or Location at the top. These are managed separately by the system.
+   - **START** the output directly with the **Professional Summary** section.
+   - Followed by:
+     1. "Professional Summary"
      6. "Projects" (if any)
    - NO tables, columns, graphics, or complex formatting (ATS Death Traps)
    - Use simple, clean bullet points (•)
