@@ -1478,7 +1478,6 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl mx-auto space-y-8"
         >
-          {/* Profile Card */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
               <User className="w-6 h-6 text-amber-500" />
@@ -1512,6 +1511,28 @@ export default function Dashboard() {
                       Exp: {new Date(subscriptionExpiry).toLocaleDateString()}
                     </span>
                   )}
+                </div>
+              </div>
+            </div>
+
+            {/* Usage Stats (Re-added) */}
+            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 grid md:grid-cols-2 gap-6">
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                <div className="text-sm text-slate-500 mb-1">Generations Remaining</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    {creditsRemaining === -1 ? "Unlimited" : creditsRemaining}
+                    <FileText className="h-4 w-4 text-emerald-500" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                <div className="text-sm text-slate-500 mb-1">Total Used</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    {totalGenerations}
+                    <Activity className="h-4 w-4 text-blue-500" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1574,16 +1595,13 @@ export default function Dashboard() {
           </div>
 
           {/* Support Section */}
-          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 p-8 flex items-center justify-between">
+          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 p-8 flex items-center justify-between mb-24">
             <div>
               <h2 className="text-xl font-bold text-indigo-900 dark:text-indigo-100 mb-2">Need Help?</h2>
               <p className="text-indigo-700 dark:text-indigo-300 text-sm">
-                Our support team is here to assist you with any questions.
+                Contact us directly at <span className="font-bold select-all">support@astraz.ai</span>
               </p>
             </div>
-            <a href="mailto:support@astraz.ai" className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-colors shadow-lg shadow-indigo-500/20">
-              Contact Support
-            </a>
           </div>
         </motion.div>
       )}
