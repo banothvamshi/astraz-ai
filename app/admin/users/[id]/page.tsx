@@ -146,16 +146,25 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         if (!expiryDate) return;
         setIsUpdating(true);
         try {
+            // Fix Timezone Issue: input[datetime-local] gives "YYYY-MM-DDTHH:mm" (Local).
+            // We must convert this Local time to UTC before sending to server to ensure 
+            // the server doesn't treat it as UTC (which would shift the time by +Offset).
+            const localDate = new Date(expiryDate);
+            const utcIsoString = localDate.toISOString();
+
             const res = await fetch(`/api/admin/users/${id}/expiry`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ expiryDate })
+                body: JSON.stringify({ expiryDate: utcIsoString })
             });
 
             if (res.ok) {
                 toast.success("Subscription expiry updated");
                 fetchUserDetails();
-                setExpiryDate("");
+                // parsing back to local for input is hard because of the millisecond precision loss usually, 
+                // but we can just clear it or leave it. 
+                // Better UX: leave it populated or clear if successful? 
+                // User might want to tweak. Let's leave it.
             } else {
                 toast.error("Failed to update expiry date");
             }
