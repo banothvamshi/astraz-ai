@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
+import { formatAdminDate, getISTDate } from "@/lib/date-utils";
 import {
     Users,
     CreditCard,
@@ -11,7 +12,8 @@ import {
     ArrowUpRight,
     Sparkles,
     Globe,
-    Clock
+    Clock,
+    Eye
 } from "lucide-react";
 
 export default async function AdminDashboard() {
@@ -44,6 +46,22 @@ export default async function AdminDashboard() {
         .select("*", { count: "exact", head: true })
         .gte("created_at", oneDayAgo);
 
+    // Live Visitors (Last 15 mins)
+    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    // Safety check: analytics_visits might not exist yet if user hasn't run SQL
+    // We'll wrap in try/catch or just be optimistic. Using 'try/catch' pattern in async not easy here inside component body
+    // unless we use a helper. But Supabase just returns error if table missing.
+    const { count: liveVisitors, error: visitorsError } = await supabase
+        .from("analytics_visits")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", fifteenMinsAgo);
+
+    // Total Visits (24h)
+    const { count: visits24h } = await supabase
+        .from("analytics_visits")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", oneDayAgo);
+
     // Total Generations (All Time)
     const { count: totalGenerations } = await supabase
         .from("generations")
@@ -72,12 +90,12 @@ export default async function AdminDashboard() {
             href: "/admin/payments"
         },
         {
-            title: "Total Users",
-            value: userCount?.toLocaleString() || "0",
-            change: `${premiumCount} Premium`,
-            icon: Users,
-            color: "from-blue-500 to-indigo-600",
-            href: "/admin/users"
+            title: "Live Visitors",
+            value: liveVisitors?.toLocaleString() || "0",
+            change: `${visits24h || 0} in 24h`,
+            icon: Eye,
+            color: "from-blue-500 to-cyan-500",
+            href: "/admin/analytics"
         },
         {
             title: "24h Generations",
@@ -90,7 +108,7 @@ export default async function AdminDashboard() {
         {
             title: "Conversion Rate",
             value: userCount ? ((premiumCount || 0) / userCount * 100).toFixed(1) + "%" : "0%",
-            change: "Free → Paid",
+            change: `${userCount} Users`,
             icon: TrendingUp,
             color: "from-purple-500 to-pink-600",
             href: "/admin/analytics"
@@ -105,6 +123,9 @@ export default async function AdminDashboard() {
         { label: "Settings", href: "/admin/settings", icon: Settings },
     ];
 
+    // Current IST Time
+    const istTime = formatAdminDate(getISTDate(), "p"); // e.g. "6:45 PM"
+
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -113,9 +134,9 @@ export default async function AdminDashboard() {
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Command Center</h1>
                     <p className="text-slate-500 mt-1">Real-time platform overview and controls</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500">
+                <div className="flex items-center gap-2 text-sm font-medium text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-800">
                     <Clock className="h-4 w-4" />
-                    <span>Last synced: {new Date().toLocaleTimeString()}</span>
+                    <span>IST: {istTime}</span>
                 </div>
             </div>
 
@@ -190,7 +211,7 @@ export default async function AdminDashboard() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user.email}</p>
-                                    <p className="text-xs text-slate-500">{new Date(user.created_at).toLocaleDateString()}</p>
+                                    <p className="text-xs text-slate-500">{formatAdminDate(user.created_at, "PP")}</p>
                                 </div>
                                 {user.is_premium && (
                                     <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">PRO</span>
@@ -255,7 +276,7 @@ export default async function AdminDashboard() {
                                     <p className="text-xl font-bold text-emerald-700 dark:text-emerald-300">₹{(payment.amount / 100).toLocaleString()}</p>
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-500">{new Date(payment.created_at).toLocaleString()}</p>
+                            <p className="text-xs text-slate-500">{formatAdminDate(payment.created_at)}</p>
                         </div>
                     ))}
                     {(!payments || payments.length === 0) && (

@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
             coverLetterContent,
             originalResumeText,
             jobDescriptionText,
-            isFreeGeneration
+            isFreeGeneration,
+            ipAddress
         } = body;
 
         const supabase = getSupabaseAdmin();
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
                 original_resume_text: originalResumeText || null,
                 job_description_text: jobDescriptionText || null,
                 is_free_generation: isFreeGeneration || false,
+                ip_address: ipAddress || null, // Store IP for analytics
             })
             .select()
             .single();

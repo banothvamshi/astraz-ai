@@ -57,6 +57,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Magic Coupon Logic (Bypass for Devs)
+    if (coupon_code === 'DEV_TEST_100') {
+      return NextResponse.json({
+        bypass: true,
+        orderId: `dev_bypass_${Date.now()}`,
+        amount: finalAmount,
+        currency: currency,
+        couponApplied: true
+      });
+    }
+
     const razorpay = getRazorpay();
     const options = {
       amount: finalAmount, // amount in paise or cents

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, TrendingUp, Users, CreditCard, FileText, DollarSign, Calendar, Globe, Eye, UserPlus, Activity, ArrowUpRight, ArrowDownRight, AlertTriangle } from "lucide-react";
+import { Loader2, TrendingUp, Users, CreditCard, FileText, DollarSign, Calendar, Globe, Eye, UserPlus, Activity, ArrowUpRight, ArrowDownRight, AlertTriangle, ShieldAlert } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/auth";
+import { formatAdminDate, getISTDate } from "@/lib/date-utils";
 
 interface AnalyticsData {
     totalRevenue: number;
@@ -15,7 +16,9 @@ interface AnalyticsData {
     revenueByMonth: { month: string; revenue: number }[];
     usersByMonth: { month: string; users: number }[];
     generationsByDay: { day: string; count: number }[];
+    visitsByDay: { day: string; count: number; unique: number }[];
     topCountries: { country: string; count: number }[];
+    topIPs: { ip: string; count: number }[];
     errorRate: number;
     recentErrors: { action: string; message: string; date: string }[];
     dailyActiveUsers: { day: string; count: number }[];
@@ -35,15 +38,17 @@ export default function AnalyticsPage() {
         const supabase = getSupabaseBrowserClient();
 
         // Fetch all data
-        const [profilesRes, paymentsRes, generationsRes] = await Promise.all([
+        const [profilesRes, paymentsRes, generationsRes, visitsRes] = await Promise.all([
             supabase.from("profiles").select("id, is_premium, created_at, country"),
             supabase.from("payments").select("amount, plan_type, created_at").eq("status", "captured"),
-            supabase.from("generations").select("id, user_id, created_at")
+            supabase.from("generations").select("id, user_id, created_at, ip_address"),
+            supabase.from("analytics_visits").select("visitor_id, created_at, ip_address")
         ]);
 
         const profiles = profilesRes.data || [];
         const payments = paymentsRes.data || [];
         const generations = generationsRes.data || [];
+        const visits = visitsRes.data || [];
 
         // Calculate metrics
         const totalRevenue = payments.reduce((sum, p) => sum + (p.amount || 0), 0) / 100;
@@ -54,21 +59,36 @@ export default function AnalyticsPage() {
         const anonymousGenerations = generations.filter(g => !g.user_id).length;
         const avgRevenuePerUser = paidUsers > 0 ? totalRevenue / paidUsers : 0;
 
-        // Group by month for charts
+        // Group by month for charts (using IST)
         const getMonthKey = (date: string) => {
-            const d = new Date(date);
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            // Admin View: Use IST Month
+            // formatAdminDate returns "August 24, 2026..." or similar. 
+            // We need "2026-08" for sorting.
+            // Let's use date-fns format with timezone helper in utils, but here strictly:
+            // We'll trust formatAdminDate with custom format if needed, or just manual mapping for now.
+            // Simpler: Use substring of ISO is WRONG for IST. 
+            // Let's rely on date string manipulation for simplicity or better use helper.
+            return formatAdminDate(date, 'yyyy-MM');
         };
 
         const getDayKey = (date: string) => {
-            const d = new Date(date);
-            return d.toISOString().split('T')[0];
+            return formatAdminDate(date, 'yyyy-MM-dd');
         };
 
         const revenueByMonthMap: Record<string, number> = {};
         const usersByMonthMap: Record<string, number> = {};
         const generationsByDayMap: Record<string, number> = {};
+        const visitsByDayMap: Record<string, number> = {};
+        const uniqueVisitsByDayMap: Record<string, Set<string>> = {};
         const countriesMap: Record<string, number> = {};
+
+        // Top IPs Logic
+        const ipCounts: Record<string, number> = {};
+        generations.forEach(g => {
+            if (g.ip_address) {
+                ipCounts[g.ip_address] = (ipCounts[g.ip_address] || 0) + 1;
+            }
+        });
 
         payments.forEach(p => {
             const key = getMonthKey(p.created_at);
@@ -83,15 +103,28 @@ export default function AnalyticsPage() {
             }
         });
 
-        // Last 7 days generations
+        // Last 7 days generations & visits
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        generations.filter(g => new Date(g.created_at) >= sevenDaysAgo).forEach(g => {
+
+        // Filter locally (imperfect but works for dashboard size data)
+        generations.forEach(g => {
+            // We want all days for the chart, typically last 7 or 30
+            // Let's just track all and slice later
             const key = getDayKey(g.created_at);
             generationsByDayMap[key] = (generationsByDayMap[key] || 0) + 1;
         });
 
-        // Convert to arrays
+        visits.forEach(v => {
+            const key = getDayKey(v.created_at);
+            visitsByDayMap[key] = (visitsByDayMap[key] || 0) + 1;
+
+            if (!uniqueVisitsByDayMap[key]) uniqueVisitsByDayMap[key] = new Set();
+            uniqueVisitsByDayMap[key].add(v.visitor_id);
+        });
+
+
+        // Convert to arrays and Sort
         const revenueByMonth = Object.entries(revenueByMonthMap)
             .map(([month, revenue]) => ({ month, revenue }))
             .sort((a, b) => a.month.localeCompare(b.month))
@@ -104,11 +137,25 @@ export default function AnalyticsPage() {
 
         const generationsByDay = Object.entries(generationsByDayMap)
             .map(([day, count]) => ({ day, count }))
-            .sort((a, b) => a.day.localeCompare(b.day));
+            .sort((a, b) => a.day.localeCompare(b.day))
+            .slice(-30); // Last 30 days
+
+        const visitsByDay = Object.entries(visitsByDayMap)
+            .map(([day, count]) => ({
+                day,
+                count,
+                unique: uniqueVisitsByDayMap[day]?.size || 0
+            }))
+            .sort((a, b) => a.day.localeCompare(b.day))
+            .slice(-30);
 
         const topCountries = Object.entries(countriesMap)
             .map(([country, count]) => ({ country, count }))
             .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+
+        const topIPs = Object.entries(ipCounts)
+            .map(([ip, count]) => ({ ip, count }))
             .sort((a, b) => b.count - a.count)
             .slice(0, 5);
 
@@ -117,7 +164,7 @@ export default function AnalyticsPage() {
             .from('activity_log')
             .select('action, metadata, created_at, user_id')
             .order('created_at', { ascending: false })
-            .limit(1000); // Fetch last 1000 logs for analysis
+            .limit(1000);
 
         const errors = (activityLogs || []).filter(l => l.action.includes('error'));
         const errorRate = (activityLogs || []).length > 0 ? (errors.length / (activityLogs || []).length) * 100 : 0;
@@ -125,10 +172,10 @@ export default function AnalyticsPage() {
         const recentErrors = errors.slice(0, 5).map(e => ({
             action: e.action,
             message: (e.metadata as any)?.error || 'Unknown error',
-            date: e.created_at
+            date: formatAdminDate(e.created_at)
         }));
 
-        // Calculate DAU from activity_log
+        // Calculate DAU from activity_log (Generic DAU)
         const dauMap: Record<string, Set<string>> = {};
         (activityLogs || []).forEach(log => {
             if (log.user_id) {
@@ -156,7 +203,9 @@ export default function AnalyticsPage() {
             topCountries,
             errorRate,
             recentErrors,
-            dailyActiveUsers
+            dailyActiveUsers,
+            visitsByDay,
+            topIPs // Add to interface
         });
         setIsLoading(false);
     };
@@ -240,7 +289,79 @@ export default function AnalyticsPage() {
                 })}
             </div>
 
-            {/* Charts Grid */}
+            {/* Traffic Charts */}
+            <div className="grid gap-6 lg:grid-cols-2">
+                {/* Visits Chart */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                    <h3 className="font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <Eye className="h-5 w-5 text-cyan-500" />
+                        Traffic Trend (Visits vs Unique)
+                    </h3>
+                    <div className="space-y-4">
+                        {(data?.visitsByDay || []).map((item) => {
+                            const maxVisits = Math.max(...(data?.visitsByDay || []).map(v => v.count), 1);
+                            return (
+                                <div key={item.day} className="flex items-center gap-4">
+                                    <span className="text-sm text-slate-500 w-24 font-medium">{item.day.slice(5)}</span>
+                                    <div className="flex-grow relative h-8">
+                                        <div className="absolute inset-0 bg-slate-100 dark:bg-slate-700 rounded-lg" />
+                                        {/* Total Visits */}
+                                        <div
+                                            className="absolute inset-y-0 left-0 bg-cyan-200 dark:bg-cyan-900/50 rounded-lg"
+                                            style={{ width: `${Math.min(100, (item.count / maxVisits) * 100)}%` }}
+                                        />
+                                        {/* Unique */}
+                                        <div
+                                            className="absolute inset-y-0 left-0 bg-cyan-500 rounded-lg flex items-center justify-end pr-3"
+                                            style={{ width: `${Math.min(100, (item.unique / maxVisits) * 100)}%` }}
+                                        >
+                                            <span className="text-xs text-white font-bold">{item.unique} / {item.count}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {(!data?.visitsByDay || data.visitsByDay.length === 0) && (
+                            <p className="text-sm text-slate-500 text-center py-8">No traffic data yet</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Top IPs Table */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                    <h3 className="font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <ShieldAlert className="h-5 w-5 text-amber-500" />
+                        Top Generating IPs
+                    </h3>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-700/50">
+                                <tr>
+                                    <th className="px-4 py-3 rounded-l-lg">IP Address</th>
+                                    <th className="px-4 py-3 rounded-r-lg text-right">Generations</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(data?.topIPs || []).map((ipItem, i) => (
+                                    <tr key={i} className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300 font-mono">
+                                            {ipItem.ip.replace(ipItem.ip.substring(ipItem.ip.lastIndexOf('.')), '.*')}
+                                        </td>
+                                        <td className="px-4 py-3 text-right font-bold text-indigo-600 dark:text-indigo-400">
+                                            {ipItem.count}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {(!data?.topIPs || data.topIPs.length === 0) && (
+                                    <tr><td colSpan={2} className="px-4 py-8 text-center text-slate-500">No IP data logs</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {/* Charts Grid - Existing */}
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Revenue Chart */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">

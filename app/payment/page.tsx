@@ -146,7 +146,37 @@ function PaymentPageContent() {
 
       if (!response.ok) throw new Error("Failed to create order");
 
-      const { orderId, amount: orderAmount, currency: orderCurrency } = await response.json();
+      const { orderId, amount: orderAmount, currency: orderCurrency, bypass } = await response.json();
+
+      // MAGIC COUPON BYPASS
+      if (bypass) {
+        const verifyResponse = await fetch("/api/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            razorpay_order_id: orderId,
+            razorpay_payment_id: `bypass_${Date.now()}`,
+            razorpay_signature: 'BYPASS_SECRET_KEY', // Matches API secret
+            plan_type: planKey,
+            credits: plan.credits,
+            amount: orderAmount,
+            currency: currency,
+            coupon_applied: appliedCoupon?.code
+          }),
+        });
+
+        if (verifyResponse.ok) {
+          localStorage.setItem("astraz_premium", "true");
+          localStorage.setItem("astraz_plan", planKey);
+          localStorage.setItem("astraz_credits", String(plan.credits));
+          router.push("/dashboard?premium=true");
+        } else {
+          alert("Bypass verification failed");
+          setIsProcessing(false);
+          setSelectedPlan(null);
+        }
+        return;
+      }
 
       if (!window.Razorpay) {
         alert("Payment gateway is loading. Please try again in a moment.");

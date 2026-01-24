@@ -962,6 +962,7 @@ ${cleanResume}
         originalResumeText: finalResumeText?.substring(0, 5000), // Truncate for storage
         jobDescriptionText: jobDescription?.substring(0, 5000),
         isFreeGeneration: !effectiveIsPremium,
+        ipAddress: clientId, // Pass captured IP for analytics
       }),
     }).catch(() => { }); // Ignore errors, don't block response
 

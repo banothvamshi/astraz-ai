@@ -339,6 +339,10 @@ export default function Dashboard() {
     // Check if user is premium or can use free trial
     if (isPremium) {
       // Premium user, proceed
+    } else if (userId) {
+      // Logged in user: we already checked credits logic above.
+      // If we reached here, they have credits (or credits are unlimited/not loaded yet)
+      // So do NOT fall through to guest checks.
     } else if (!canTrial && hasUsedTrial()) {
       setShowPaywall(true);
       return;
