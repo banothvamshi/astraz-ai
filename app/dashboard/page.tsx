@@ -899,8 +899,8 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Upgrade CTA for non-enterprise users */}
-                {userPlan !== "enterprise" && (
+                {/* Upgrade CTA for non-premium users */}
+                {!isPremium && (
                   <div className="mt-8 p-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div>
