@@ -364,7 +364,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                         setExpiryDate(`${parts[0]}T${timeParts[0]}:${e.target.value}`);
                                     }}
                                 >
-                                    {['00', '15', '30', '45'].map(m => (
+                                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(m => (
                                         <option key={m} value={m}>{m}</option>
                                     ))}
                                 </select>

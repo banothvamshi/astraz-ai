@@ -842,13 +842,17 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        {isPremium && resumeMeta?.subscription_end_date ? (
+                        {isPremium && subscriptionExpiry ? (
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-slate-900 dark:text-white">
-                              Expires on {new Date(resumeMeta.subscription_end_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                              Expires on {new Date(subscriptionExpiry).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                             </span>
-                            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full">
-                              {Math.ceil((new Date(resumeMeta.subscription_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days left
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${new Date(subscriptionExpiry) < new Date() ? 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400'
+                              }`}>
+                              {new Date(subscriptionExpiry) < new Date()
+                                ? "Expired"
+                                : `${Math.ceil((new Date(subscriptionExpiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days left`
+                              }
                             </span>
                           </div>
                         ) : isPremium ? (
@@ -858,7 +862,7 @@ export default function Dashboard() {
                         )}
                       </div>
                       {/* If expired or near expiry, show Renew button (link to payment) */}
-                      {(!isPremium || (resumeMeta?.subscription_end_date && new Date(resumeMeta.subscription_end_date) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000))) && (
+                      {(!isPremium || (subscriptionExpiry && new Date(subscriptionExpiry) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000))) && (
                         <Button variant="outline" size="sm" onClick={() => router.push("/payment")} className="h-8">
                           {isPremium ? "Renew" : "Upgrade"}
                         </Button>
