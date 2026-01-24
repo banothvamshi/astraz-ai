@@ -21,16 +21,30 @@ const MAX_EXECUTION_TIME = 25000;
 
 function cleanMarkdownContent(content: string): string {
   if (!content) return content;
-  
+
+  // 1. Remove generic "thinking" blocks if model outputs them wrapped in tags or common patterns
   let cleaned = content
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, "")
+    .replace(/^thinking:?\s*[\s\S]*?\n\n/gim, "") // Remove "Thinking:\n..."
     .replace(/^```markdown\s*\n?/gm, "")
     .replace(/^```\s*\n?/gm, "")
     .replace(/\n?```\s*$/gm, "")
     .trim();
-  
+
+  // 2. Remove inline code blocks
   cleaned = cleaned.replace(/```[\s\S]*?```/g, "");
+
+  // 3. AGGRESSIVE: Remove everything before the first Header 1 (# Name) or Common Header
+  // This safeguards against "Here is the resume..." preambles.
+  const firstHeaderIndex = cleaned.search(/^#\s+/m);
+  if (firstHeaderIndex > 0) {
+    console.log("Found preamble in generation, stripping content before first header...");
+    cleaned = cleaned.substring(firstHeaderIndex);
+  }
+
+  // Clean up extra whitespace
   cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
-  
+
   return cleaned.trim();
 }
 
@@ -50,7 +64,7 @@ function extractJSON(text: string): any {
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     // Check billing
     if (!shouldAllowAPICall()) {
@@ -114,7 +128,7 @@ export async function POST(request: NextRequest) {
         console.log(`✅ PDF parsed successfully: ${resumeText.length} characters`);
       } catch (simplError: any) {
         console.error("Simple parser failed:", simplError.message);
-        
+
         // Fallback to universal parser
         const parsedResume = await parseUniversalDocument(pdfBuffer, {
           includeOCR: true,

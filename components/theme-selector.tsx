@@ -15,7 +15,7 @@ export function ThemeSelector({ currentTheme, onSelect, disabled, isPremiumUser 
 
     const handleSelect = (theme: any) => {
         if (disabled) return;
-        if (theme.isPremium && !isPremiumUser) return;
+        // Allow selection for preview, but restriction will happen on download
         onSelect(theme.id);
     };
 
@@ -40,8 +40,8 @@ export function ThemeSelector({ currentTheme, onSelect, disabled, isPremiumUser 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {Object.values(THEMES).map((theme) => {
                         const isSelected = currentTheme === theme.id;
-                        // NEW LOGIC: If not premium, EVERYTHING except 'professional' is locked
-                        const isLocked = !isPremiumUser && theme.id !== "professional";
+                        // NEW LOGIC: Allow selection, but show visual indicator it's premium
+                        const isLocked = false;
 
                         return (
                             <div

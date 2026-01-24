@@ -12,6 +12,7 @@ import { PaywallModal } from "@/components/paywall-modal";
 import { ResumeEditor } from "@/components/resume-editor";
 import { ThemeSelector } from "@/components/theme-selector";
 import { ImmersiveLoading } from "@/components/immersive-loading";
+import { THEMES } from "@/lib/themes";
 
 
 interface ContactInfo {
@@ -481,6 +482,13 @@ export default function Dashboard() {
   };
 
   const handleDownload = async (type: "resume" | "coverLetter") => {
+    // ENFORCE PREMIUM RESTRICTION
+    const currentThemeConfig = THEMES[selectedTheme as keyof typeof THEMES];
+    if (currentThemeConfig?.isPremium && !isPremium) {
+      alert("This is a Premium template. Please upgrade to Pro to download resumes with this design.");
+      return;
+    }
+
     // INSTANT DOWNLOAD: Check if we already have the PDF base64
     if (type === "resume" && generatedPdf?.pdf) {
       try {

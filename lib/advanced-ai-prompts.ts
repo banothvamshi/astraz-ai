@@ -24,79 +24,45 @@ ${resumeData}
 
 ${userContext ? `ADDITIONAL USER CONTEXT: ${userContext}` : ""}
 
-YOUR TASK - Create a PERFECT ATS-OPTIMIZED Resume:
+YOUR TASK - Create a PERFECT ATS-OPTIMIZED Resume in MARKDOWN format:
 
-1. ANALYZE THE JOB DESCRIPTION:
+1. ANALYZE THE JOB DESCRIPTION (Internal Process - DO NOT OUTPUT):
    - Extract: Required skills, experience, keywords, responsibilities
    - Identify: Nice-to-have vs Must-have requirements
    - Find: Industry-specific terminology and acronyms
 
-2. MAP CANDIDATE SKILLS:
+2. MAP CANDIDATE SKILLS (Internal Process - DO NOT OUTPUT):
    - Highlight transferable skills
    - Reframe past experience for target role
-   - Use job description keywords throughout
-   - Show relevance even for career changes
 
 3. OPTIMIZE FOR ATS:
-   - Include ALL relevant keywords from job posting
-   - Use standard section headings: PROFESSIONAL SUMMARY, PROFESSIONAL EXPERIENCE, EDUCATION, SKILLS
-   - No special characters, tables, or formatting
+   - Use standard section headings: # Professional Summary, ## Professional Experience, ## Education, ## Skills
+   - No special characters (tables, columns)
    - Clear, scannable bullet points
    - Quantifiable achievements with metrics
 
-4. GENERATE RESUME WITH:
-   - Professional Summary (2-3 lines): Highlight most relevant skills and years of experience. Reference target role if career change.
-   - Experience (for each role):
-     * Job Title at Company
-     * Duration/Dates
+4. REQUIRED SECTIONS (Markdown Format):
+   - # [Candidate Name] -> Title
+   - **[email] | [phone] | [location]** -> Contact line (use pipes)
+   - # Professional Summary
+     * 2-3 lines highlighting most relevant skills and years of experience.
+   - # Professional Experience
+     * For each role: ### Role at Company
+     * **Date Range**
      * 4-5 bullet points with action verbs and metrics
-     * Focus on achievements relevant to target role
-   - Education: Degree, Institution, Year
-   - Skills: Top 15-20 skills in priority order (most relevant first, include keywords from job posting)
+   - # Education
+     * Degree, Institution, Year
+   - # Skills
+     * Comma-separated lists by category
 
-5. CAREER SWITCH STRATEGY:
-   - If changing careers, EXPLICITLY highlight how their background prepares them
-   - Show continuous learning and skill development
-   - Emphasize problem-solving and leadership that applies universally
-   - Include any certifications, courses, or relevant projects
+CRITICAL OUTPUT RULES:
+- **OUTPUT ONLY THE MARKDOWN RESUME.**
+- **DO NOT** output "Thinking...", "Here is the resume...", or any internal monologue.
+- **DO NOT** use JSON.
+- **DO NOT** use markdown code blocks (\`\`\`markdown). Just raw markdown text.
+- Start directly with the Name header (# Name).
 
-FORMAT YOUR RESPONSE AS:
----
-[RESUME DATA IN JSON]
-{
-  "name": "Full Name",
-  "email": "email@example.com",
-  "phone": "phone number",
-  "location": "City, State",
-  "summary": "Professional summary paragraph (2-3 sentences focused on target role)",
-  "experience": [
-    {
-      "title": "Job Title",
-      "company": "Company Name",
-      "duration": "Month Year - Month Year",
-      "description": "• Achievement with metric\\n• Responsibility with result\\n• Skill demonstrated with outcome"
-    }
-  ],
-  "education": [
-    {
-      "degree": "Degree Name",
-      "institution": "Institution Name",
-      "year": "Year",
-      "details": "Optional GPA or honors"
-    }
-  ],
-  "skills": ["Skill 1", "Skill 2", "Skill 3"]
-}
----
-
-REMEMBER:
-✓ Make the resume ATS-friendly (plain text, no formatting)
-✓ Include job posting keywords throughout
-✓ Highlight quantifiable achievements
-✓ Show career progression or skillset evolution
-✓ For career switchers: explain the transition clearly
-✓ Be honest - don't fabricate experience
-✓ Use action verbs (Led, Developed, Managed, Optimized, etc.)
+FORMAT YOUR RESPONSE AS RAW MARKDOWN.
 `;
 }
 
