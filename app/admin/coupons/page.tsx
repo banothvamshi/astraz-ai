@@ -105,6 +105,25 @@ export default function CouponManager() {
         }
     };
 
+    const deleteCoupon = async (code: string) => {
+        if (!confirm(`Are you sure you want to delete coupon ${code}?`)) return;
+
+        try {
+            const res = await fetch(`/api/admin/coupons/${code}`, {
+                method: "DELETE",
+            });
+
+            if (res.ok) {
+                setCoupons(coupons.filter(c => c.code !== code));
+                toast.success("Coupon deleted");
+            } else {
+                toast.error("Failed to delete");
+            }
+        } catch (error) {
+            toast.error("Error deleting coupon");
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -199,9 +218,14 @@ export default function CouponManager() {
                                     {coupon.discount_type === 'percent' ? `${coupon.discount_value}% OFF` : `Flat ${coupon.discount_value} OFF`}
                                 </p>
                             </div>
-                            <button onClick={() => toggleStatus(coupon.code, coupon.is_active)} className="text-slate-400 hover:text-amber-600 transition-colors">
-                                {coupon.is_active ? <ToggleRight className="h-8 w-8 text-emerald-500" /> : <ToggleLeft className="h-8 w-8" />}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => toggleStatus(coupon.code, coupon.is_active)} className="text-slate-400 hover:text-amber-600 transition-colors" title="Toggle Active">
+                                    {coupon.is_active ? <ToggleRight className="h-8 w-8 text-emerald-500" /> : <ToggleLeft className="h-8 w-8" />}
+                                </button>
+                                <button onClick={() => deleteCoupon(coupon.code)} className="text-slate-400 hover:text-red-600 transition-colors p-1" title="Delete Coupon">
+                                    <Trash2 className="h-5 w-5" />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">

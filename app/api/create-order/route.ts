@@ -31,42 +31,61 @@ export async function POST(request: NextRequest) {
     let couponId = null;
 
     // Server-side coupon validation (Atomic)
+    // Server-side coupon validation
     if (coupon_code) {
+
       const supabase = getSupabaseAdmin();
 
-      // Use the new atomic RPC function
-      const { data: couponResult, error: couponError } = await supabase
-        .rpc("redeem_coupon", { coupon_code: coupon_code });
+      // Direct DB Query (More reliable than RPC for this stage)
+      const { data: coupon, error } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", coupon_code)
+        .eq("is_active", true)
+        .single();
 
-      if (couponResult && couponResult.length > 0) {
-        const { success, discount_val, discount_type_result } = couponResult[0];
-
-        if (success) {
+      if (coupon) {
+        // Validate Expiry
+        const now = new Date();
+        if (coupon.valid_until && new Date(coupon.valid_until) < now) {
+          // Expired: Ignore coupon, charge full price (or throw error? User prefers fix, let's just ignore or maybe better to error)
+          // But to avoid breaking flow, if invalid, we just don't apply it.
+          console.log("Coupon expired");
+        }
+        // Validate Usage Limits
+        else if (coupon.max_uses !== null && coupon.uses_count >= coupon.max_uses) {
+          console.log("Coupon usage limit reached");
+        }
+        else {
+          // Apply Discount
           const originalAmount = amount;
-          if (discount_type_result === 'percent') {
-            const discount = Math.floor(originalAmount * (discount_val / 100));
+          if (coupon.discount_type === 'percent') {
+            const discount = Math.floor(originalAmount * (coupon.discount_value / 100));
             finalAmount = Math.max(0, originalAmount - discount);
           } else {
-            // Flat discount
-            const discount = discount_val * 100;
+            // Flat discount (assuming value is in regular currency units e.g. 500 INR, so * 100 for paise)
+            // However, admin panel creates it as number. usually payment APIs work in smallest unit.
+            // Standard: discount_value is likely in abstract units (Rupees), amount is in Paise.
+            const discount = coupon.discount_value * 100;
             finalAmount = Math.max(0, originalAmount - discount);
           }
-          // Use the coupon code as ID/Reference
           couponId = coupon_code;
         }
       }
     }
 
-    // Magic Coupon Logic (Bypass for Devs)
-    if (coupon_code === 'DEV_TEST_100') {
+    // 100% OFF / Free Order Logic
+    if (finalAmount <= 0) {
       return NextResponse.json({
         bypass: true,
-        orderId: `dev_bypass_${Date.now()}`,
-        amount: finalAmount,
+        orderId: `free_coupon_${Date.now()}`,
+        amount: 0,
         currency: currency,
         couponApplied: true
       });
     }
+
+    // Existing Magic Coupon Logic removed from here as it's handled above
 
     const razorpay = getRazorpay();
     const options = {

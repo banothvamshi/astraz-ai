@@ -9,6 +9,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ valid: false, message: "Code required" }, { status: 400 });
         }
 
+
         const supabase = getSupabaseAdmin();
         const { data: coupon, error } = await supabase
             .from("coupons")

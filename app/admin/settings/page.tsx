@@ -18,14 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-interface SystemSettings {
-    freeTrialCredits: number;
-    maintenanceMode: boolean;
-    registrationEnabled: boolean;
-    emailNotifications: boolean;
-    maxGenerationsPerDay: number;
-    defaultPlan: string;
-}
+import { getSystemSettings, updateSystemSettings, SystemSettings } from "@/app/actions/settings";
 
 interface SettingItem {
     label: string;
@@ -45,16 +38,35 @@ interface SettingCard {
 }
 
 export default function SettingsPage() {
+    // Initial state with defaults until fetched
     const [settings, setSettings] = useState<SystemSettings>({
-        freeTrialCredits: 1,
-        maintenanceMode: false,
-        registrationEnabled: true,
-        emailNotifications: true,
-        maxGenerationsPerDay: 50,
-        defaultPlan: "free"
+        id: 1,
+        free_trial_credits: 1,
+        maintenance_mode: false,
+        registration_enabled: true,
+        email_notifications: true,
+        max_daily_generations: 50,
+        default_plan: "free"
     });
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [hasChanges, setHasChanges] = useState(false);
+
+    useEffect(() => {
+        loadSettings();
+    }, []);
+
+    const loadSettings = async () => {
+        setIsLoading(true);
+        try {
+            const data = await getSystemSettings();
+            if (data) setSettings(data);
+        } catch (error) {
+            toast.error("Failed to load settings");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleToggle = (key: keyof SystemSettings) => {
         setSettings(prev => ({ ...prev, [key]: !prev[key] }));
@@ -68,11 +80,19 @@ export default function SettingsPage() {
 
     const handleSave = async () => {
         setIsSaving(true);
-        // Simulate API call - in production, save to database
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        toast.success("Settings saved successfully!");
-        setHasChanges(false);
-        setIsSaving(false);
+        try {
+            const res = await updateSystemSettings(settings);
+            if (res.error) {
+                toast.error(res.error);
+            } else {
+                toast.success("Settings saved successfully!");
+                setHasChanges(false);
+            }
+        } catch (error) {
+            toast.error("Failed to save settings");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const settingCards: SettingCard[] = [
@@ -85,15 +105,15 @@ export default function SettingsPage() {
                     label: "User Registration",
                     description: "Allow new users to create accounts",
                     type: "toggle",
-                    key: "registrationEnabled" as keyof SystemSettings,
-                    value: settings.registrationEnabled
+                    key: "registration_enabled" as keyof SystemSettings,
+                    value: settings.registration_enabled
                 },
                 {
                     label: "Free Trial Credits",
                     description: "Number of free generations for new users",
                     type: "number",
-                    key: "freeTrialCredits" as keyof SystemSettings,
-                    value: settings.freeTrialCredits
+                    key: "free_trial_credits" as keyof SystemSettings,
+                    value: settings.free_trial_credits
                 }
             ]
         },
@@ -106,16 +126,16 @@ export default function SettingsPage() {
                     label: "Maintenance Mode",
                     description: "Temporarily disable access for non-admins",
                     type: "toggle",
-                    key: "maintenanceMode" as keyof SystemSettings,
-                    value: settings.maintenanceMode,
+                    key: "maintenance_mode" as keyof SystemSettings,
+                    value: settings.maintenance_mode,
                     dangerous: true
                 },
                 {
                     label: "Max Daily Generations",
                     description: "Rate limit per user per day",
                     type: "number",
-                    key: "maxGenerationsPerDay" as keyof SystemSettings,
-                    value: settings.maxGenerationsPerDay
+                    key: "max_daily_generations" as keyof SystemSettings,
+                    value: settings.max_daily_generations
                 }
             ]
         },
@@ -128,8 +148,8 @@ export default function SettingsPage() {
                     label: "Email Notifications",
                     description: "Send transactional emails to users",
                     type: "toggle",
-                    key: "emailNotifications" as keyof SystemSettings,
-                    value: settings.emailNotifications
+                    key: "email_notifications" as keyof SystemSettings,
+                    value: settings.email_notifications
                 }
             ]
         },
@@ -142,8 +162,8 @@ export default function SettingsPage() {
                     label: "Default Plan",
                     description: "Plan assigned to new registrations",
                     type: "select",
-                    key: "defaultPlan" as keyof SystemSettings,
-                    value: settings.defaultPlan,
+                    key: "default_plan" as keyof SystemSettings,
+                    value: settings.default_plan,
                     options: [
                         { value: "free", label: "Free" },
                         { value: "starter", label: "Starter" },
@@ -160,6 +180,14 @@ export default function SettingsPage() {
         emerald: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
         purple: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -184,7 +212,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Maintenance Mode Warning */}
-            {settings.maintenanceMode && (
+            {settings.maintenance_mode && (
                 <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-center gap-4">
                     <AlertTriangle className="h-6 w-6 text-amber-600" />
                     <div>

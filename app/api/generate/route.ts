@@ -116,6 +116,47 @@ export async function POST(request: NextRequest) {
     // Note: 'userId' from body is IGNORED in favor of authorizedUserId from session
 
 
+    // 4. Rate Limiting (Global & Per-User)
+
+    // Fetch System Settings for Global Limit
+    const { data: settings } = await authClient.from("system_settings").select("max_daily_generations").single();
+    const GLOBAL_DAILY_LIMIT = settings?.max_daily_generations || 50;
+
+    const today = new Date().toISOString().split("T")[0];
+    let dailyCount = 0;
+    const requestIp = getClientIdentifier(request); // Renamed to avoid conflict
+
+    if (authUser) {
+      // Check user's daily usage
+      // We can check 'generations' table count for today
+      const { count } = await authClient
+        .from("generations")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", authUser.id)
+        .gte("created_at", `${today}T00:00:00.000Z`);
+
+      dailyCount = count || 0;
+    } else {
+      // IP-based limit for guests (Strict)
+      const { count } = await authClient
+        .from("generations")
+        .select("*", { count: "exact", head: true })
+        .eq("ip_address", requestIp)
+        .gte("created_at", `${today}T00:00:00.000Z`);
+      dailyCount = count || 0;
+    }
+
+    if (dailyCount >= GLOBAL_DAILY_LIMIT) {
+      return NextResponse.json(
+        { error: "Daily generation limit reached. Please try again tomorrow." },
+        { status: 429 }
+      );
+    }
+
+    // Legacy in-memory limiter (Keep as secondary fast-fail)
+    // const { success, limit, remaining } = await rateLimit(clientId);
+    // if (!success) { ... }
+
     // Comprehensive validation
     if (!resume) {
       return NextResponse.json(
