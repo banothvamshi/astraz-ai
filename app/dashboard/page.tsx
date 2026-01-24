@@ -203,7 +203,8 @@ export default function Dashboard() {
           }
 
           // Effective Premium Status
-          const isEffectivePremium = profile.is_premium && !isExpired;
+          // Logic: User is premium IF (is_premium flag is true AND NOT expired) OR (is_admin)
+          const isEffectivePremium = (profile.is_premium && !isExpired) || profile.is_admin;
 
           // Sync local storage with DB to fix "upgrade not reflecting" issue
           if (isEffectivePremium) {
