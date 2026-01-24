@@ -324,6 +324,18 @@ export default function Dashboard() {
       return;
     }
 
+    // 1. BLOCK GUESTS who used trial
+    if (!userId && hasUsedTrial()) {
+      setShowPaywall(true);
+      return;
+    }
+
+    // 2. BLOCK FREE USERS with 0 credits
+    if (userId && creditsRemaining !== null && creditsRemaining <= 0 && !isPremium) {
+      setShowPaywall(true);
+      return;
+    }
+
     // Check if user is premium or can use free trial
     if (isPremium) {
       // Premium user, proceed
@@ -485,7 +497,7 @@ export default function Dashboard() {
     // ENFORCE PREMIUM RESTRICTION
     const currentThemeConfig = THEMES[selectedTheme as keyof typeof THEMES];
     if (currentThemeConfig?.isPremium && !isPremium) {
-      alert("This is a Premium template. Please upgrade to Pro to download resumes with this design.");
+      setShowPaywall(true);
       return;
     }
 
@@ -659,18 +671,6 @@ export default function Dashboard() {
             </button>
             {userId && (
               <>
-                <button
-                  onClick={() => {
-                    setActiveTab("cover-letter");
-                    router.push("/dashboard?tab=cover-letter");
-                  }}
-                  className={`px-8 py-4 text-sm font-semibold border-b-2 transition-all ${activeTab === "cover-letter"
-                    ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800/50"
-                    }`}
-                >
-                  Cover Letter
-                </button>
                 <button
                   onClick={() => {
                     setActiveTab("account");
@@ -1115,7 +1115,7 @@ export default function Dashboard() {
                     Create personalized, compelling cover letters in seconds.
                   </p>
                   <Button
-                    onClick={() => router.push("/payment")}
+                    onClick={() => setShowPaywall(true)}
                     className="bg-amber-600 hover:bg-amber-700 text-white px-10 py-6 text-xl font-bold shadow-xl shadow-amber-600/30 rounded-xl transition-transform hover:scale-105"
                   >
                     <Zap className="mr-3 h-6 w-6" />
@@ -1300,29 +1300,38 @@ export default function Dashboard() {
               </div>
 
               {/* 3. Cover Letter Toggle */}
-              <div className={`p-6 rounded-2xl border transition-all ${includeCoverLetter
-                ? "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/50"
-                : "bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800"
+              <div className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 ${includeCoverLetter
+                ? "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300 dark:from-amber-900/20 dark:to-orange-900/10 dark:border-amber-700/50"
+                : "bg-white border-slate-200 hover:border-amber-200 dark:bg-slate-900 dark:border-slate-800 dark:hover:border-slate-700/50"
                 }`}>
+
+                {/* Free User "Pro Only" Badge Overlay if disabled */}
+                {!["starter", "professional", "enterprise"].includes(userPlan) && (
+                  <div className="absolute top-3 right-3 z-10">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/30 text-white border border-white/20">
+                      <Lock className="h-3 w-3" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Premium</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center transition-colors ${includeCoverLetter ? "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400" : "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
+                  <div className="flex items-center gap-5">
+                    <div className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all shadow-sm ${includeCoverLetter
+                      ? "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-amber-500/25"
+                      : "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
                       }`}>
-                      <FileText className="h-6 w-6" />
+                      <FileText className="h-7 w-7" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-1">
                         <h2 className={`font-bold text-lg ${includeCoverLetter ? "text-amber-900 dark:text-amber-100" : "text-slate-900 dark:text-white"}`}>
                           Include Cover Letter
                         </h2>
-                        {!["starter", "professional", "enterprise"].includes(userPlan) && (
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                            <Lock className="h-3 w-3 text-slate-400" />
-                            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">Pro</span>
-                          </div>
-                        )}
                       </div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Generate a tailored cover letter</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium max-w-[260px] sm:max-w-none">
+                        Hyper-personalized to the job description.
+                      </p>
                     </div>
                   </div>
 
@@ -1334,15 +1343,12 @@ export default function Dashboard() {
                       onChange={(e) => {
                         if (!["starter", "professional", "enterprise"].includes(userPlan)) {
                           setShowPaywall(true);
-                          // Or assume they might want to toggle it off if it was on? 
-                          // But typically locked features are off.
-                          // Let's stick to showing paywall if they try to enable it when not allowed.
                           return;
                         }
                         setIncludeCoverLetter(e.target.checked);
                       }}
                     />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 dark:peer-focus:ring-amber-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-amber-500"></div>
+                    <div className="w-14 h-8 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-500/20 dark:peer-focus:ring-amber-800/30 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gradient-to-r peer-checked:from-amber-500 peer-checked:to-orange-500"></div>
                   </label>
                 </div>
               </div>
