@@ -301,99 +301,12 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     </div>
 
                     <div className="space-y-3">
-                        {/* Custom 12-Hour Date Time Picker */}
-                        <div className="flex flex-wrap gap-2">
-                            <input
-                                type="date"
-                                className="flex-1 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-sm min-w-[140px]"
-                                value={expiryDate.split('T')[0]}
-                                onChange={(e) => {
-                                    const newDate = e.target.value;
-                                    const current = expiryDate ? new Date(expiryDate) : new Date();
-                                    // Preserve time if updating date, or default to current time
-                                    // Actually, let's keep it simple: We store the "ISO-like" string in expiryDate state 
-                                    // BUT we treat it as LOCAL time for the inputs.
-                                    // Wait, it's easier to verify state management. 
-                                    // Let's use separate states for the UI in a real component, but here we can just compute.
-                                    // Simpler: Just update the date part of the string.
-
-                                    // Better approach: Reconstruct string.
-                                    // If expiryDate is empty, default to now.
-                                    const timePart = expiryDate.includes('T') ? expiryDate.split('T')[1] : "12:00";
-                                    setExpiryDate(`${newDate}T${timePart}`);
-                                }}
-                            />
-                            <div className="flex items-center gap-1">
-                                <select
-                                    className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-sm"
-                                    value={(() => {
-                                        if (!expiryDate) return "12";
-                                        const hours = parseInt(expiryDate.split('T')[1]?.split(':')[0] || "12");
-                                        const h12 = hours % 12 || 12;
-                                        return h12.toString();
-                                    })()}
-                                    onChange={(e) => {
-                                        if (!expiryDate) return;
-                                        const datePart = expiryDate.split('T')[0];
-                                        const currentHours = parseInt(expiryDate.split('T')[1]?.split(':')[0] || "0");
-                                        const currentMins = expiryDate.split('T')[1]?.split(':')[1] || "00";
-
-                                        const newH12 = parseInt(e.target.value);
-                                        const isPM = currentHours >= 12;
-
-                                        // Adjust 24h hour based on AM/PM selection
-                                        let newH24 = newH12;
-                                        if (isPM && newH12 !== 12) newH24 += 12;
-                                        if (!isPM && newH12 === 12) newH24 = 0;
-
-                                        setExpiryDate(`${datePart}T${newH24.toString().padStart(2, '0')}:${currentMins}`);
-                                    }}
-                                >
-                                    {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
-                                        <option key={h} value={h}>{h}</option>
-                                    ))}
-                                </select>
-                                <span className="text-slate-400">:</span>
-                                <select
-                                    className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-sm"
-                                    value={expiryDate.split('T')[1]?.split(':')[1] || "00"}
-                                    onChange={(e) => {
-                                        if (!expiryDate) return;
-                                        const parts = expiryDate.split('T');
-                                        const timeParts = parts[1].split(':');
-                                        setExpiryDate(`${parts[0]}T${timeParts[0]}:${e.target.value}`);
-                                    }}
-                                >
-                                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(m => (
-                                        <option key={m} value={m}>{m}</option>
-                                    ))}
-                                </select>
-                                <select
-                                    className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-sm"
-                                    value={(() => {
-                                        if (!expiryDate) return "AM";
-                                        const hours = parseInt(expiryDate.split('T')[1]?.split(':')[0] || "0");
-                                        return hours >= 12 ? "PM" : "AM";
-                                    })()}
-                                    onChange={(e) => {
-                                        if (!expiryDate) return;
-                                        const datePart = expiryDate.split('T')[0];
-                                        const timePart = expiryDate.split('T')[1];
-                                        let hours = parseInt(timePart.split(':')[0]);
-                                        const mins = timePart.split(':')[1];
-                                        const isPM = e.target.value === "PM";
-
-                                        if (isPM && hours < 12) hours += 12;
-                                        if (!isPM && hours >= 12) hours -= 12;
-
-                                        setExpiryDate(`${datePart}T${hours.toString().padStart(2, '0')}:${mins}`);
-                                    }}
-                                >
-                                    <option value="AM">AM</option>
-                                    <option value="PM">PM</option>
-                                </select>
-                            </div>
-                        </div>
+                        <input
+                            type="datetime-local"
+                            className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-sm"
+                            value={expiryDate}
+                            onChange={e => setExpiryDate(e.target.value)}
+                        />
 
                         <div className="grid grid-cols-2 gap-2">
                             {/* Action Buttons */}
@@ -416,20 +329,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                             </Button>
                         </div>
                         <div className="grid grid-cols-3 gap-1">
-                            {/* Presets - Updated to use proper Local Time construction to avoid UTC offsets */}
+                            {/* Presets - Using offset shifting for correct Local ISO */}
                             <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => {
                                     const d = new Date();
                                     d.setDate(d.getDate() + 30);
-                                    // Construct Local ISO string manually YYYY-MM-DDTHH:mm
-                                    // Use 'sv-SE' locale hack or manual:
-                                    const localIso = d.getFullYear() + '-' +
-                                        String(d.getMonth() + 1).padStart(2, '0') + '-' +
-                                        String(d.getDate()).padStart(2, '0') + 'T' +
-                                        String(d.getHours()).padStart(2, '0') + ':' +
-                                        String(d.getMinutes()).padStart(2, '0');
+                                    const offset = d.getTimezoneOffset() * 60000;
+                                    const localIso = new Date(d.getTime() - offset).toISOString().slice(0, 16);
                                     setExpiryDate(localIso);
                                 }}
                                 className="text-xs h-7"
@@ -442,11 +350,8 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                 onClick={() => {
                                     const d = new Date();
                                     d.setDate(d.getDate() + 90);
-                                    const localIso = d.getFullYear() + '-' +
-                                        String(d.getMonth() + 1).padStart(2, '0') + '-' +
-                                        String(d.getDate()).padStart(2, '0') + 'T' +
-                                        String(d.getHours()).padStart(2, '0') + ':' +
-                                        String(d.getMinutes()).padStart(2, '0');
+                                    const offset = d.getTimezoneOffset() * 60000;
+                                    const localIso = new Date(d.getTime() - offset).toISOString().slice(0, 16);
                                     setExpiryDate(localIso);
                                 }}
                                 className="text-xs h-7"
@@ -459,11 +364,8 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                 onClick={() => {
                                     const d = new Date();
                                     d.setDate(d.getDate() + 365);
-                                    const localIso = d.getFullYear() + '-' +
-                                        String(d.getMonth() + 1).padStart(2, '0') + '-' +
-                                        String(d.getDate()).padStart(2, '0') + 'T' +
-                                        String(d.getHours()).padStart(2, '0') + ':' +
-                                        String(d.getMinutes()).padStart(2, '0');
+                                    const offset = d.getTimezoneOffset() * 60000;
+                                    const localIso = new Date(d.getTime() - offset).toISOString().slice(0, 16);
                                     setExpiryDate(localIso);
                                 }}
                                 className="text-xs h-7"
