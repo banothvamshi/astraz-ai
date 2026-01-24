@@ -1641,6 +1641,122 @@ export default function Dashboard() {
       )
       }
 
+      {activeTab === "account" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-4xl mx-auto space-y-8"
+        >
+          {/* Profile Card */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+              <User className="w-6 h-6 text-amber-500" />
+              Profile Details
+            </h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Full Name</label>
+                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800 font-semibold text-slate-700 dark:text-slate-300">
+                  {accountProfile?.fullName || "Not set"}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Email Address</label>
+                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800 font-semibold text-slate-700 dark:text-slate-300">
+                  {accountProfile?.email || "Not set"}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Phone</label>
+                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800 font-semibold text-slate-700 dark:text-slate-300">
+                  {accountProfile?.phone || "Not set"}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Current Plan</label>
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-800/30 font-bold text-amber-700 dark:text-amber-400 flex items-center justify-between">
+                  <span className="capitalize">{userPlan}</span>
+                  {subscriptionExpiry && (
+                    <span className="text-xs font-normal text-amber-600/80">
+                      Exp: {new Date(subscriptionExpiry).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment History */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+              <CreditCard className="w-6 h-6 text-blue-500" />
+              Payment History
+            </h2>
+
+            {isLoadingHistory ? (
+              <div className="text-center py-10">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-400" />
+                <p className="text-slate-500 mt-2">Loading history...</p>
+              </div>
+            ) : payments.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-800">
+                      <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Date</th>
+                      <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Plan</th>
+                      <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Amount</th>
+                      <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Status</th>
+                      <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">ID</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((payment) => (
+                      <tr key={payment.id} className="border-b border-slate-50 dark:border-slate-800/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="py-4 px-2 text-slate-700 dark:text-slate-300">
+                          {new Date(payment.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="py-4 px-2 font-medium capitalize text-slate-900 dark:text-white">
+                          {payment.plan_type}
+                        </td>
+                        <td className="py-4 px-2 text-slate-700 dark:text-slate-300 font-mono">
+                          {payment.currency} {payment.amount / 100}
+                        </td>
+                        <td className="py-4 px-2">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                            {payment.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-2 text-xs text-slate-400 font-mono">
+                          {payment.razorpay_payment_id.slice(0, 12)}...
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-10 bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                <p className="text-slate-500">No payment history found.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Support Section */}
+          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 p-8 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-indigo-900 dark:text-indigo-100 mb-2">Need Help?</h2>
+              <p className="text-indigo-700 dark:text-indigo-300 text-sm">
+                Our support team is here to assist you with any questions.
+              </p>
+            </div>
+            <a href="mailto:support@astraz.ai" className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-colors shadow-lg shadow-indigo-500/20">
+              Contact Support
+            </a>
+          </div>
+        </motion.div>
+      )}
+
       {
         activeTab === "settings" && userId && (
           <motion.div

@@ -537,7 +537,51 @@ function PaymentPageContent() {
               <p className="mt-2 text-xs text-slate-400">
                 Monthly subscription • Cancel anytime • Instant access
               </p>
+              <p className="mt-6 text-sm font-medium text-slate-500">
+                Need help? <a href="mailto:support@astraz.ai" className="text-amber-600 hover:underline">Contact Support</a>
+              </p>
             </div>
+
+            {/* GUEST LOGIN MODAL */}
+            {selectedPlan && !userEmail && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  className="bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800 text-center"
+                >
+                  <div className="mx-auto w-14 h-14 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-6">
+                    <Lock className="w-7 h-7 text-amber-600 dark:text-amber-500" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Account Required</h2>
+                  <p className="text-slate-600 dark:text-slate-400 mb-8">
+                    Please log in or create an account to upgrade your plan and save your premium benefits.
+                  </p>
+
+                  <div className="space-y-4">
+                    <Button
+                      onClick={() => router.push("/login?redirect=/payment")}
+                      className="w-full h-12 text-base font-semibold bg-amber-600 hover:bg-amber-700 text-white"
+                    >
+                      Log In
+                    </Button>
+                    <Button
+                      onClick={() => router.push("/signup?redirect=/payment")}
+                      variant="outline"
+                      className="w-full h-12 text-base font-semibold"
+                    >
+                      Create Account
+                    </Button>
+                    <button
+                      onClick={() => setSelectedPlan(null)}
+                      className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 mt-2"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
           </div>
         </div>
       </div>

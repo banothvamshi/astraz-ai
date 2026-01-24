@@ -159,6 +159,99 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 3. Increment Coupon Usage (if applied)
+    const { coupon_applied } = await request.json(); // Re-read body to get coupon code safely
+    if (coupon_applied) {
+      // Direct increment using SQL for atomic update
+      // We use getSupabaseAdmin() so we bypass RLS and can update counts
+      const { data: coupon } = await supabase
+        .from("coupons")
+        .select("uses_count")
+        .eq("code", coupon_applied)
+        .single();
+
+      if (coupon) {
+        await supabase
+          .from("coupons")
+          .update({ uses_count: (coupon.uses_count || 0) + 1 })
+          .eq("code", coupon_applied);
+      }
+    }
+
+    // 4. Send Confirmation Email
+    if (email) {
+      const emailSubject = "Payment Confirmation - Astraz AI";
+
+      // Determine plan name safely
+      const planName = plan_type ? (plan_type.charAt(0).toUpperCase() + plan_type.slice(1)) : "Premium";
+
+      const emailBody = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: 'Segoe UI', user-scalable=no, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; padding: 20px; }
+                .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+                .header { background: #d97706; padding: 30px; text-align: center; }
+                .header h1 { color: white; margin: 0; font-size: 24px; }
+                .content { padding: 30px; }
+                .details { background: #fffbeb; padding: 20px; border-radius: 8px; border: 1px solid #fcd34d; margin: 20px 0; }
+                .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #fde68a; }
+                .detail-row:last-child { border-bottom: none; }
+                .button { display: inline-block; background: #d97706; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px; }
+                .footer { text-align: center; font-size: 12px; color: #888; padding: 20px; background: #f3f4f6; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Payment Successful!</h1>
+                </div>
+                <div class="content">
+                  <p>Hi there,</p>
+                  <p>Thank you for subscribing to Astraz AI! Your account has been upgraded.</p>
+                  
+                  <div class="details">
+                    <div class="detail-row">
+                      <strong>Plan Type</strong>
+                      <span>${planName}</span>
+                    </div>
+                     <div class="detail-row">
+                      <strong>Credits Added</strong>
+                      <span>${planCredits}</span>
+                    </div>
+                     <div class="detail-row">
+                      <strong>Amount Paid</strong>
+                      <span>${currency} ${(amount || 0) / 100}</span>
+                    </div>
+                  </div>
+
+                  <p>You can now access premium features and start generating optimized resumes.</p>
+
+                  <center>
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" class="button">Go to Dashboard</a>
+                  </center>
+                </div>
+                <div class="footer">
+                  <p>Need help? Contact us at <a href="mailto:support@astraz.ai">support@astraz.ai</a></p>
+                  <p>© ${new Date().getFullYear()} Astraz AI</p>
+                </div>
+              </div>
+            </body>
+            </html>
+        `;
+
+      // Fire-and-forget email send
+      fetch(`${request.nextUrl.origin}/api/send-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          subject: emailSubject,
+          html: emailBody
+        })
+      }).catch(err => console.error("Failed to send confirmation email", err));
+    }
     return NextResponse.json({
       success: true,
       message: "Payment verified successfully",
