@@ -1117,7 +1117,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h2 className="font-bold text-xl text-slate-900 dark:text-white">Contact Information</h2>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Optional: Override parsed contact info</p>
+                      <p className="text-sm text-red-500 font-medium">Mandatory: Required for resume generation</p>
                     </div>
                   </div>
                   <div className={`h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-transform ${showContactInfo ? 'rotate-180' : ''}`}>
