@@ -661,6 +661,18 @@ export default function Dashboard() {
               <>
                 <button
                   onClick={() => {
+                    setActiveTab("cover-letter");
+                    router.push("/dashboard?tab=cover-letter");
+                  }}
+                  className={`px-8 py-4 text-sm font-semibold border-b-2 transition-all ${activeTab === "cover-letter"
+                    ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10"
+                    : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800/50"
+                    }`}
+                >
+                  Cover Letter
+                </button>
+                <button
+                  onClick={() => {
                     setActiveTab("account");
                     router.push("/dashboard?tab=account");
                   }}
@@ -911,7 +923,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Upgrade CTA for non-premium users */}
+                {/* Upgrade CTA for non-premium users AND Guests */}
                 {!isPremium && (
                   <div className="mt-8 p-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -1083,6 +1095,49 @@ export default function Dashboard() {
               </div>
             </motion.div>
           )}
+          {activeTab === "cover-letter" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="max-w-4xl mx-auto space-y-6"
+            >
+              {!isPremium ? (
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-12 text-center">
+                  <div className="h-20 w-20 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Lock className="h-10 w-10 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
+                    Premium Feature Locked
+                  </h2>
+                  <p className="text-lg text-slate-500 dark:text-slate-400 max-w-xl mx-auto mb-8">
+                    AI Cover Letter generation is available exclusively for Premium members.
+                    Create personalized, compelling cover letters in seconds.
+                  </p>
+                  <Button
+                    onClick={() => router.push("/payment")}
+                    className="bg-amber-600 hover:bg-amber-700 text-white px-10 py-6 text-xl font-bold shadow-xl shadow-amber-600/30 rounded-xl transition-transform hover:scale-105"
+                  >
+                    <Zap className="mr-3 h-6 w-6" />
+                    Upgrade to Unlock
+                  </Button>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-12 text-center">
+                  <div className="h-16 w-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FileText className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                    Cover Letter Generator
+                  </h2>
+                  <p className="text-slate-500 dark:text-slate-400 mb-6">
+                    This feature is currently being upgraded for even better results. Check back soon!
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
         </div>
       </div>
 
