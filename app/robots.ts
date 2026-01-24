@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/api/', '/admin/', '/dashboard/debug-parser'],
+            disallow: ['/dashboard/', '/admin/', '/api/'],
         },
         sitemap: 'https://astrazai.com/sitemap.xml',
     };

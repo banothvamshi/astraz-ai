@@ -15,57 +15,28 @@ const geistMono = Geist_Mono({
 
 // Comprehensive SEO keywords for job search/resume builder ranking
 const seoKeywords = [
-  // SHORT-TAIL (Single word / 2 words for quick searches)
-  "resume",
-  "CV",
-  "bio data",
-  "curriculum vitae",
-  "resume builder",
-  "free resume builder",
-  "cv maker",
-  "free cv maker",
-  "biodata format",
-  "job search",
+  // User Requested High-Value Keywords
+  "best resume builder",
+  "best resume generator",
+  "best resume creator",
+  "best ats resume",
+  "best ats resume builder",
+  "best ats resume creator",
+  "best ats resume generator",
+  "free ats resume generator",
+  "free ats resume builder",
+  "free ats resume creator",
 
-  // Primary keywords (High Intent)
-  "best free resume builder",
-  "completely free resume builder",
-  "100% free resume builder",
-  "free resume builder pdf",
-  "download resume pdf",
-  "create resume for free",
-  "make my resume",
-  "online resume builder",
+  // General
+  "resume", "CV", "curriculum vitae", "biodata", "job search", "cv maker",
+  "free resume pdf", "download resume", "make resume online",
+  "resume builder 2026", "ai resume builder", "chatgpt resume",
 
-  // ATS Optimization
-  "ATS resume checker",
-  "ATS resume score",
-  "ATS friendly resume templates",
-  "resume keywords optimizer",
-  "how to pass ATS",
+  // Competitor Alternatives
+  "canva alternative", "novoresume alternative", "zety alternative", "resume.io alternative",
 
-  // Competitor Alternatives (The "Vs" Strategy)
-  "canva resume alternative",
-  "better than resumeworded",
-  "novoresume free alternative",
-  "resume.io free alternative",
-  "zety free alternative",
-  "best resume builder reddit",
-
-  // Specific User Intent
-  "resume for freshers",
-  "resume for students",
-  "resume for internship",
-  "resume format for experienced",
-  "modern resume templates",
-  "professional cv templates",
-
-  // Locational
-  "resume builder india free",
-  "resume builder usa",
-  "cv maker uk",
-  "best resume app",
-  "mobile resume builder"
+  // Specific
+  "resume for students", "resume for freshers", "resume for experienced", "tech resume", "software engineer resume"
 ].join(", ");
 
 export const metadata: Metadata = {

@@ -139,6 +139,19 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        // ENFORCE TEMPLATE RESTRICTION FOR FREE USERS (Non-Premium)
+        if (!effectiveIsPremium) {
+          // Allow ONLY "professional" (Standard)
+          // Normalize theme input
+          const requestedTheme = (theme || "professional").toLowerCase();
+          if (requestedTheme !== "professional") {
+            return NextResponse.json(
+              { error: "Free plan allows downloads for the Standard (Professional) template only. Please upgrade to unlock all premium templates." },
+              { status: 403 }
+            );
+          }
+        }
+
         // DEDUCT CREDIT (Atomic RPC)
         try {
           // WE CALL RPC to Deduct.

@@ -146,23 +146,18 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         if (!expiryDate) return;
         setIsUpdating(true);
         try {
-            const supabase = getSupabaseBrowserClient();
-            const { error } = await supabase
-                .from("profiles")
-                .update({
-                    subscription_end_date: new Date(expiryDate).toISOString(),
-                    is_premium: true,
-                    updated_at: new Date().toISOString()
-                })
-                .eq("id", id);
+            const res = await fetch(`/api/admin/users/${id}/expiry`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ expiryDate })
+            });
 
-            if (error) {
-                toast.error("Failed to update expiry date");
-                console.error(error);
-            } else {
+            if (res.ok) {
                 toast.success("Subscription expiry updated");
                 fetchUserDetails();
                 setExpiryDate("");
+            } else {
+                toast.error("Failed to update expiry date");
             }
         } catch (e) {
             toast.error("Server error");
@@ -175,17 +170,17 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         if (!confirm("Clear expiry date? User will have permanent premium access.")) return;
         setIsUpdating(true);
         try {
-            const supabase = getSupabaseBrowserClient();
-            const { error } = await supabase
-                .from("profiles")
-                .update({ subscription_end_date: null, updated_at: new Date().toISOString() })
-                .eq("id", id);
+            const res = await fetch(`/api/admin/users/${id}/expiry`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ clear: true })
+            });
 
-            if (error) {
-                toast.error("Failed to clear expiry");
-            } else {
+            if (res.ok) {
                 toast.success("Expiry cleared - user has permanent access");
                 fetchUserDetails();
+            } else {
+                toast.error("Failed to clear expiry");
             }
         } catch (e) {
             toast.error("Server error");

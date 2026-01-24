@@ -40,12 +40,13 @@ export function ThemeSelector({ currentTheme, onSelect, disabled, isPremiumUser 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {Object.values(THEMES).map((theme) => {
                         const isSelected = currentTheme === theme.id;
-                        const isLocked = theme.isPremium && !isPremiumUser;
+                        // NEW LOGIC: If not premium, EVERYTHING except 'professional' is locked
+                        const isLocked = !isPremiumUser && theme.id !== "professional";
 
                         return (
                             <div
                                 key={theme.id}
-                                onClick={() => handleSelect(theme)}
+                                onClick={() => !isLocked && handleSelect(theme)}
                                 className={cn(
                                     "relative rounded-xl border p-4 transition-all",
                                     isSelected
