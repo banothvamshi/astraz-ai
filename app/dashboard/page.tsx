@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut, Calendar, Activity, Shield } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut, Calendar, Activity, Shield, CheckCircle2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { UploadArea } from "@/components/upload-area";
@@ -1078,12 +1078,12 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="max-w-7xl mx-auto"
+          className="w-full mx-auto"
         >
-          <div className="grid gap-10 lg:grid-cols-2">
+          <div className="grid gap-8 lg:grid-cols-12 items-start">
 
             {/* LEFT COLUMN: Inputs */}
-            <div className="space-y-8">
+            <div className="space-y-8 lg:col-span-5 xl:col-span-4">
 
               {/* 1. Resume Upload */}
               <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 transition-all hover:shadow-xl hover:border-amber-500/40">
@@ -1133,7 +1133,7 @@ export default function Dashboard() {
                         value={contactInfo.fullName}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, fullName: e.target.value }))}
                         placeholder="Full Name"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
@@ -1143,7 +1143,7 @@ export default function Dashboard() {
                         onChange={(e) => setContactInfo(prev => ({ ...prev, email: e.target.value }))}
                         placeholder="Email Address"
                         type="email"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
@@ -1153,7 +1153,7 @@ export default function Dashboard() {
                         onChange={(e) => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
                         placeholder="Phone Number"
                         type="tel"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
@@ -1162,7 +1162,7 @@ export default function Dashboard() {
                         value={contactInfo.linkedin}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, linkedin: e.target.value }))}
                         placeholder="LinkedIn URL (e.g. linkedin.com/in/yourname)"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
@@ -1171,7 +1171,7 @@ export default function Dashboard() {
                         value={contactInfo.location}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, location: e.target.value }))}
                         placeholder="Location (e.g. San Francisco, CA)"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                   </div>
@@ -1199,7 +1199,7 @@ export default function Dashboard() {
                           value={jobDetails.companyName}
                           onChange={(e) => setJobDetails(prev => ({ ...prev, companyName: e.target.value }))}
                           placeholder="Company Name"
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                          className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                         />
                       </div>
                       <div className="relative">
@@ -1208,7 +1208,7 @@ export default function Dashboard() {
                           value={jobDetails.jobTitle}
                           onChange={(e) => setJobDetails(prev => ({ ...prev, jobTitle: e.target.value }))}
                           placeholder="Job Title"
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                          className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                         />
                       </div>
                     </div>
@@ -1218,7 +1218,7 @@ export default function Dashboard() {
                         value={jobDetails.location}
                         onChange={(e) => setJobDetails(prev => ({ ...prev, location: e.target.value }))}
                         placeholder="Job Location (e.g. Remote, New York, NY)"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                     <textarea
@@ -1293,7 +1293,7 @@ export default function Dashboard() {
                 onClick={handleGenerate}
                 disabled={isGenerating || !resumeFile || !jobDescription.trim()}
                 size="lg"
-                className="w-full h-16 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg font-bold rounded-2xl shadow-xl shadow-amber-500/30 transition-all hover:scale-[1.01] hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-16 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-lg font-bold rounded-2xl shadow-xl shadow-amber-500/20 hover:shadow-amber-500/40 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed border-t border-white/20"
               >
                 {isGenerating ? (
                   <>
@@ -1313,7 +1313,7 @@ export default function Dashboard() {
             </div>
 
             {/* RIGHT COLUMN: Results */}
-            <div className="space-y-6">
+            <div className="space-y-6 lg:col-span-7 xl:col-span-8 sticky top-24">
               {generatedResume ? (
                 <div className="space-y-6">
                   {/* RESUME HEALTH SCORE CARD (MOVED HERE FOR VISIBILITY) */}
@@ -1438,7 +1438,7 @@ export default function Dashboard() {
                             onCancel={() => setEditingResume(false)}
                           />
                         ) : (
-                          <div className="h-[800px] w-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-4">
+                          <div className="h-[600px] lg:h-[calc(100vh-140px)] w-full rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-4 overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-slate-950/50 relative">
                             {isPreviewLoading ? (
                               <div className="flex flex-col items-center gap-3">
                                 <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
@@ -1448,7 +1448,7 @@ export default function Dashboard() {
                               <iframe
                                 key={pdfPreviewUrl} // FORCE REFRESH on URL change
                                 src={`${pdfPreviewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                                className="w-full h-full rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 bg-white"
+                                className="w-full h-full rounded-2xl shadow-sm bg-white"
                                 title="Resume Preview"
                               />
                             ) : (
@@ -1494,14 +1494,67 @@ export default function Dashboard() {
                 </div>
               ) : (
                 // Empty State / Placeholder
-                <div className="h-full min-h-[400px] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 dark:bg-slate-900/50">
-                  <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-400">
-                    <Sparkles className="h-8 w-8 opacity-50" />
+                // Empty State / Placeholder (Redesigned)
+                <div className="h-[600px] lg:h-[calc(100vh-140px)] sticky top-24 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-slate-950/50 flex flex-col items-center justify-center text-center p-8 relative group">
+
+                  {/* Background Accents */}
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">Ready to Engineer</h3>
-                  <p className="text-slate-500 max-w-sm">
-                    Your generated documents will appear here with a live preview and editing capabilities.
-                  </p>
+
+                  <div className="relative z-10 max-w-md mx-auto space-y-8">
+                    {/* Animated Icon Container */}
+                    <div className="relative mx-auto h-24 w-24">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-amber-500 to-orange-600 rounded-3xl blur-2xl opacity-20 animate-pulse" />
+                      <div className="relative h-full w-full bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-xl flex items-center justify-center">
+                        <Sparkles className="h-10 w-10 text-amber-500" />
+                      </div>
+
+                      {/* Floating Particles */}
+                      <motion.div
+                        animate={{ y: [-5, 5, -5] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute -top-4 -right-4 p-2 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700"
+                      >
+                        <FileText className="h-4 w-4 text-slate-400" />
+                      </motion.div>
+                      <motion.div
+                        animate={{ y: [5, -5, 5] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                        className="absolute -bottom-2 -left-4 p-2 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700"
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      </motion.div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white">
+                        Ready to Engineer
+                      </h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">
+                        Your professional resume will appear here. Fill in your details on the left to generate a tailored, ATS-optimized document.
+                      </p>
+                    </div>
+
+                    {/* Quick Tips */}
+                    <div className="grid grid-cols-2 gap-4 text-left">
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/50">
+                        <div className="font-semibold text-slate-900 dark:text-white mb-1 text-sm flex items-center gap-2">
+                          <Zap className="h-3.5 w-3.5 text-amber-500" />
+                          ATS Optimized
+                        </div>
+                        <p className="text-xs text-slate-500">Keywords matched to pass filters.</p>
+                      </div>
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/50">
+                        <div className="font-semibold text-slate-900 dark:text-white mb-1 text-sm flex items-center gap-2">
+                          <Eye className="h-3.5 w-3.5 text-blue-500" />
+                          Live Preview
+                        </div>
+                        <p className="text-xs text-slate-500">Instant updates as you edit.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

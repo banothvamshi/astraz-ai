@@ -20,7 +20,7 @@ export function ThemeSelector({ currentTheme, onSelect, disabled, isPremiumUser 
     };
 
     return (
-        <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 transition-all hover:shadow-xl">
+        <div className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-slate-950/40 transition-all hover:shadow-2xl">
             <div className="p-8">
                 <div className="flex items-center gap-4 mb-6">
                     <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400 shadow-sm">

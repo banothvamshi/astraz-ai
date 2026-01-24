@@ -71,8 +71,8 @@ export function UploadArea({ onFileSelect, selectedFile, onRemove }: UploadAreaP
           onDragLeave={handleDragLeave}
           onClick={() => fileInputRef.current?.click()}
           className={cn(
-            "flex cursor-pointer flex-col items-center justify-center gap-5 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-10 transition-all hover:border-amber-400 hover:bg-amber-50/50 dark:border-slate-700 dark:bg-slate-900/50 dark:hover:border-amber-500 dark:hover:bg-amber-950/20",
-            isDragging && "border-amber-500 bg-amber-50 dark:bg-amber-950/30 scale-[1.02]"
+            "flex cursor-pointer flex-col items-center justify-center gap-5 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-10 transition-all hover:border-amber-400 hover:bg-amber-50/30 dark:border-slate-700 dark:bg-slate-900/30 dark:hover:border-amber-500/50 dark:hover:bg-amber-950/10",
+            isDragging && "border-amber-500 bg-amber-50 dark:bg-amber-900/20 scale-[1.01] ring-4 ring-amber-500/10"
           )}
         >
           <div className="rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 p-5 dark:from-amber-900/40 dark:to-orange-900/40 shadow-lg shadow-amber-500/10">
