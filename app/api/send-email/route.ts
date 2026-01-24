@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
                 "Authorization": `Bearer ${resendApiKey}`,
             },
             body: JSON.stringify({
-                from: "Astraz AI <contact@astraz.ai>", // Support email as sender
+                from: "Astraz.ai <noreply@astrazai.com>",
                 to: to,
                 subject: subject,
                 html: html,

@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
                   </center>
                 </div>
                 <div class="footer">
-                  <p>Need help? Contact us at <a href="mailto:support@astraz.ai">support@astraz.ai</a></p>
+                  <p>Need help? Contact us at <a href="mailto:support@astrazai.com">support@astrazai.com</a></p>
                   <p>© ${new Date().getFullYear()} Astraz AI</p>
                 </div>
               </div>

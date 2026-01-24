@@ -538,7 +538,7 @@ function PaymentPageContent() {
                 Monthly subscription • Cancel anytime • Instant access
               </p>
               <p className="mt-6 text-sm font-medium text-slate-500">
-                Need help? <a href="mailto:support@astraz.ai" className="text-amber-600 hover:underline">Contact Support</a>
+                Need help? <a href="mailto:support@astrazai.com" className="text-amber-600 hover:underline">Contact Support</a>
               </p>
             </div>
 

@@ -1599,7 +1599,7 @@ export default function Dashboard() {
             <div>
               <h2 className="text-xl font-bold text-indigo-900 dark:text-indigo-100 mb-2">Need Help?</h2>
               <p className="text-indigo-700 dark:text-indigo-300 text-sm">
-                Contact us directly at <span className="font-bold select-all">support@astraz.ai</span>
+                Contact us directly at <span className="font-bold select-all">support@astrazai.com</span>
               </p>
             </div>
           </div>
