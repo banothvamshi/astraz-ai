@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       currency,
       plan_type,
       credits,
+      coupon_applied,
     } = await request.json();
 
     // Determine credits based on plan (monthly subscription)
@@ -160,7 +161,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Increment Coupon Usage (if applied)
-    const { coupon_applied } = await request.json(); // Re-read body to get coupon code safely
+    // const { coupon_applied } = body; // Already accessible if we destructure it at the top
+    // const coupon_applied = (await Promise.resolve(requestBody)).coupon_applied; // Safely access from cached body if needed, but better to just grab it at the start.
+
+    // Actually, I will just destructure it at the very top and remove this second read.
     if (coupon_applied) {
       // Direct increment using SQL for atomic update
       // We use getSupabaseAdmin() so we bypass RLS and can update counts
