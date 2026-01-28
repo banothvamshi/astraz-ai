@@ -10,12 +10,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { formatAdminDate } from "@/lib/date-utils";
+
+export const revalidate = 0; // Ensure fresh data on every request
 
 export default async function AdminPayments() {
     const supabase = await createClient();
 
     // Fetch all payments ordered by date
-    // In a real app, this should be paginated
     const { data: payments, error } = await supabase
         .from("payments")
         .select("*")
@@ -25,6 +27,15 @@ export default async function AdminPayments() {
     if (error) {
         return <div>Error loading payments</div>;
     }
+
+    // Fetch associated user profiles
+    const userIds = Array.from(new Set(payments?.map(p => p.user_id).filter(Boolean)));
+    const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, email, full_name, subscription_end_date")
+        .in("id", userIds);
+
+    const profileMap = new Map(profiles?.map(p => [p.id, p]));
 
     return (
         <div className="space-y-6">
@@ -52,44 +63,53 @@ export default async function AdminPayments() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Date</TableHead>
+                            <TableHead>User</TableHead>
                             <TableHead>Order ID</TableHead>
                             <TableHead>Amount</TableHead>
                             <TableHead>Plan</TableHead>
+                            <TableHead>Expiry</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {payments?.map((payment) => (
-                            <TableRow key={payment.id}>
-                                <TableCell className="font-medium text-slate-900 dark:text-white">
-                                    {new Date(payment.created_at).toLocaleDateString()} <br />
-                                    <span className="text-xs text-slate-500">{new Date(payment.created_at).toLocaleTimeString()}</span>
-                                </TableCell>
-                                <TableCell className="font-mono text-xs text-slate-500">
-                                    {payment.razorpay_order_id}
-                                </TableCell>
-                                <TableCell>
-                                    ₹{(payment.amount / 100).toFixed(2)}
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant="outline" className="capitalize">
-                                        {payment.plan_type || "N/A"}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge
-                                        variant={payment.status === 'captured' ? 'default' : 'secondary'}
-                                        className={payment.status === 'captured' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
-                                    >
-                                        {payment.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm">Details</Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {payments?.map((payment) => {
+                            const profile = profileMap.get(payment.user_id);
+                            return (
+                                <TableRow key={payment.id}>
+                                    <TableCell className="font-medium text-slate-900 dark:text-white">
+                                        {formatAdminDate(payment.created_at)}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-slate-900 dark:text-white">{profile?.full_name || "Unknown"}</span>
+                                            <span className="text-xs text-slate-500">{profile?.email || "No email"}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="font-mono text-xs text-slate-500">
+                                        {payment.razorpay_order_id}
+                                    </TableCell>
+                                    <TableCell>
+                                        ₹{(payment.amount / 100).toFixed(2)}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline" className="capitalize">
+                                            {payment.plan_type || "N/A"}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-sm text-slate-600 dark:text-slate-400">
+                                        {profile?.subscription_end_date ? formatAdminDate(profile.subscription_end_date) : "-"}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={payment.status === 'captured' ? 'default' : 'secondary'}
+                                            className={payment.status === 'captured' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
+                                        >
+                                            {payment.status}
+                                        </Badge>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
                     </TableBody>
                 </Table>
             </div>

@@ -31,6 +31,8 @@ export default function AnalyticsPage() {
 
     useEffect(() => {
         fetchAnalytics();
+        const interval = setInterval(fetchAnalytics, 60000); // Poll every 60 seconds for near real-time updates
+        return () => clearInterval(interval);
     }, [dateRange]);
 
     const fetchAnalytics = async () => {

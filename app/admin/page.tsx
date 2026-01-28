@@ -16,6 +16,8 @@ import {
     Eye
 } from "lucide-react";
 
+export const revalidate = 0; // Ensure fresh data on every request
+
 export default async function AdminDashboard() {
     const supabase = await createClient();
 
