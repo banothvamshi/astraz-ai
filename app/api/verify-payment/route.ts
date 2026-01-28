@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
         currency: currency || "INR",
         plan_type: plan_type || "premium",
         status: "completed",
+        subscription_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       })
       .select()
       .single();

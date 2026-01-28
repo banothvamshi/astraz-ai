@@ -44,36 +44,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             .eq("id", id)
             .single();
 
-        // Fetch Payment History (Assuming payments table has user_id, but current schema might rely on email matching or razorpay payload having metadata.
-        // Based on previous files, we can query by email if user_id isn't directly linked in payments yet, or better, we link them.)
-        // For now, let's assume we can match by email since payments were recorded with email.
+        if (profile?.id) {
+            // Fetch Payment History
+            const { data: userPayments } = await supabase
+                .from("payments")
+                .select("*")
+                .eq("user_id", id)
+                .order("created_at", { ascending: false });
 
-        if (profile?.email) {
-            // Note: In a real prod app, payments should reference user_id fkey. 
-            // We'll search by confirmed email for now.
-            // Actually, verify-payment logic didn't explicitly show a user_id column in payments table insert, just email/razorpay stuff.
-            // We will fetch payments where email matches.
-            // BUT: Accessing payments table client side needs RLS. We might need an admin API for this if RLS blocks user from seeing others payments.
-            // Since we are admin, getSupabaseBrowserClient returning admin user might work if RLS allows admins.
-            // Let's rely on the policy "Admins can do everything".
-
-            // Wait, standard supabase client in browser uses logged in user context. If I am admin, RLS should pass.
-            // Let's try.
-
-            // Wait - we need to fetch payments from the payments table where the metadata or some field matches user. 
-            // In creating order, we didn't store user_id. In verifying, we stored `razorpay_order_id`, `razorpay_payment_id`.
-            // Let's assume for this specific user we need to match by something. 
-            // Ideally we should have user_id in payments. 
-            // If not, we might not show payments or only show if we can link them.
-            // Let's assume we can't easily link payments without an email column in payments table (which verify-payment route checks).
-
-            // Checking verify-payment again...
-            // It inserts: razorpay_order_id, razorpay_payment_id, amount, currency, plan_type, status. No email column mentioned in insert!
-            // Wait. Line 43 of verify-payment: insert({...}).
-            // It seems we might have missed adding email to payments table in the original setup? 
-            // Or maybe it was there. 
-            // For now, I will omit the payments table if I can't filter it, OR I will just show the profile data.
-            // Actually, let's focus on the "God Mode" profile controls which are most important.
+            setPayments(userPayments || []);
         }
 
         setUser(profile);
@@ -428,6 +407,62 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
                         <AlertTriangle className="h-3.5 w-3.5" /> Use with caution. Overrides payment status.
                     </p>
+                </div>
+            </div>
+
+            {/* Payment History Table */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600">
+                        <History className="h-6 w-6" />
+                    </div>
+                    <h2 className="text-lg font-bold">Payment History</h2>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 uppercase text-xs">
+                            <tr>
+                                <th className="px-4 py-3 rounded-l-lg">Date</th>
+                                <th className="px-4 py-3">Order ID</th>
+                                <th className="px-4 py-3">Amount</th>
+                                <th className="px-4 py-3">Plan</th>
+                                <th className="px-4 py-3">Expiry (Valid Until)</th>
+                                <th className="px-4 py-3 rounded-r-lg">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {payments.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500">No payment history found</td>
+                                </tr>
+                            ) : (
+                                payments.map((p) => (
+                                    <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
+                                            {new Date(p.created_at).toLocaleDateString()}
+                                            <div className="text-xs text-slate-400">{new Date(p.created_at).toLocaleTimeString()}</div>
+                                        </td>
+                                        <td className="px-4 py-3 font-mono text-xs">{p.razorpay_order_id}</td>
+                                        <td className="px-4 py-3">{(p.amount / 100).toFixed(2)} {p.currency}</td>
+                                        <td className="px-4 py-3 capitalize">
+                                            <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 text-xs font-medium">
+                                                {p.plan_type}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                                            {p.subscription_end_date ? new Date(p.subscription_end_date).toLocaleDateString() : "-"}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${p.status === 'captured' || p.status === 'completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
+                                                {p.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -1048,6 +1048,8 @@ export default function Dashboard() {
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <input
+                        name="fullName"
+                        autoComplete="name"
                         value={contactInfo.fullName}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, fullName: e.target.value }))}
                         placeholder="Full Name"
@@ -1057,6 +1059,8 @@ export default function Dashboard() {
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <input
+                        name="email"
+                        autoComplete="email"
                         value={contactInfo.email}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, email: e.target.value }))}
                         placeholder="Email Address"
@@ -1067,6 +1071,8 @@ export default function Dashboard() {
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <input
+                        name="phone"
+                        autoComplete="tel"
                         value={contactInfo.phone}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
                         placeholder="Phone Number"
@@ -1077,6 +1083,8 @@ export default function Dashboard() {
                     <div className="relative">
                       <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <input
+                        name="linkedin"
+                        autoComplete="url"
                         value={contactInfo.linkedin}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, linkedin: e.target.value }))}
                         placeholder="LinkedIn URL (e.g. linkedin.com/in/yourname)"
@@ -1086,6 +1094,8 @@ export default function Dashboard() {
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <input
+                        name="location"
+                        autoComplete="address-level2"
                         value={contactInfo.location}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, location: e.target.value }))}
                         placeholder="Location (e.g. San Francisco, CA)"
@@ -1573,6 +1583,7 @@ export default function Dashboard() {
                       <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Date</th>
                       <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Plan</th>
                       <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Amount</th>
+                      <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Expiry</th>
                       <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Status</th>
                       <th className="py-4 px-2 text-sm font-semibold text-slate-500 dark:text-slate-400">ID</th>
                     </tr>
@@ -1588,6 +1599,9 @@ export default function Dashboard() {
                         </td>
                         <td className="py-4 px-2 text-slate-700 dark:text-slate-300 font-mono">
                           {payment.currency} {payment.amount / 100}
+                        </td>
+                        <td className="py-4 px-2 text-slate-600 dark:text-slate-400 text-sm">
+                          {payment.subscription_end_date ? new Date(payment.subscription_end_date).toLocaleDateString() : "-"}
                         </td>
                         <td className="py-4 px-2">
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
