@@ -245,17 +245,23 @@ export default function Dashboard() {
         // Fetch History Data
         setIsLoadingHistory(true);
 
-        // 1. Payments
-        const { data: paymentsData } = await supabase
-          .from("payments")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-
-        if (paymentsData) {
-          setPayments(paymentsData);
-          // DO NOT override userPlan from payments. Profiles table is the source of truth.
-          // Admin updates update profiles, so profiles.premium_type is the correct current status.
+        // 1. Payments (Fetch via API to bypass RLS)
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession) {
+          try {
+            const historyRes = await fetch("/api/user/payment-history", {
+              headers: { "Authorization": `Bearer ${currentSession.access_token}` }
+            });
+            if (historyRes.ok) {
+              const { payments: paymentsData } = await historyRes.json();
+              if (paymentsData) {
+                setPayments(paymentsData);
+              }
+            }
+          } catch (error) {
+            console.error("Failed to load payment history via API", error);
+            // Fallback? No, likely RLS blocked anyway.
+          }
         }
 
         // 2. Generations

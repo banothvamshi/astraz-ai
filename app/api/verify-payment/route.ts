@@ -188,15 +188,15 @@ export async function POST(request: NextRequest) {
       // We use getSupabaseAdmin() so we bypass RLS and can update counts
       const { data: coupon } = await supabase
         .from("coupons")
-        .select("uses_count")
-        .eq("code", coupon_applied)
+        .select("uses_count, code") // Select code to get exact casing
+        .ilike("code", coupon_applied) // Case-insensitive match
         .single();
 
       if (coupon) {
         await supabase
           .from("coupons")
           .update({ uses_count: (coupon.uses_count || 0) + 1 })
-          .eq("code", coupon_applied);
+          .eq("code", coupon.code); // Use canonical code for update
       }
     }
 
