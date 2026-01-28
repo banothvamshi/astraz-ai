@@ -47,6 +47,7 @@ function PaymentPageContent() {
   const searchParams = useSearchParams();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [currency, setCurrency] = useState<"INR" | "USD">("INR");
   const [promoCode, setPromoCode] = useState("");
@@ -188,7 +189,10 @@ function PaymentPageContent() {
           localStorage.setItem("astraz_premium", "true");
           localStorage.setItem("astraz_plan", planKey);
           localStorage.setItem("astraz_credits", String(plan.credits));
-          router.push("/dashboard?premium=true");
+          setShowSuccess(true);
+          setTimeout(() => {
+            router.push("/dashboard?payment_success=true");
+          }, 3000);
         } else {
           alert("Bypass verification failed");
           setIsProcessing(false);
@@ -231,7 +235,10 @@ function PaymentPageContent() {
             localStorage.setItem("astraz_premium", "true");
             localStorage.setItem("astraz_plan", planKey);
             localStorage.setItem("astraz_credits", String(plan.credits));
-            router.push("/dashboard?premium=true");
+            setShowSuccess(true);
+            setTimeout(() => {
+              router.push("/dashboard?payment_success=true");
+            }, 3000);
           } else {
             alert("Payment verification failed");
           }
@@ -255,6 +262,24 @@ function PaymentPageContent() {
       setSelectedPlan(null);
     }
   };
+
+  if (showSuccess) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-slate-950">
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20 }}
+          className="w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6"
+        >
+          <Check className="w-12 h-12 text-green-600 dark:text-green-400" />
+        </motion.div>
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Payment Successful!</h2>
+        <p className="text-slate-500 mb-8">Upgrading your account...</p>
+        <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   if (paymentSuccess) {
     return (

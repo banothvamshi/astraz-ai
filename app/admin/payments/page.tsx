@@ -11,18 +11,25 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { formatAdminDate } from "@/lib/date-utils";
+import Link from "next/link";
+import { X } from "lucide-react";
 
 export const revalidate = 0; // Ensure fresh data on every request
 
-export default async function AdminPayments() {
+export default async function AdminPayments({ searchParams }: { searchParams: { userId?: string } }) {
     const supabase = await createClient();
 
-    // Fetch all payments ordered by date
-    const { data: payments, error } = await supabase
+    let query = supabase
         .from("payments")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
+
+    if (searchParams.userId) {
+        query = query.eq("user_id", searchParams.userId);
+    }
+
+    const { data: payments, error } = await query;
 
     if (error) {
         return <div>Error loading payments</div>;
@@ -41,10 +48,23 @@ export default async function AdminPayments() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Payments</h1>
-                    <p className="text-slate-500">Track and manage financial transactions.</p>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                        {searchParams.userId ? "User Payments" : "Payments"}
+                    </h1>
+                    <p className="text-slate-500">
+                        {searchParams.userId
+                            ? `Showing history for user ${profileMap.get(searchParams.userId)?.email || searchParams.userId}`
+                            : "Track and manage financial transactions."}
+                    </p>
                 </div>
                 <div className="flex gap-2">
+                    {searchParams.userId && (
+                        <Button variant="outline" asChild>
+                            <Link href="/admin/payments" className="flex items-center gap-2">
+                                <X className="w-4 h-4" /> Clear Filter
+                            </Link>
+                        </Button>
+                    )}
                     <Button variant="outline">Export CSV</Button>
                 </div>
             </div>
@@ -80,10 +100,14 @@ export default async function AdminPayments() {
                                         {formatAdminDate(payment.created_at)}
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium text-slate-900 dark:text-white">{profile?.full_name || "Unknown"}</span>
-                                            <span className="text-xs text-slate-500">{profile?.email || "No email"}</span>
-                                        </div>
+                                        <Link href={`/admin/payments?userId=${payment.user_id}`} className="block group">
+                                            <div className="flex flex-col group-hover:bg-slate-100 dark:group-hover:bg-slate-800 p-1 -m-1 rounded transition-colors">
+                                                <span className="font-medium text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                                                    {profile?.full_name || "Unknown"}
+                                                </span>
+                                                <span className="text-xs text-slate-500">{profile?.email || "No email"}</span>
+                                            </div>
+                                        </Link>
                                     </TableCell>
                                     <TableCell className="font-mono text-xs text-slate-500">
                                         {payment.razorpay_order_id}

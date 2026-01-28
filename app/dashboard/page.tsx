@@ -55,6 +55,7 @@ export default function Dashboard() {
   const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
   const [totalGenerations, setTotalGenerations] = useState(0);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [showPremiumWelcome, setShowPremiumWelcome] = useState(false);
 
   // History states
   const [payments, setPayments] = useState<any[]>([]);
@@ -91,8 +92,16 @@ export default function Dashboard() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
+      const successParam = params.get("payment_success");
+
       if (tabParam) {
         setActiveTab(tabParam);
+      }
+
+      if (successParam === "true") {
+        setShowPremiumWelcome(true);
+        // Clean URL without refresh
+        window.history.replaceState({}, "", "/dashboard");
       }
     }
   }, []);
@@ -1732,6 +1741,35 @@ export default function Dashboard() {
         onOpenChange={setShowPaywall}
         onUpgrade={() => router.push("/payment")}
       />
-    </div >
+
+      {/* PREMIUM WELCOME MODAL */}
+      <AnimatePresence>
+        {showPremiumWelcome && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-200 dark:border-slate-800 text-center relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-500 to-orange-600" />
+              <div className="mx-auto w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-6">
+                <Sparkles className="w-8 h-8 text-amber-600 dark:text-amber-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Welcome to Premium! 🚀</h2>
+              <p className="text-slate-600 dark:text-slate-400 mb-8">
+                Your account has been successfully upgraded. You now have access to all professional features and credits.
+              </p>
+              <Button
+                onClick={() => setShowPremiumWelcome(false)}
+                className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white h-12 text-base shadow-lg shadow-amber-500/20"
+              >
+                Let's Build Something Great
+              </Button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

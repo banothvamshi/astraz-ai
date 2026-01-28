@@ -158,14 +158,6 @@ export async function POST(request: NextRequest) {
             updated_at: new Date().toISOString(),
           });
 
-        // Update payment with user_id
-        if (payment?.id) {
-          await supabase
-            .from("payments")
-            .update({ user_id: userId })
-            .eq("id", payment.id);
-        }
-
         // Send credentials email (fire-and-forget)
         fetch(`${request.nextUrl.origin}/api/send-credentials`, {
           method: "POST",
@@ -178,7 +170,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3. Increment Coupon Usage (if applied)
+    // CRITICAL FIX: Always link payment to user (whether new or existing)
+    if (userId && payment?.id) {
+      const { error: linkError } = await supabase
+        .from("payments")
+        .update({ user_id: userId })
+        .eq("id", payment.id);
+
+      if (linkError) console.error("Failed to link payment to user:", linkError);
+    }
     // const { coupon_applied } = body; // Already accessible if we destructure it at the top
     // const coupon_applied = (await Promise.resolve(requestBody)).coupon_applied; // Safely access from cached body if needed, but better to just grab it at the start.
 
