@@ -72,22 +72,40 @@ export async function POST(request: NextRequest) {
       // User exists - update to premium and add credits
       userId = userExists.id;
 
-      // Get current credits
+      // Get current credits and plan details
       const { data: currentProfile } = await supabase
         .from("profiles")
-        .select("credits_remaining, subscription_end_date")
+        .select("credits_remaining, subscription_end_date, premium_type")
         .eq("id", userId)
         .single();
 
       const currentCredits = currentProfile?.credits_remaining || 0;
       const newCredits = currentCredits + planCredits;
 
-      // SMART RENEWAL LOGIC
+      // SMART TIER RETENTION: Prevent downgrading the badge if user is just topping up
+      // Hierarchy: Enterprise > Professional > Starter
+      const TIER_LEVELS: Record<string, number> = { 'starter': 1, 'professional': 2, 'enterprise': 3 };
+
+      const currentTierStr = currentProfile?.premium_type || 'starter';
+      const newTierStr = plan_type || 'starter';
+
+      const currentLevel = TIER_LEVELS[currentTierStr] || 0;
+      const newLevel = TIER_LEVELS[newTierStr] || 0;
+
+      // Keep the existing tier if it's higher than or equal to the new one (unless it was free/null)
+      // Exception: If the current subscription is EXPIRED, we allow "downgrade" (reset) to the new plan.
       const now = new Date();
       const currentExpiry = currentProfile?.subscription_end_date ? new Date(currentProfile.subscription_end_date) : null;
+      const isExpired = currentExpiry && currentExpiry < now;
 
+      let finalPlanType = newTierStr;
+      if (!isExpired && currentLevel > newLevel) {
+        finalPlanType = currentTierStr; // Keep the prestigious badge
+      }
+
+      // SMART RENEWAL LOGIC
       let newExpiryDate: Date;
-      if (currentExpiry && currentExpiry > now) {
+      if (currentExpiry && !isExpired) {
         // Active subscription: Extend from current expiry
         newExpiryDate = new Date(currentExpiry.getTime() + 30 * 24 * 60 * 60 * 1000); // Add 30 days to existing expiry
       } else {
@@ -99,7 +117,7 @@ export async function POST(request: NextRequest) {
         .from("profiles")
         .update({
           is_premium: true,
-          premium_type: plan_type || "premium",
+          premium_type: finalPlanType,
           credits_remaining: newCredits, // Rollover (Current + Plan)
           subscription_end_date: newExpiryDate.toISOString(),
           updated_at: new Date().toISOString(),
