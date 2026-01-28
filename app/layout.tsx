@@ -39,6 +39,12 @@ const seoKeywords = [
   "resume for students", "resume for freshers", "resume for experienced", "tech resume", "software engineer resume"
 ].join(", ");
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#6366f1",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "Best Free AI Resume Builder | Astraz AI (100% Free PDF Download)",
@@ -54,6 +60,9 @@ export const metadata: Metadata = {
   referrer: "origin-when-cross-origin",
   category: "Career & Employment",
   classification: "Free Resume Builder, CV Maker",
+  formatDetection: {
+    telephone: false,
+  },
 
   openGraph: {
     title: "Best Free AI Resume Builder | Pass ATS Scanners (100% Free)",
@@ -103,11 +112,6 @@ export const metadata: Metadata = {
 
   verification: {
     google: "rDPoz0SsOONDkX6V7zZ5qULymzB7X8mKMQbJWM9A9vA",
-  },
-
-  other: {
-    "msapplication-TileColor": "#6366f1",
-    "theme-color": "#6366f1",
   },
 
   icons: {
@@ -221,22 +225,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/logo.png" />
-        <link rel="apple-touch-icon" href="/logo.png" />
-        <link rel="canonical" href="https://astrazai.com" />
-        <meta name="format-detection" content="telephone=no" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
         <Toaster richColors position="top-right" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <AnalyticsTracker />
       </body>
     </html>
   );

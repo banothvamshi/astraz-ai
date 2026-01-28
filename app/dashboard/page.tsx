@@ -983,7 +983,7 @@ export default function Dashboard() {
           transition={{ duration: 0.3 }}
           className="w-full max-w-[98vw] mx-auto px-4 sm:px-6 lg:px-8"
         >
-          <div className="grid gap-8 lg:grid-cols-12 items-start">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
 
             {/* LEFT COLUMN: Inputs */}
             <div className="space-y-8 lg:col-span-5 xl:col-span-4">
@@ -1036,7 +1036,7 @@ export default function Dashboard() {
                         value={contactInfo.fullName}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, fullName: e.target.value }))}
                         placeholder="Full Name"
-                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-base md:text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
@@ -1046,7 +1046,7 @@ export default function Dashboard() {
                         onChange={(e) => setContactInfo(prev => ({ ...prev, email: e.target.value }))}
                         placeholder="Email Address"
                         type="email"
-                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-base md:text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
@@ -1056,7 +1056,7 @@ export default function Dashboard() {
                         onChange={(e) => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
                         placeholder="Phone Number"
                         type="tel"
-                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-base md:text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
@@ -1065,7 +1065,7 @@ export default function Dashboard() {
                         value={contactInfo.linkedin}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, linkedin: e.target.value }))}
                         placeholder="LinkedIn URL (e.g. linkedin.com/in/yourname)"
-                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-base md:text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
@@ -1074,7 +1074,7 @@ export default function Dashboard() {
                         value={contactInfo.location}
                         onChange={(e) => setContactInfo(prev => ({ ...prev, location: e.target.value }))}
                         placeholder="Location (e.g. San Francisco, CA)"
-                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-base md:text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                       />
                     </div>
                   </div>
@@ -1102,7 +1102,7 @@ export default function Dashboard() {
                           value={jobDetails.companyName}
                           onChange={(e) => setJobDetails(prev => ({ ...prev, companyName: e.target.value }))}
                           placeholder="Company Name"
-                          className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
+                          className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-base md:text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                         />
                       </div>
                       <div className="relative">
@@ -1111,7 +1111,7 @@ export default function Dashboard() {
                           value={jobDetails.jobTitle}
                           onChange={(e) => setJobDetails(prev => ({ ...prev, jobTitle: e.target.value }))}
                           placeholder="Job Title"
-                          className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
+                          className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-10 pr-4 h-12 text-base md:text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
                         />
                       </div>
                     </div>

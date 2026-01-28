@@ -381,7 +381,7 @@ function PaymentPageContent() {
             </motion.div>
 
             {/* Pricing Grid */}
-            <div className="grid md:grid-cols-3 gap-8 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
               {/* Starter Plan */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

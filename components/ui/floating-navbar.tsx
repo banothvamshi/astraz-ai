@@ -111,7 +111,7 @@ export function FloatingNav() {
                         <a href="/#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-slate-900 dark:text-white">Testimonials</a>
                         <a href="/payment" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-slate-900 dark:text-white">Pricing</a>
                         <hr className="border-slate-200 dark:border-white/10" />
-                        <Button variant="ghost" onClick={() => router.push("/login")} className="justify-start px-0">Sign In</Button>
+                        <Button variant="outline" onClick={() => router.push("/login")} className="w-full">Sign In</Button>
                         <Button onClick={() => router.push("/dashboard")} className="w-full">Get Started</Button>
                     </div>
                 </motion.div>

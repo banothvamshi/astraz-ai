@@ -131,7 +131,7 @@ export function ResumeEditor({ content, contactInfo, onSave, onCancel }: ResumeE
             <textarea
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
-              className="absolute inset-0 w-full h-full p-6 font-mono text-sm leading-relaxed text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none dark:text-slate-50 dark:placeholder:text-slate-500"
+              className="absolute inset-0 w-full h-full p-6 font-mono text-base md:text-sm leading-relaxed text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none dark:text-slate-50 dark:placeholder:text-slate-500"
               placeholder="# Your Resume Content..."
             />
           </div>
