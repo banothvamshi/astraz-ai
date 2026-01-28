@@ -75,7 +75,7 @@ export function ResumeEditor({ content, contactInfo, onSave, onCancel }: ResumeE
 
   return (
     <div className="space-y-4 h-full flex flex-col">
-      <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
         <div>
           <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
             Edit & Preview
@@ -84,40 +84,43 @@ export function ResumeEditor({ content, contactInfo, onSave, onCancel }: ResumeE
             Edit markdown on the left, see PDF on the right.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
           {/* Mobile Tab Switcher */}
-          <div className="md:hidden flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1">
+          <div className="md:hidden flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1 w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('write')}
-              className={`px-3 py-1 text-sm rounded-md transition-all ${activeTab === 'write' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-slate-500'}`}
+              className={`flex-1 sm:flex-none px-3 py-1 text-sm rounded-md transition-all ${activeTab === 'write' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-slate-500'}`}
             >
               Write
             </button>
             <button
               onClick={() => setActiveTab('preview')}
-              className={`px-3 py-1 text-sm rounded-md transition-all ${activeTab === 'preview' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-slate-500'}`}
+              className={`flex-1 sm:flex-none px-3 py-1 text-sm rounded-md transition-all ${activeTab === 'preview' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-slate-500'}`}
             >
               Preview
             </button>
           </div>
 
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            {isSaving ? "Saving..." : "Save Changes"}
-          </Button>
-          <Button
-            onClick={onCancel}
-            variant="outline"
-            size="sm"
-          >
-            <X className="mr-2 h-4 w-4" />
-            Cancel
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              size="sm"
+              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+            <Button
+              onClick={onCancel}
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+          </div>
         </div>
       </div>
 

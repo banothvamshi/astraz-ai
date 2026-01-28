@@ -1309,27 +1309,27 @@ export default function Dashboard() {
                   {/* Resume Card */}
                   {generatedResume && (
                     <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
-                      <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+                      <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                         <div className="flex items-center gap-2 text-amber-600 dark:text-indigo-400 font-semibold">
                           <FileText className="w-5 h-5" />
                           Optimized Resume
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                           <Button
                             onClick={() => setEditingResume(!editingResume)}
                             size="sm"
                             variant="outline"
-                            className="h-8 text-xs"
+                            className="h-9 md:h-8 text-xs w-full sm:w-auto"
                           >
                             {editingResume ? "View Preview" : "Edit Mode"}
                           </Button>
                           <Button
                             onClick={() => handleDownload("resume")}
                             size="sm"
-                            className="h-8 text-xs bg-amber-600 hover:bg-amber-700"
+                            className="h-9 md:h-8 text-xs bg-amber-600 hover:bg-amber-700 w-full sm:w-auto whitespace-normal h-auto py-2 md:py-0"
                           >
-                            <Download className="mr-1.5 h-3.5 w-3.5" />
-                            Download (Clean / No Watermark)
+                            <Download className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+                            <span>Download (Clean PDF)</span>
                           </Button>
                         </div>
                       </div>
