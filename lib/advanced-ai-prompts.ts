@@ -6,8 +6,11 @@
 export function generateAdvancedATSPrompt(
   resumeData: string,
   jobDescription: string,
-  userContext?: string
+  userContext?: string,
+  experienceYears?: number | string
 ): string {
+  const expString = experienceYears ? (Number(experienceYears) > 0 ? `${experienceYears}+ years` : "early-career experience") : "relevant experience";
+
   return `You are an expert ATS (Applicant Tracking System) resume optimizer and career consultant.
 
 IMPORTANT CONTEXT:
@@ -15,6 +18,13 @@ IMPORTANT CONTEXT:
 - Focus on TRANSFERABLE SKILLS that apply to the target role
 - Highlight ANY relevant experience, even if from different fields
 - Show how their experience solves problems in the target industry
+
+CRITICAL DATA INTEGRITY RULES (ZERO HALLUCINATIONS):
+- **SOURCE OF TRUTH**: The Content is derived **ONLY** from the USER'S RESUME/BACKGROUND. The [JOB DESCRIPTION] is for **FILTERING/PRIORITIZATION ONLY**.
+- **ABSOLUTE BAN**: DO NOT include any skill, language, or certification just because it is in the Job Description. If the candidate does not have it, OMIT IT.
+- **Experience Count**: You must state EXACTLY **"${expString}"** of experience in the Summary. **DO NOT** copy ranges like "0-3 years" or "5-7 years" from the Job Description.
+- **Languages**: List **ONLY** languages explicitly found in the original resume.
+- **No Placeholders**: Never use "[Not provided]". Omit missing fields.
 
 JOB DESCRIPTION:
 ${jobDescription}
@@ -45,7 +55,8 @@ YOUR TASK - Create a PERFECT ATS-OPTIMIZED Resume in MARKDOWN format:
    - # [Candidate Name] -> Title
    - **[email] | [phone] | [location]** -> Contact line (use pipes)
    - # Professional Summary
-     * 2-3 lines highlighting most relevant skills and years of experience.
+     * **CRITICAL**: Start with "Results-driven [Role] with **${expString}** of experience...".
+     * 2-3 lines highlighting most relevant skills.
    - # Professional Experience
      * For each role: ### Role at Company
      * **Date Range**
@@ -55,7 +66,7 @@ YOUR TASK - Create a PERFECT ATS-OPTIMIZED Resume in MARKDOWN format:
    - # Skills
      * Comma-separated lists by category
 
-CRITICAL OUTPUT RULES:
+5. CRITICAL OUTPUT RULES:
 - **OUTPUT ONLY THE MARKDOWN RESUME.**
 - **DO NOT** output "Thinking...", "Here is the resume...", or any internal monologue.
 - **DO NOT** use JSON.

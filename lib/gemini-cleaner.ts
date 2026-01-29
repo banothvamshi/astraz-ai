@@ -31,7 +31,11 @@ export async function cleanTextWithGemini(rawText: string): Promise<string> {
       7. PRESERVE content, do not summarize.
       8. If you see "technicaior", check context. If it looks like a title, "Technical Lead" or "Coordinator" is likely.
 
-      Your goal is to make it look like a human wrote it, fixing all PDF extraction artifacts.
+      34. Your goal is to make it look like a human wrote it, fixing all PDF extraction artifacts.
+      
+      CRITICAL INTELLIGENCE:
+      9. **ZERO HALLUCINATION RULE**: Do NOT add any content, skills, experience, or dates that are not present in the raw text. Your job is CLEANING, not WRITING.
+      10. If text is unreadable, leave it as is. Do not guess.
 
       RAW TEXT:
       ${rawText.substring(0, 15000)} // Limit context window if needed, though 1.5 flash handles large context well.

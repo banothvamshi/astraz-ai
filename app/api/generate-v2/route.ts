@@ -106,29 +106,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ============================================
-    // STAGE 0: PDF PARSING - CRITICAL FIX
-    // ============================================
-    console.log("\n" + "=".repeat(70));
-    console.log("STAGE 0: EXTRACTING TEXT FROM PDF");
-    console.log("=".repeat(70));
-
+    // STAGE 0: EXTRACTING TEXT FROM PDF
     let resumeText = "";
     try {
       // Convert base64 to buffer
       const base64Data = resume.includes(",") ? resume.split(",")[1] : resume;
       const pdfBuffer = Buffer.from(base64Data, "base64");
 
-      console.log(`Buffer size: ${pdfBuffer.length} bytes`);
-      console.log(`Is valid PDF: ${isPDFBuffer(pdfBuffer)}`);
-
       // Try simple parser first
       try {
         resumeText = await parsePDFReliable(pdfBuffer);
-        console.log(`✅ PDF parsed successfully: ${resumeText.length} characters`);
       } catch (simplError: any) {
-        console.error("Simple parser failed:", simplError.message);
-
         // Fallback to universal parser
         const parsedResume = await parseUniversalDocument(pdfBuffer, {
           includeOCR: true,
@@ -137,7 +125,6 @@ export async function POST(request: NextRequest) {
           mergePages: true,
         });
         resumeText = parsedResume.text;
-        console.log(`✅ Fallback parser succeeded: ${resumeText.length} characters`);
       }
 
       if (!resumeText || resumeText.trim().length < 50) {
@@ -160,19 +147,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ============================================
     // STAGE 1: NORMALIZE RESUME
-    // ============================================
-    console.log("\n" + "=".repeat(70));
-    console.log("STAGE 1: NORMALIZING RESUME DATA");
-    console.log("=".repeat(70));
-
     let normalizedResume;
     let cleanResumeText;
     try {
       normalizedResume = await normalizeResume(resumeText);
       cleanResumeText = formatNormalizedResume(normalizedResume);
-      console.log("✅ Resume normalized successfully");
     } catch (normalizeError: any) {
       console.error("Normalization failed:", normalizeError.message);
       return NextResponse.json(
@@ -183,31 +163,72 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ============================================
-    // STAGE 2: PARSE JOB DESCRIPTION
-    // ============================================
-    console.log("\n" + "=".repeat(70));
-    console.log("STAGE 2: ANALYZING JOB DESCRIPTION");
-    console.log("=".repeat(70));
-
+    // STAGE 2: ANALYZING JOB DESCRIPTION
     const sanitizedJobDesc = sanitizeJobDescription(jobDescription);
     const parsedJob = parseJobDescription(sanitizedJobDesc);
     const keywords = extractKeywords(sanitizedJobDesc);
 
-    console.log(`Extracted ${keywords.length} keywords from job description`);
-    console.log(`Required skills: ${parsedJob.skills.slice(0, 5).join(", ")}`);
+    // STAGE 2.5: CALCULATE EXPERIENCE STRICTLY
+    let totalYears = 0;
+    try {
+      if (normalizedResume.experience && Array.isArray(normalizedResume.experience)) {
+        // Helper to parse dates like "2020", "Jan 2020", "01/2020", "Present"
+        const parseDate = (dateStr: string): Date | null => {
+          if (!dateStr) return null;
+          const d = dateStr.trim().toLowerCase();
+          if (d === "present" || d === "current" || d === "now") return new Date();
 
-    // ============================================
+          // Try parsing regular date
+          const parsed = new Date(dateStr);
+          if (!isNaN(parsed.getTime())) return parsed;
+
+          // Fallback for YYYY
+          if (/^\d{4}$/.test(d)) return new Date(`${d}-01-01`);
+
+          return null;
+        };
+
+        // Calculate total overlapping experience
+        // Simplification: Sum all durations. 
+        // Better: Range merging. But for prompt "X years", sum is usually okay or just start of first job to now.
+        // "X years of experience" usually means "Total years in workforce".
+        // Let's sum unique months.
+        // Actually, simplest consistent metric is: SUM(end - start).
+
+        let totalMonths = 0;
+        normalizedResume.experience.forEach((exp: any) => {
+          // Assume normalizedResume has 'dates' or 'duration' or 'startDate'/'endDate' fields?
+          // `lib/resume-normalizer` usually outputs `startDate` and `endDate` or `dates`.
+          // Step 2786 line 296 says `duration: exp.duration`.
+          // It doesn't show start/end date keys explicitly mapped in the PDF generation part (lines 293-298).
+          // IF `normalizedResume` only has `duration` string (e.g. "Jan 2020 - Present"), we must parse it.
+          // Assuming `duration` is the key.
+          const dateRange = exp.duration || exp.dates || "";
+          if (dateRange) {
+            const parts = dateRange.split(/[-–]| to /i); // Hyphens or "to"
+            if (parts.length >= 1) {
+              const start = parseDate(parts[0]);
+              const end = parts.length > 1 ? parseDate(parts[1]) : new Date(); // Assume to Present if missing end? Or just single date?
+
+              if (start && end) {
+                const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+                if (months > 0) totalMonths += months;
+              }
+            }
+          }
+        });
+        totalYears = Math.floor(totalMonths / 12);
+      }
+    } catch (e) {
+      console.error("Experience calc failed, defaulting to 0", e);
+    }
+
     // STAGE 3: GENERATE OPTIMIZED ATS RESUME
-    // ============================================
-    console.log("\n" + "=".repeat(70));
-    console.log("STAGE 3: GENERATING ATS-OPTIMIZED RESUME");
-    console.log("=".repeat(70));
-
     const resumePrompt = generateAdvancedATSPrompt(
       cleanResumeText,
       sanitizedJobDesc,
-      `The candidate's original resume name: ${normalizedResume.name}`
+      `The candidate's original resume name: ${normalizedResume.name}`,
+      totalYears
     );
 
     let generatedResume = "";
