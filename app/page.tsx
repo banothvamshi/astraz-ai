@@ -121,11 +121,11 @@ export default function Home() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Button
-              onClick={() => router.push("/signup")}
+              onClick={() => router.push("/dashboard")}
               size="lg"
               className="h-14 px-8 rounded-full text-lg bg-slate-900 dark:bg-white text-white dark:text-black hover:scale-105 transition-transform shadow-2xl shadow-indigo-500/20"
             >
-              Create Free Account <ArrowRight className="ml-2 h-5 w-5" />
+              Build My Resume Now <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
 
           </motion.div>
