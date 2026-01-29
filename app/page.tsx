@@ -121,11 +121,11 @@ export default function Home() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Button
-              onClick={handleGetStarted}
+              onClick={() => router.push("/signup")}
               size="lg"
               className="h-14 px-8 rounded-full text-lg bg-slate-900 dark:bg-white text-white dark:text-black hover:scale-105 transition-transform shadow-2xl shadow-indigo-500/20"
             >
-              Get Your Unfair Advantage <ArrowRight className="ml-2 h-5 w-5" />
+              Create Free Account <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
 
           </motion.div>
@@ -249,11 +249,11 @@ export default function Home() {
             The best jobs are filled in 48 hours. Don't let your dream role slip away.
           </p>
           <Button
-            onClick={handleGetStarted}
+            onClick={() => router.push("/signup")}
             size="lg"
             className="h-16 px-10 text-xl rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-2xl shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105"
           >
-            Create Top 1% Resume
+            Start Building for Free
           </Button>
         </div>
       </section>

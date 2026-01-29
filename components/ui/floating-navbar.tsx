@@ -81,10 +81,10 @@ export function FloatingNav() {
                                     Sign In
                                 </Button>
                                 <Button
-                                    onClick={() => router.push("/dashboard")}
+                                    onClick={() => router.push("/signup")}
                                     className="bg-slate-900 dark:bg-white text-white dark:text-black hover:opacity-90 transition-all shadow-[0_0_20px_-5px_rgba(0,0,0,0.3)] dark:shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]"
                                 >
-                                    Get Started
+                                    Create Account
                                 </Button>
                             </>
                         )}
@@ -112,7 +112,7 @@ export function FloatingNav() {
                         <a href="/payment" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-slate-900 dark:text-white">Pricing</a>
                         <hr className="border-slate-200 dark:border-white/10" />
                         <Button variant="outline" onClick={() => router.push("/login")} className="w-full">Sign In</Button>
-                        <Button onClick={() => router.push("/dashboard")} className="w-full">Get Started</Button>
+                        <Button onClick={() => router.push("/signup")} className="w-full">Create Account</Button>
                     </div>
                 </motion.div>
             )}
