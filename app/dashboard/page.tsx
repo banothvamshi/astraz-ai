@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Loader2, Download, Sparkles, ArrowLeft, Edit2, UploadCloud, Briefcase, ChevronDown, ChevronUp, User, Mail, Phone, Linkedin, MapPin, Building2, CreditCard, Zap, Lock, LogOut, Calendar, Activity, Shield, CheckCircle2, Eye } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { UploadArea } from "@/components/upload-area";
