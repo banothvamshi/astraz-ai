@@ -1,6 +1,5 @@
 "use client";
 
-import { Github } from "lucide-react";
 import Link from "next/link";
 
 export function Footer() {
@@ -35,9 +34,7 @@ export function Footer() {
                 <div className="flex items-center justify-between pt-8 border-t border-slate-200 dark:border-white/10 text-slate-500 text-sm">
                     <div>© {new Date().getFullYear()} Astraz AI Inc.</div>
                     <div className="flex gap-4">
-                        <a href="https://github.com/astraz-ai" target="_blank" rel="noopener noreferrer">
-                            <Github className="w-5 h-5 cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors" />
-                        </a>
+                        {/* Social links removed as per request */}
                     </div>
                 </div>
             </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Sparkles, Check, Zap, Shield, TrendingUp, Cpu, FileText, Lock, Star, ChevronRight, Menu, X, Github } from "lucide-react";
+import { ArrowRight, Sparkles, Check, Zap, Shield, TrendingUp, Cpu, FileText, Lock, Star, ChevronRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { hasUsedTrial } from "@/lib/storage";
 import { motion, useScroll, useTransform, useInView, useSpring } from "framer-motion";
