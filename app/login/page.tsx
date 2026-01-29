@@ -20,14 +20,11 @@ export default function LoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Login attempt started for:", email);
         setError("");
         setIsLoading(true);
 
         try {
-            console.log("Getting Supabase client...");
             const supabase = getSupabaseBrowserClient();
-            console.log("Supabase client obtained, signing in...");
 
             const { data, error: authError } = await supabase.auth.signInWithPassword({
                 email: email.toLowerCase().trim(),
@@ -35,13 +32,10 @@ export default function LoginPage() {
             });
 
             if (authError) {
-                console.error("Login error:", authError);
                 setError(authError.message);
                 setIsLoading(false);
                 return;
             }
-
-            console.log("Login successful, user:", data.user?.id);
 
             if (data.user) {
                 // Check user profile for admin status
@@ -51,20 +45,15 @@ export default function LoginPage() {
                     .eq("id", data.user.id)
                     .single();
 
-                console.log("Profile fetched:", profile);
-
                 if (profile?.is_admin) {
-                    console.log("User is admin, redirecting to admin panel...");
                     // Force hard navigation to ensure cookies are sent to server
                     // This bypasses Next.js Router cache which might hold a stale "unauth" state
                     window.location.href = "/admin";
                     return;
                 } else if (profile && profile.first_login_completed === false) {
-                    console.log("First login, redirecting to reset password...");
                     // Only for payment-created accounts (explicitly false, not null)
                     router.push("/reset-password?first=true");
                 } else {
-                    console.log("Redirecting to dashboard...");
                     // Normal users go to dashboard
                     router.refresh();
                     router.push("/dashboard");

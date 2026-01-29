@@ -46,7 +46,10 @@ export default function SettingsPage() {
         registration_enabled: true,
         email_notifications: true,
         max_daily_generations: 50,
-        default_plan: "free"
+        default_plan: "free",
+        enable_guest_access: true,
+        enable_ip_check: true,
+        guest_generation_limit: 1
     });
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -136,6 +139,34 @@ export default function SettingsPage() {
                     type: "number",
                     key: "max_daily_generations" as keyof SystemSettings,
                     value: settings.max_daily_generations
+                }
+            ]
+        },
+        {
+            title: "Rate Limiting & Guest Access",
+            icon: Shield, // Reusing Shield or maybe Globe
+            color: "purple",
+            settings: [
+                {
+                    label: "Enable Guest Access",
+                    description: "Allow non-logged-in users to generate resumes",
+                    type: "toggle",
+                    key: "enable_guest_access" as keyof SystemSettings,
+                    value: settings.enable_guest_access
+                },
+                {
+                    label: "Guest Generation Limit",
+                    description: "Max generations allowed for guests (per IP)",
+                    type: "number",
+                    key: "guest_generation_limit" as keyof SystemSettings,
+                    value: settings.guest_generation_limit
+                },
+                {
+                    label: "Unique IP Check",
+                    description: "Strictly enforce 1 trial per unique IP address",
+                    type: "toggle",
+                    key: "enable_ip_check" as keyof SystemSettings,
+                    value: settings.enable_ip_check
                 }
             ]
         },

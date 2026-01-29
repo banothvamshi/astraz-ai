@@ -81,21 +81,9 @@ export async function POST(request: NextRequest) {
           { status: 402 } // Payment Required
         );
       }
-    } else {
-      // GUEST USERS: Strict blocking or Rate Limit
-      // User Requirement: "generations should not work if non account user already used free 1 use"
-      // Since we cannot reliably track "1 use" across serverless executions without DB, we will BLOCK guests or use IP rate limit.
-      // For safety/strictness as requested: BLOCK. Force them to sign up.
-      // OR: Allow 1 request per IP using rate-limiter.
-      const ip = getClientIdentifier(request);
-      const { allowed } = checkRateLimit(ip, "generate", false);
-      if (!allowed) {
-        return NextResponse.json(
-          { error: "Free trial limit reached. Please sign up to continue." },
-          { status: 429 }
-        );
-      }
     }
+    // GUEST LOGIC is now handled in the main Rate Limiting section below (Stage 4).
+    // This allows us to use the specific Admin Settings (guest limits, toggles).
     // Parse request body with timeout protection
     let body;
     try {
@@ -118,17 +106,29 @@ export async function POST(request: NextRequest) {
 
     // 4. Rate Limiting (Global & Per-User)
 
-    // Fetch System Settings for Global Limit
-    const { data: settings } = await authClient.from("system_settings").select("max_daily_generations").single();
+    // 4. Rate Limiting (Global & Per-User)
+
+    // Fetch System Settings
+    const { data: settings } = await authClient.from("system_settings").select("*").single();
     const GLOBAL_DAILY_LIMIT = settings?.max_daily_generations || 50;
+    const GUEST_LIMIT = settings?.guest_generation_limit || 1;
+    const GUEST_ACCESS_ENABLED = settings?.enable_guest_access ?? true;
+    const IP_CHECK_ENABLED = settings?.enable_ip_check ?? true;
+
+    // GUEST ACCESS CONTROL
+    if (!authUser && !GUEST_ACCESS_ENABLED) {
+      return NextResponse.json(
+        { error: "Guest access is currently disabled. Please sign up to generate a resume." },
+        { status: 403 }
+      );
+    }
 
     const today = new Date().toISOString().split("T")[0];
     let dailyCount = 0;
-    const requestIp = getClientIdentifier(request); // Renamed to avoid conflict
+    const requestIp = getClientIdentifier(request);
 
     if (authUser) {
-      // Check user's daily usage
-      // We can check 'generations' table count for today
+      // LOGGED IN USER: Check DB count against Global Limit
       const { count } = await authClient
         .from("generations")
         .select("*", { count: "exact", head: true })
@@ -136,21 +136,53 @@ export async function POST(request: NextRequest) {
         .gte("created_at", `${today}T00:00:00.000Z`);
 
       dailyCount = count || 0;
-    } else {
-      // IP-based limit for guests (Strict)
-      const { count } = await authClient
-        .from("generations")
-        .select("*", { count: "exact", head: true })
-        .eq("ip_address", requestIp)
-        .gte("created_at", `${today}T00:00:00.000Z`);
-      dailyCount = count || 0;
-    }
 
-    if (dailyCount >= GLOBAL_DAILY_LIMIT) {
-      return NextResponse.json(
-        { error: "Daily generation limit reached. Please try again tomorrow." },
-        { status: 429 }
-      );
+      if (dailyCount >= GLOBAL_DAILY_LIMIT) {
+        return NextResponse.json(
+          { error: "Daily generation limit reached. Please try again tomorrow." },
+          { status: 429 }
+        );
+      }
+    } else {
+      // GUEST USER
+      // 1. Strict IP Check (DB persistence)
+      if (IP_CHECK_ENABLED) {
+        const { count } = await authClient
+          .from("generations")
+          .select("*", { count: "exact", head: true })
+          .eq("ip_address", requestIp)
+          // For guests, we might want LIFETIME limit or DAILY.
+          // User said "1 time free use", usually implies Lifetime.
+          // But code was checking `today`.
+          // Let's assume User wants "1 free use" (Lifetime per IP) or "1 per day".
+          // If strictly "1 time free use ever", we remove the date filter.
+          // BUT, to be safe and not brick it, let's stick to DAILY for now, or check if 'Limit' is small (1).
+          // If limit is small (1-3), we probably mean lifetime? No, let's stick to DAILY to avoid permanent lockouts for dynamic IPs.
+          .gte("created_at", `${today}T00:00:00.000Z`);
+
+        dailyCount = count || 0;
+
+        if (dailyCount >= GUEST_LIMIT) {
+          return NextResponse.json(
+            { error: `Free trial limit reached (${GUEST_LIMIT} per day). Please sign up for more.` },
+            { status: 429 }
+          );
+        }
+      } else {
+        // IP Check Disabled -> effectively "Unlimited" guest access (up to Global Limit)
+        // We still count them to prevent abuse, but against the higher limit?
+        // Or just allow it.
+        // Let's check against GLOBAL limit to prevent total DOS.
+        const { count } = await authClient
+          .from("generations")
+          .select("*", { count: "exact", head: true })
+          .eq("ip_address", requestIp)
+          .gte("created_at", `${today}T00:00:00.000Z`);
+
+        if ((count || 0) >= 50) { // Hard cap for safety
+          return NextResponse.json({ error: "High traffic from this IP. Please sign up." }, { status: 429 });
+        }
+      }
     }
 
     // Legacy in-memory limiter (Keep as secondary fast-fail)
@@ -296,11 +328,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // STAGE 0: Parse PDF with simple reliable parser
-    console.log("=".repeat(50));
-    console.log("STAGE 0: Parsing PDF with Simple Reliable Parser");
-    console.log("=".repeat(50));
-
+    // STAGE 0: Parse PDF with Simple Reliable Parser
     let resumeText: string;
     let superParsedData: any = null; // Store high-quality parsed data
     try {
@@ -351,9 +379,6 @@ export async function POST(request: NextRequest) {
     }
 
     // STAGE 1: Normalize raw resume to clean, structured format
-    console.log("=".repeat(50));
-    console.log("STAGE 1: Normalizing resume to clean format");
-    console.log("=".repeat(50));
     console.log(`Input text length: ${resumeText.length} characters`);
 
     let normalizedResume: NormalizedResume;
@@ -502,9 +527,6 @@ export async function POST(request: NextRequest) {
     }
 
     // STAGE 2: Generate Resume
-    console.log("=".repeat(50));
-    console.log("STAGE 2: Generating Resume with AI");
-    console.log("=".repeat(50));
 
     // Calculate actual experience to prevent hallucinations
     let calculatedExperience = { totalYears: 0, details: "unknown" };

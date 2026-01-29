@@ -11,6 +11,9 @@ export interface SystemSettings {
     registration_enabled: boolean;
     default_plan: string;
     email_notifications: boolean;
+    enable_guest_access: boolean;
+    enable_ip_check: boolean;
+    guest_generation_limit: number;
 }
 
 export async function getSystemSettings(): Promise<SystemSettings> {
@@ -33,7 +36,10 @@ export async function getSystemSettings(): Promise<SystemSettings> {
             maintenance_mode: false,
             registration_enabled: true,
             default_plan: "free",
-            email_notifications: true
+            email_notifications: true,
+            enable_guest_access: true,
+            enable_ip_check: true,
+            guest_generation_limit: 1
         };
     }
 
@@ -67,6 +73,9 @@ export async function updateSystemSettings(settings: Partial<SystemSettings>) {
             registration_enabled: settings.registration_enabled,
             default_plan: settings.default_plan,
             email_notifications: settings.email_notifications,
+            enable_guest_access: settings.enable_guest_access,
+            enable_ip_check: settings.enable_ip_check,
+            guest_generation_limit: settings.guest_generation_limit,
             updated_at: new Date().toISOString()
         })
         .eq("id", 1); // Always update Singleton
