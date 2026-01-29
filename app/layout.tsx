@@ -18,57 +18,55 @@ const geistMono = Geist_Mono({
 
 // Comprehensive SEO keywords for job search/resume builder ranking
 const seoKeywords = [
-  // User Requested High-Value Keywords
-  "best resume builder",
-  "best resume generator",
-  "best resume creator",
-  "best ats resume",
-  "best ats resume builder",
-  "best ats resume creator",
-  "best ats resume generator",
-  "free ats resume generator",
-  "free ats resume builder",
-  "free ats resume creator",
+  // BRAND & CORE
+  "Astraz AI", "Astraz", "Astra AI", "Astrazai", "Astraz.ai",
 
-  // General
-  "resume", "CV", "curriculum vitae", "biodata", "job search", "cv maker",
-  "free resume pdf", "download resume", "make resume online",
-  "resume builder 2026", "ai resume builder", "chatgpt resume",
+  // HIGH VOLUME - BROAD
+  "resume builder", "free resume builder", "online resume builder", "resume maker", "cv maker",
+  "resume generator", "cv generator", "biodata maker", "curriculum vitae creator",
 
-  // Competitor Alternatives
-  "canva alternative", "novoresume alternative", "zety alternative", "resume.io alternative",
+  // AI SPECIFIC
+  "ai resume builder", "best ai resume builder", "ai resume generator", "chatgpt resume builder",
+  "ai cv maker", "ai powered resume", "automated resume builder", "gemini resume builder",
 
-  // Specific
-  "resume for students", "resume for freshers", "resume for experienced", "tech resume", "software engineer resume"
+  // ATS SPECIFIC (High Value)
+  "ats resume", "ats friendly resume", "ats resume checker", "ats resume builder",
+  "ats scanner", "ats score", "ats compliant resume", "resume for ats systems",
+
+  // FEATURE SPECIFIC
+  "free resume download", "pdf resume builder", "resume templates", "professional resume templates",
+  "no sign up resume builder", "instant resume download", "resume format 2026",
+
+  // TARGET AUDIENCE
+  "resume for students", "resume for freshers", "software engineer resume", "tech resume",
+  "manager resume", "executive resume", "career change resume",
+
+  // COMPETITOR ALTERNATIVES
+  "best canva alternative", "novoresume alternative", "zety alternative", "resume.io alternative",
+  "better than chatgpt for resumes", "best free resume builder 2026"
 ].join(", ");
-
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: "#6366f1",
-};
 
 export const metadata: Metadata = {
   title: {
-    default: "Best Free AI Resume Builder | Astraz AI (100% Free PDF Download)",
-    template: "%s | Astraz AI"
+    default: "Best Free AI Resume Builder & Generator 2026 | Astraz AI (ATS Friendly)",
+    template: "%s | Astraz AI - #1 ATS Resume Builder"
   },
-  description: "Rank #1 Free AI Resume Builder 2026. Create ATS-friendly resumes in minutes. No sign-up required for trial. Better than Canva, Resumeworded & Novoresume. Instant PDF Download.",
+  description: "Ranked #1 Free AI Resume Builder. Create a perfect ATS-friendly resume in seconds. No sign-up required. Instant PDF Download. Better than Canva & Novoresume.",
   keywords: seoKeywords,
   authors: [{ name: "Astraz AI", url: "https://astrazai.com" }],
   creator: "Astraz AI",
   publisher: "Astraz AI",
-  applicationName: "Astraz AI CV Maker",
+  applicationName: "Astraz AI Resume Generator",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   category: "Career & Employment",
-  classification: "Free Resume Builder, CV Maker",
+  classification: "Free Resume Builder, CV Maker, AI Career Tools",
   formatDetection: {
     telephone: false,
   },
 
   openGraph: {
-    title: "Best Free AI Resume Builder | Pass ATS Scanners (100% Free)",
+    title: "Best Free AI Resume Builder 2026 | Astraz AI (100% Free PDF)",
     description: "Don't pay for a resume. Use Astraz AI to build a professional, ATS-optimized CV in seconds. Download PDF for free. No credit card required.",
     url: "https://astrazai.com",
     siteName: "Astraz AI",
@@ -79,7 +77,7 @@ export const metadata: Metadata = {
         url: "https://astrazai.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Best Free AI Resume Builder 2026"
+        alt: "Best Free AI Resume Builder 2026 | Astraz AI"
       }
     ]
   },
@@ -92,6 +90,7 @@ export const metadata: Metadata = {
     creator: "@astrazai"
   },
 
+  // ... robots, alternates, verification remain same ...
   robots: {
     index: true,
     follow: true,
@@ -135,8 +134,8 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": "https://astrazai.com/#website",
       "url": "https://astrazai.com",
-      "name": "Astraz AI",
-      "description": "AI-Powered ATS Resume Builder",
+      "name": "Astraz AI Resume Builder",
+      "description": "The #1 AI-Powered ATS Resume Builder & Generator",
       "publisher": { "@id": "https://astrazai.com/#organization" },
       "potentialAction": {
         "@type": "SearchAction",
@@ -153,22 +152,26 @@ const jsonLd = {
         "@type": "ImageObject",
         "url": "https://astrazai.com/logo.png",
         "width": 512,
-        "height": 512
+        "height": 512,
+        "caption": "Astraz AI Logo"
       },
       "sameAs": [
         "https://twitter.com/astrazai",
-        "https://linkedin.com/company/astrazai"
+        "https://linkedin.com/company/astrazai",
+        "https://facebook.com/astrazai",
+        "https://instagram.com/astrazai"
       ]
     },
     {
       "@type": "SoftwareApplication",
       "name": "Astraz AI Resume Builder",
       "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
+      "operatingSystem": "Web, iOS, Android",
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
       },
       "aggregateRating": {
         "@type": "AggregateRating",
@@ -177,41 +180,45 @@ const jsonLd = {
         "bestRating": "5",
         "worstRating": "1"
       },
-      "description": "Create ATS-optimized resumes with AI. Free resume builder that passes 99% of Applicant Tracking Systems.",
+      "description": "Create ATS-optimized resumes with AI. Free resume builder that passes 99% of Applicant Tracking Systems. Instant PDF download.",
       "featureList": [
         "AI-powered resume optimization",
         "ATS compatibility scoring",
         "Instant PDF download",
         "Job description analysis",
         "Keyword optimization",
-        "Professional templates"
-      ]
+        "Professional resume templates",
+        "Cover letter generator",
+        "LinkedIn profile optimizer"
+      ],
+      "screenshot": "https://astrazai.com/og-image.png",
+      "softwareHelp": "https://astrazai.com/about"
     },
     {
       "@type": "FAQPage",
       "mainEntity": [
         {
           "@type": "Question",
+          "name": "What is the best free AI resume builder?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Astraz AI is widely considered the best free AI resume builder because it offers professional ATS-friendly templates, AI content optimization, and instant PDF downloads without forced watermarks or paywalls for the first resume."
+          }
+        },
+        {
+          "@type": "Question",
           "name": "Is Astraz AI really free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes! Astraz AI offers a free tier that allows you to create one optimized resume. Premium plans unlock unlimited generations."
+            "text": "Yes! Astraz AI allows you to build and download a professional resume for free. We also offer premium features for power users who need unlimited generations and advanced AI analysis."
           }
         },
         {
           "@type": "Question",
-          "name": "What is an ATS resume?",
+          "name": "Does Astraz AI work with ATS systems?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "An ATS resume is optimized to pass Applicant Tracking Systems - software used by 99% of Fortune 500 companies to filter resumes before human review."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "How does Astraz AI optimize my resume?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Astraz AI analyzes the job description, extracts key requirements, and rewrites your resume to match those requirements while maintaining your authentic experience."
+            "text": "Yes. Astraz AI is specifically engineered to pass Applicant Tracking Systems (ATS). Our templates use clean, parseable formatting and our AI inserts the exact keywords needed to rank high in recruiter searches."
           }
         }
       ]

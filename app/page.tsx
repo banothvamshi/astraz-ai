@@ -93,10 +93,10 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-5xl md:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 mb-6 max-w-5xl mx-auto"
           >
-            The Best Free AI
+            The #1 Best Free AI
             <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500">
-              Resume Builder.
+              Resume Builder & Generator.
             </span>
           </motion.h1>
 
@@ -106,10 +106,12 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10"
           >
-            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10">
-              Create a professional, ATS-friendly resume in seconds. <br />
-              <span className="font-bold text-slate-900 dark:text-white">100% Free PDF Download. No Sign-up Required.</span> Better than Canva & Resume.io.
-            </p>
+            Create a professional, <span className="font-semibold text-slate-900 dark:text-white">ATS-friendly resume</span> in seconds.
+            <br className="hidden md:block" />
+            Designed to rank #1 in Google & Applicant Tracking Systems.
+            <br />
+            <span className="font-bold text-slate-900 dark:text-white mt-2 block">100% Free PDF Download. No Sign-up Required.</span>
+            The best specialized alternative to Canva, Novoresume & Zety.
           </motion.p>
 
           <motion.div
@@ -187,28 +189,28 @@ export default function Home() {
 
           <BentoGrid>
             <BentoGridItem
-              title="Semantic Matching Engine"
+              title="AI Resume Generator with Semantic Matching"
               description="Our AI doesn't just keyword stuff. It rebuilds your experience to semantically align with the job description, making you the obvious choice."
               header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/10 backdrop-blur-sm" />}
               icon={<Cpu className="h-4 w-4 text-amber-500" />}
               className="md:col-span-2"
             />
             <BentoGridItem
-              title="Real-time ATS Scoring"
+              title="Real-time ATS Resume Checker"
               description="See exactly what the bots see. Get an instant score and fix issues before you hit submit."
               header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 border border-emerald-500/10 backdrop-blur-sm" />}
               icon={<Zap className="h-4 w-4 text-emerald-500" />}
               className="md:col-span-1"
             />
             <BentoGridItem
-              title="Dynamic Theming"
+              title="Professional Resume Templates"
               description="Instantly transform your resume from 'Corporate Professional' to 'Creative Lead' with one click."
               header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/10 backdrop-blur-sm" />}
               icon={<FileText className="h-4 w-4 text-purple-500" />}
               className="md:col-span-1"
             />
             <BentoGridItem
-              title="Bank-Grade Privacy"
+              title="Bank-Grade Privacy & Security"
               description="We respect your data. Your resume is encrypted and never sold to third-party recruiters."
               header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/10 backdrop-blur-sm" />}
               icon={<Shield className="h-4 w-4 text-blue-500" />}
