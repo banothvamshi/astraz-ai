@@ -545,6 +545,9 @@ export async function POST(request: NextRequest) {
     }
 
     // PREMIUM resume generation prompt - Highest quality output
+    // PREMIUM resume generation prompt - Highest quality output
+    const expString = calculatedExperience.totalYears > 0 ? `${calculatedExperience.totalYears}+ years` : "early-career experience";
+
     const resumePrompt = `You are an elite executive resume writer (Expert) with 25+ years of experience helping candidates secure positions at Fortune 500 companies, FAANG, and top-tier organizations. Your resumes consistently pass ATS systems and impress C-level executives.
 
 TASK: Create a COMPLETE, PREMIUM, ATS-optimized resume that maximizes interview opportunities and showcases the candidate as an exceptional fit.
@@ -556,6 +559,7 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
 1. **STRICT DATA INTEGRITY (ZERO HALLUCINATIONS)**:
    - **SOURCE OF TRUTH**: The Content is derived **ONLY** from the [ORIGINAL RESUME]. The [Job Description] is for **FILTERING/PRIORITIZATION ONLY**.
    - **ABSOLUTE BAN**: DO NOT include any skill, language, or certification just because it is in the Job Description. If the candidate does not have it, OMIT IT.
+   - **Experience Count (CRITICAL)**: You must state EXACTLY **"${expString}"** of experience in the summary. **DO NOT** copy ranges like "0-3 years" or "5-7 years" from the Job Description.
    - **Languages**: List **ONLY** languages explicitly found in the [ORIGINAL RESUME]. DO NOT COPY "Beneficial" or "Optional" languages from the JD. If the resume lists "English", "Hindi", output ONLY "English", "Hindi".
    - **Education**: If the input has no education, do NOT create an Education section.
    - **No Placeholders**: Never use "[Not provided]". Omit missing fields.
@@ -595,8 +599,9 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
 3. **Professional Summary (MANDATORY)**:
    - You MUST generate a "Professional Summary" section at the top.
    - 3-4 lines maximum.
+   - **CRITICAL**: Start with "Results-driven [Role] with **${expString}** of experience...".
+   - **NEVER** use the JD's required experience range (e.g. "0-3 years"). Use ONLY the candidate's actual experience calculated above.
    - Synthesis of: Years of Experience + Key Achievement + Top JD Keyword Match.
-   - Example data: "Results-driven [Role] with [X] years of experience... Expert in [Skill 1], [Skill 2]."
    - **DO NOT** omit this section.
 
 4. **Experience Section**:

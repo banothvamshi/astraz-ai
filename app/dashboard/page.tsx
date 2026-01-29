@@ -464,7 +464,7 @@ export default function Dashboard() {
     } catch (error: any) {
       console.error("Error generating:", error);
       const errorMessage = error.message || "Failed to generate. Please try again.";
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
     }
