@@ -47,13 +47,14 @@ const seoKeywords = [
 ].join(", ");
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.astrazai.com"),
   title: {
     default: "Best Free AI Resume Builder & Generator 2026 | Astraz AI (ATS Friendly)",
     template: "%s | Astraz AI - #1 ATS Resume Builder"
   },
   description: "Ranked #1 Free AI Resume Builder. Create a perfect ATS-friendly resume in seconds. No sign-up required. Instant PDF Download. Better than Canva & Novoresume.",
   keywords: seoKeywords,
-  authors: [{ name: "Astraz AI", url: "https://astrazai.com" }],
+  authors: [{ name: "Astraz AI", url: "https://www.astrazai.com" }],
   creator: "Astraz AI",
   publisher: "Astraz AI",
   applicationName: "Astraz AI Resume Generator",
@@ -68,13 +69,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Best Free AI Resume Builder 2026 | Astraz AI (100% Free PDF)",
     description: "Don't pay for a resume. Use Astraz AI to build a professional, ATS-optimized CV in seconds. Download PDF for free. No credit card required.",
-    url: "https://astrazai.com",
+    url: "https://www.astrazai.com",
     siteName: "Astraz AI",
     type: "website",
     locale: "en_US",
     images: [
       {
-        url: "https://astrazai.com/og-image.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Best Free AI Resume Builder 2026 | Astraz AI"
@@ -86,11 +87,10 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Best Free AI Resume Builder | Astraz AI",
     description: "Stop paying for resumes. Create a job-winning CV for free with Astraz AI. ATS-friendly & Instant Download.",
-    images: ["https://astrazai.com/twitter-image.png"],
+    images: ["/twitter-image.png"],
     creator: "@astrazai"
   },
 
-  // ... robots, alternates, verification remain same ...
   robots: {
     index: true,
     follow: true,
@@ -105,10 +105,10 @@ export const metadata: Metadata = {
   },
 
   alternates: {
-    canonical: "https://astrazai.com",
+    canonical: "https://www.astrazai.com",
     languages: {
-      "en-US": "https://astrazai.com",
-      "en-IN": "https://astrazai.com",
+      "en-US": "https://www.astrazai.com",
+      "en-IN": "https://www.astrazai.com",
     }
   },
 
@@ -132,25 +132,25 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "WebSite",
-      "@id": "https://astrazai.com/#website",
-      "url": "https://astrazai.com",
+      "@id": "https://www.astrazai.com/#website",
+      "url": "https://www.astrazai.com",
       "name": "Astraz AI Resume Builder",
       "description": "The #1 AI-Powered ATS Resume Builder & Generator",
-      "publisher": { "@id": "https://astrazai.com/#organization" },
+      "publisher": { "@id": "https://www.astrazai.com/#organization" },
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://astrazai.com/dashboard?q={search_term_string}",
+        "target": "https://www.astrazai.com/dashboard?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
     },
     {
       "@type": "Organization",
-      "@id": "https://astrazai.com/#organization",
+      "@id": "https://www.astrazai.com/#organization",
       "name": "Astraz AI",
-      "url": "https://astrazai.com",
+      "url": "https://www.astrazai.com",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://astrazai.com/logo.png",
+        "url": "https://www.astrazai.com/logo.png",
         "width": 512,
         "height": 512,
         "caption": "Astraz AI Logo"
@@ -191,8 +191,8 @@ const jsonLd = {
         "Cover letter generator",
         "LinkedIn profile optimizer"
       ],
-      "screenshot": "https://astrazai.com/og-image.png",
-      "softwareHelp": "https://astrazai.com/about"
+      "screenshot": "https://www.astrazai.com/og-image.png",
+      "softwareHelp": "https://www.astrazai.com/about"
     },
     {
       "@type": "FAQPage",

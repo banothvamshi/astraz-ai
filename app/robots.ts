@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/dashboard/', '/admin/', '/api/'],
         },
-        sitemap: 'https://astrazai.com/sitemap.xml',
+        sitemap: 'https://www.astrazai.com/sitemap.xml',
     };
 }
