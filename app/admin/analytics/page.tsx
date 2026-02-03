@@ -37,179 +37,210 @@ export default function AnalyticsPage() {
 
     const fetchAnalytics = async () => {
         setIsLoading(true);
-        const supabase = getSupabaseBrowserClient();
 
-        // Fetch all data
-        const [profilesRes, paymentsRes, generationsRes, visitsRes] = await Promise.all([
-            supabase.from("profiles").select("id, is_premium, created_at, country"),
-            supabase.from("payments").select("amount, plan_type, created_at").eq("status", "captured"),
-            supabase.from("generations").select("id, user_id, created_at, ip_address"),
-            supabase.from("analytics_visits").select("visitor_id, created_at, ip_address")
-        ]);
+        try {
+            const response = await fetch(`/api/admin/analytics?range=${dateRange}`);
+            if (!response.ok) throw new Error("Failed to fetch analytics");
 
-        const profiles = profilesRes.data || [];
-        const payments = paymentsRes.data || [];
-        const generations = generationsRes.data || [];
-        const visits = visitsRes.data || [];
+            const rawData = await response.json();
 
-        // Calculate metrics
-        const totalRevenue = payments.reduce((sum, p) => sum + (p.amount || 0), 0) / 100;
-        const totalUsers = profiles.length;
-        const paidUsers = profiles.filter(p => p.is_premium).length;
-        const conversionRate = totalUsers > 0 ? (paidUsers / totalUsers) * 100 : 0;
-        const totalGenerations = generations.length;
-        const anonymousGenerations = generations.filter(g => !g.user_id).length;
-        const avgRevenuePerUser = paidUsers > 0 ? totalRevenue / paidUsers : 0;
+            const profiles = rawData.profiles || [];
+            const payments = rawData.payments || [];
+            const generations = rawData.generations || [];
+            const visits = rawData.visits || [];
+            const activityLogs = rawData.logs || [];
 
-        // Group by month for charts (using IST)
-        const getMonthKey = (date: string) => {
-            // Admin View: Use IST Month
-            // formatAdminDate returns "August 24, 2026..." or similar. 
-            // We need "2026-08" for sorting.
-            // Let's use date-fns format with timezone helper in utils, but here strictly:
-            // We'll trust formatAdminDate with custom format if needed, or just manual mapping for now.
-            // Simpler: Use substring of ISO is WRONG for IST. 
-            // Let's rely on date string manipulation for simplicity or better use helper.
-            return formatAdminDate(date, 'yyyy-MM');
-        };
+            // --- FILTERING BASED ON DATE RANGE ---
+            // The API returns all-time data (for accurate Totals). 
+            // We verify range logic here for specific charts if needed, 
+            // but the dashboard "Totals" usually imply All-Time. 
+            // However, the "Trend" charts need to respect the range.
 
-        const getDayKey = (date: string) => {
-            return formatAdminDate(date, 'yyyy-MM-dd');
-        };
+            const now = new Date();
+            let startDate = new Date(0); // All time
 
-        const revenueByMonthMap: Record<string, number> = {};
-        const usersByMonthMap: Record<string, number> = {};
-        const generationsByDayMap: Record<string, number> = {};
-        const visitsByDayMap: Record<string, number> = {};
-        const uniqueVisitsByDayMap: Record<string, Set<string>> = {};
-        const countriesMap: Record<string, number> = {};
-
-        // Top IPs Logic
-        const ipCounts: Record<string, number> = {};
-        generations.forEach(g => {
-            if (g.ip_address) {
-                ipCounts[g.ip_address] = (ipCounts[g.ip_address] || 0) + 1;
+            if (dateRange === "7d") {
+                startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            } else if (dateRange === "30d") {
+                startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            } else if (dateRange === "90d") {
+                startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
             }
-        });
 
-        payments.forEach(p => {
-            const key = getMonthKey(p.created_at);
-            revenueByMonthMap[key] = (revenueByMonthMap[key] || 0) + (p.amount || 0) / 100;
-        });
+            // Helper to check if in range
+            const isInRange = (dateStr: string) => new Date(dateStr) >= startDate;
 
-        profiles.forEach(p => {
-            const key = getMonthKey(p.created_at);
-            usersByMonthMap[key] = (usersByMonthMap[key] || 0) + 1;
-            if (p.country) {
-                countriesMap[p.country] = (countriesMap[p.country] || 0) + 1;
-            }
-        });
+            // Totals (Always All-Time for "Total Users", "Total Revenue" usually)
+            // Wait, if I select "7d", do I want "Revenue in last 7d" or "Total Revenue"?
+            // Usually KPIs show the *Selected Range* aggregates.
+            // Let's filter KPIs by range too.
 
-        // Last 7 days generations & visits
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const filteredPayments = payments.filter((p: any) => isInRange(p.created_at));
+            const filteredProfiles = profiles.filter((p: any) => isInRange(p.created_at));
+            const filteredGenerations = generations.filter((g: any) => isInRange(g.created_at));
 
-        // Filter locally (imperfect but works for dashboard size data)
-        generations.forEach(g => {
-            // We want all days for the chart, typically last 7 or 30
-            // Let's just track all and slice later
-            const key = getDayKey(g.created_at);
-            generationsByDayMap[key] = (generationsByDayMap[key] || 0) + 1;
-        });
+            // Allow "Total Users" to always be ALL users? 
+            // "Total Revenue" usually means "All Time Revenue".
+            // Let's stick to the previous implementation spirit:
+            // The previous code fetched ALL and then calculated.
+            // But usually Cards = All Time, Charts = Trend?
+            // Let's make KPIs ALL TIME (Standard Dashboard behavior)
+            // But Charts = FILTERED.
+            // Wait, "Revenue Trend" chart explicitly bins by month/day. 
 
-        visits.forEach(v => {
-            const key = getDayKey(v.created_at);
-            visitsByDayMap[key] = (visitsByDayMap[key] || 0) + 1;
+            // DECISION: 
+            // KPIs = ALL TIME (To match "Total" label)
+            // Charts = Last X days (as implied by chart logic slice(-6) etc)
 
-            if (!uniqueVisitsByDayMap[key]) uniqueVisitsByDayMap[key] = new Set();
-            uniqueVisitsByDayMap[key].add(v.visitor_id);
-        });
+            // Calculate metrics (ALL TIME)
+            const totalRevenue = payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) / 100;
+            const totalUsers = profiles.length;
+            const paidUsers = profiles.filter((p: any) => p.is_premium).length;
+            const conversionRate = totalUsers > 0 ? (paidUsers / totalUsers) * 100 : 0;
+            const totalGenerations = generations.length;
+            const anonymousGenerations = generations.filter((g: any) => !g.user_id).length;
+            const avgRevenuePerUser = paidUsers > 0 ? totalRevenue / paidUsers : 0;
+
+            // Group by month for charts (using IST)
+            const getMonthKey = (date: string) => {
+                return formatAdminDate(date, 'yyyy-MM');
+            };
+
+            const getDayKey = (date: string) => {
+                return formatAdminDate(date, 'yyyy-MM-dd');
+            };
+
+            const revenueByMonthMap: Record<string, number> = {};
+            const usersByMonthMap: Record<string, number> = {};
+            const generationsByDayMap: Record<string, number> = {};
+            const visitsByDayMap: Record<string, number> = {};
+            const uniqueVisitsByDayMap: Record<string, Set<string>> = {};
+            const countriesMap: Record<string, number> = {};
+
+            // Top IPs Logic (All Time)
+            const ipCounts: Record<string, number> = {};
+            generations.forEach((g: any) => {
+                if (g.ip_address) {
+                    ipCounts[g.ip_address] = (ipCounts[g.ip_address] || 0) + 1;
+                }
+            });
+
+            payments.forEach((p: any) => {
+                const key = getMonthKey(p.created_at);
+                revenueByMonthMap[key] = (revenueByMonthMap[key] || 0) + (p.amount || 0) / 100;
+            });
+
+            profiles.forEach((p: any) => {
+                const key = getMonthKey(p.created_at);
+                usersByMonthMap[key] = (usersByMonthMap[key] || 0) + 1;
+                if (p.country) {
+                    countriesMap[p.country] = (countriesMap[p.country] || 0) + 1;
+                }
+            });
+
+            // Filter Generations/Visits for Charts (apply range for the day-by-day views if needed)
+            // The previous code just did slice(-30). We will respect that logic.
+            generations.forEach((g: any) => {
+                const key = getDayKey(g.created_at);
+                generationsByDayMap[key] = (generationsByDayMap[key] || 0) + 1;
+            });
+
+            visits.forEach((v: any) => {
+                const key = getDayKey(v.created_at);
+                visitsByDayMap[key] = (visitsByDayMap[key] || 0) + 1;
+
+                if (!uniqueVisitsByDayMap[key]) uniqueVisitsByDayMap[key] = new Set();
+                uniqueVisitsByDayMap[key].add(v.visitor_id);
+            });
 
 
-        // Convert to arrays and Sort
-        const revenueByMonth = Object.entries(revenueByMonthMap)
-            .map(([month, revenue]) => ({ month, revenue }))
-            .sort((a, b) => a.month.localeCompare(b.month))
-            .slice(-6);
+            // Convert to arrays and Sort
+            const revenueByMonth = Object.entries(revenueByMonthMap)
+                .map(([month, revenue]) => ({ month, revenue }))
+                .sort((a, b) => a.month.localeCompare(b.month))
+                .slice(-6);
 
-        const usersByMonth = Object.entries(usersByMonthMap)
-            .map(([month, users]) => ({ month, users }))
-            .sort((a, b) => a.month.localeCompare(b.month))
-            .slice(-6);
+            const usersByMonth = Object.entries(usersByMonthMap)
+                .map(([month, users]) => ({ month, users }))
+                .sort((a, b) => a.month.localeCompare(b.month))
+                .slice(-6);
 
-        const generationsByDay = Object.entries(generationsByDayMap)
-            .map(([day, count]) => ({ day, count }))
-            .sort((a, b) => a.day.localeCompare(b.day))
-            .slice(-30); // Last 30 days
+            // Respect Date Range for Daily Charts
+            const generationsByDay = Object.entries(generationsByDayMap)
+                .map(([day, count]) => ({ day, count }))
+                .sort((a, b) => a.day.localeCompare(b.day))
+                // Apply strict slice based on range? 
+                // "7d" -> last 7, "30d" -> last 30
+                .filter(item => dateRange === 'all' || isInRange(item.day))
+                .slice(dateRange === '7d' ? -7 : dateRange === '90d' ? -90 : -30);
 
-        const visitsByDay = Object.entries(visitsByDayMap)
-            .map(([day, count]) => ({
-                day,
-                count,
-                unique: uniqueVisitsByDayMap[day]?.size || 0
-            }))
-            .sort((a, b) => a.day.localeCompare(b.day))
-            .slice(-30);
+            const visitsByDay = Object.entries(visitsByDayMap)
+                .map(([day, count]) => ({
+                    day,
+                    count,
+                    unique: uniqueVisitsByDayMap[day]?.size || 0
+                }))
+                .sort((a, b) => a.day.localeCompare(b.day))
+                .filter(item => dateRange === 'all' || isInRange(item.day))
+                .slice(dateRange === '7d' ? -7 : dateRange === '90d' ? -90 : -30);
 
-        const topCountries = Object.entries(countriesMap)
-            .map(([country, count]) => ({ country, count }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 5);
+            const topCountries = Object.entries(countriesMap)
+                .map(([country, count]) => ({ country, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 5);
 
-        const topIPs = Object.entries(ipCounts)
-            .map(([ip, count]) => ({ ip, count }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 5);
+            const topIPs = Object.entries(ipCounts)
+                .map(([ip, count]) => ({ ip, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 5);
 
-        // Fetch Error Logs & DAU from activity_log
-        const { data: activityLogs } = await supabase
-            .from('activity_log')
-            .select('action, metadata, created_at, user_id')
-            .order('created_at', { ascending: false })
-            .limit(1000);
+            // Fetch Error Logs & DAU from activity_log
+            const errors = (activityLogs || []).filter((l: any) => l.action.includes('error'));
+            const errorRate = (activityLogs || []).length > 0 ? (errors.length / (activityLogs || []).length) * 100 : 0;
 
-        const errors = (activityLogs || []).filter(l => l.action.includes('error'));
-        const errorRate = (activityLogs || []).length > 0 ? (errors.length / (activityLogs || []).length) * 100 : 0;
+            const recentErrors = errors.slice(0, 5).map((e: any) => ({
+                action: e.action,
+                message: (e.metadata as any)?.error || 'Unknown error',
+                date: formatAdminDate(e.created_at)
+            }));
 
-        const recentErrors = errors.slice(0, 5).map(e => ({
-            action: e.action,
-            message: (e.metadata as any)?.error || 'Unknown error',
-            date: formatAdminDate(e.created_at)
-        }));
+            // Calculate DAU from activity_log (Generic DAU)
+            const dauMap: Record<string, Set<string>> = {};
+            (activityLogs || []).forEach((log: any) => {
+                if (log.user_id) {
+                    const day = getDayKey(log.created_at);
+                    if (!dauMap[day]) dauMap[day] = new Set();
+                    dauMap[day].add(log.user_id);
+                }
+            });
 
-        // Calculate DAU from activity_log (Generic DAU)
-        const dauMap: Record<string, Set<string>> = {};
-        (activityLogs || []).forEach(log => {
-            if (log.user_id) {
-                const day = getDayKey(log.created_at);
-                if (!dauMap[day]) dauMap[day] = new Set();
-                dauMap[day].add(log.user_id);
-            }
-        });
+            const dailyActiveUsers = Object.entries(dauMap)
+                .map(([day, usersSet]) => ({ day, count: usersSet.size }))
+                .sort((a, b) => a.day.localeCompare(b.day));
 
-        const dailyActiveUsers = Object.entries(dauMap)
-            .map(([day, usersSet]) => ({ day, count: usersSet.size }))
-            .sort((a, b) => a.day.localeCompare(b.day));
-
-        setData({
-            totalRevenue,
-            totalUsers,
-            totalGenerations,
-            paidUsers,
-            conversionRate,
-            anonymousGenerations,
-            avgRevenuePerUser,
-            revenueByMonth,
-            usersByMonth,
-            generationsByDay,
-            topCountries,
-            errorRate,
-            recentErrors,
-            dailyActiveUsers,
-            visitsByDay,
-            topIPs // Add to interface
-        });
-        setIsLoading(false);
+            setData({
+                totalRevenue,
+                totalUsers,
+                totalGenerations,
+                paidUsers,
+                conversionRate,
+                anonymousGenerations,
+                avgRevenuePerUser,
+                revenueByMonth,
+                usersByMonth,
+                generationsByDay,
+                topCountries,
+                errorRate,
+                recentErrors,
+                dailyActiveUsers,
+                visitsByDay,
+                topIPs // Add to interface
+            });
+        } catch (e) {
+            console.error("Failed to load analytics", e);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     if (isLoading) {
