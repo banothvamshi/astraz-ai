@@ -604,6 +604,12 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Synthesis of: Years of Experience + Key Achievement + Top JD Keyword Match.
    - **DO NOT** omit this section.
 
+5. **STRICT RELEVANCE FILTER (NEW CRITICAL RULE)**:
+   - **AGGRESSIVE CUTTING**: If a project, course, or certification is NOT relevant to the target role (Job Description), **DELETE IT**.
+   - **Example**: If applying for "Frontend Dev", DELETE "Data Entry Internship" or "History Coursework".
+   - **Quality over Quantity**: It is better to have a shorter, highly relevant resume than a long one filled with noise.
+   - **Skills**: Remove any skills that are outdated or completely irrelevant to the JD (e.g. remove "Microsoft Word" for a Senior Engineer role).
+
 4. **Experience Section**:
    - Format: Company Name | Location | Dates (MM/YYYY - MM/YYYY)
    - Role Title (bold or prominent)
@@ -654,6 +660,7 @@ Generate a PREMIUM, executive-level resume in clean markdown format. Ensure it:
 - Matches job requirements perfectly (keyword optimization)
 - Shows quantifiable achievements (metrics everywhere)
 - Demonstrates value and impact (results-focused)
+- **ELIMINATES NOISE**: Contains ZERO irrelevant sections/skills.
 
 Structure: Professional Summary → Experience → Education → Skills → Certifications (if applicable).
 
