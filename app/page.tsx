@@ -96,7 +96,7 @@ export default function Home() {
             The #1 Best Free AI
             <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500">
-              Resume Builder & Generator.
+              Resume Builder by Astraz AI.
             </span>
           </motion.h1>
 

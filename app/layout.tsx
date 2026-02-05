@@ -105,10 +105,10 @@ export const metadata: Metadata = {
   },
 
   alternates: {
-    canonical: "https://www.astrazai.com",
+    canonical: "./",
     languages: {
-      "en-US": "https://www.astrazai.com",
-      "en-IN": "https://www.astrazai.com",
+      "en-US": "/en-US",
+      "en-IN": "/en-IN",
     }
   },
 
