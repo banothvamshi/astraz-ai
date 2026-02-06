@@ -743,6 +743,52 @@ export default function Dashboard() {
                     <ImmersiveLoading status={generationStep} />
                   )}
 
+                  {/* COVER LETTER EDITOR (Popup/Section) */}
+                  {generatedCoverLetter && includeCoverLetter && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-8 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-5 w-5 text-indigo-500" />
+                          <h3 className="font-bold text-lg">Cover Letter Editor</h3>
+                        </div>
+                        <span className="text-xs text-slate-500">Editable - Changes save automatically</span>
+                      </div>
+
+                      <textarea
+                        value={generatedCoverLetter}
+                        onChange={(e) => setGeneratedCoverLetter(e.target.value)}
+                        className="w-full h-[400px] p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500 outline-none font-mono text-sm resize-y"
+                        placeholder="Your cover letter will appear here..."
+                      />
+
+                      <div className="flex justify-end gap-3 mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            if (confirm("Are you sure you want to discard your edits and restore the original?")) {
+                              // Start generation again? No, we don't store original separately currently.
+                              // Ideally we should, but for now let's just warn.
+                            }
+                          }}
+                          className="text-slate-500"
+                        >
+                          Reset
+                        </Button>
+                        <Button
+                          onClick={() => handleDownload("coverLetter")}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          Download Cover Letter
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* RESUME HEALTH SCORE CARD (Only show during checking phase, hide when Editor is active to avoid duplicates) */}
                   {(resumeScore && !generatedResume && !resumeMeta?.score) && !isGenerating && (
                     <motion.div

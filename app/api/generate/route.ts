@@ -767,11 +767,14 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     CRITICAL RULE: **NO HALLUCINATION**.
     
     ### MENTAL SANDBOX (REQUIRED):
-    Wrap your analysis in a <thinking> block.
+    Wrap your deep analysis in an <analysis> block.
     1. **Visual Scan**: I see X number of distinct roles in the PDF images.
     2. **Role Verification**: "Project Lead" is a title, not a bullet.
-    3. **Strategy**: How to optimize this for the target job?
-    </thinking>
+    3. **Skill Filtering**:
+       - Listed Skill: "Blender". Target: "Customer Support". Decision: REMOVE.
+       - Listed Skill: "Communication". Target: "Customer Support". Decision: KEEP.
+    4. **Strategy**: How to optimize this for the target job?
+    </analysis>
     
     Then, output the final Markdown Resume.
     `;
@@ -850,8 +853,15 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
     let cleanResume = generatedResume;
     let suggestedThemeId = "professional"; // Default
 
-    // Remove <thinking> block if present
+    // Remove <thinking> and <analysis> blocks if present
     const thinkingMatch = cleanResume.match(/<thinking>[\s\S]*?<\/thinking>/);
+    const analysisMatch = cleanResume.match(/<analysis>[\s\S]*?<\/analysis>/);
+
+    if (thinkingMatch) cleanResume = cleanResume.replace(/<thinking>[\s\S]*?<\/thinking>/, "").trim();
+    if (analysisMatch) {
+      console.log("AI Analysis Log:", analysisMatch[0].substring(0, 500) + "..."); // Log first 500 chars of analysis
+      cleanResume = cleanResume.replace(/<analysis>[\s\S]*?<\/analysis>/, "").trim();
+    }
     if (thinkingMatch) {
       console.log("AI Mental Sandbox Strategy:", thinkingMatch[0]); // Log the strategy
 
