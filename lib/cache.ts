@@ -15,9 +15,10 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 /**
  * Generate cache key from content
  */
-function generateCacheKey(resumeText: string, jobDescription: string): string {
-  // Create hash from content (simple hash for demo, use crypto in production)
-  const content = `${resumeText.substring(0, 500)}:${jobDescription.substring(0, 500)}`;
+function generateCacheKey(resumeText: string, jobDescription: string, options?: { includeCoverLetter?: boolean }): string {
+  // Create hash from content AND options
+  const coverLetterFlag = options?.includeCoverLetter ? "with_cl" : "no_cl";
+  const content = `${resumeText.substring(0, 500)}:${jobDescription.substring(0, 500)}:${coverLetterFlag}`;
   let hash = 0;
   for (let i = 0; i < content.length; i++) {
     const char = content.charCodeAt(i);
@@ -32,9 +33,10 @@ function generateCacheKey(resumeText: string, jobDescription: string): string {
  */
 export function getCachedResponse(
   resumeText: string,
-  jobDescription: string
+  jobDescription: string,
+  options?: { includeCoverLetter?: boolean }
 ): { resume: string; coverLetter?: string } | null {
-  const key = generateCacheKey(resumeText, jobDescription);
+  const key = generateCacheKey(resumeText, jobDescription, options);
   const entry = cache.get(key);
 
   if (!entry) {
@@ -56,7 +58,8 @@ export function getCachedResponse(
 export function setCachedResponse(
   resumeText: string,
   jobDescription: string,
-  data: { resume: string; coverLetter?: string }
+  data: { resume: string; coverLetter?: string },
+  options?: { includeCoverLetter?: boolean }
 ): void {
   // Prevent cache from growing too large
   if (cache.size >= MAX_CACHE_SIZE) {

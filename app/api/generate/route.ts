@@ -480,7 +480,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check cache first
-    const cachedResponse = getCachedResponse(finalResumeText, sanitizedJobDescription);
+    const cachedResponse = getCachedResponse(finalResumeText, sanitizedJobDescription, { includeCoverLetter });
     if (
       cachedResponse &&
       !hasGibberishLetters(cachedResponse.resume) &&
@@ -488,6 +488,7 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json({
         resume: cachedResponse.resume,
+        coverLetter: cachedResponse.coverLetter, // Ensure cover letter is returned if cached
         cached: true,
         rateLimit: {
           remaining: rateLimit.remaining,
@@ -604,11 +605,16 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Synthesis of: Years of Experience + Key Achievement + Top JD Keyword Match.
    - **DO NOT** omit this section.
 
-5. **STRICT RELEVANCE FILTER (NEW CRITICAL RULE)**:
-   - **AGGRESSIVE CUTTING**: If a project, course, or certification is NOT relevant to the target role (Job Description), **DELETE IT**.
-   - **Example**: If applying for "Frontend Dev", DELETE "Data Entry Internship" or "History Coursework".
-   - **Quality over Quantity**: It is better to have a shorter, highly relevant resume than a long one filled with noise.
-   - **Skills**: Remove any skills that are outdated or completely irrelevant to the JD (e.g. remove "Microsoft Word" for a Senior Engineer role).
+57. **PRECISION RELEVANCE FILTER (SURGICAL, NOT DESTRUCTIVE)**:
+   - **RULE**: Filter at the **ITEM LEVEL**, not the section level.
+   - **DO NOT DELETE SECTIONS**: If a candidate has a "Certifications" section with 3 items, and 1 is irrelevant, **KEEP THE SECTION** and remove only that 1 irrelevant item.
+   - **Example**: 
+     - *Candidate*: "Certified React Dev", "Certified Yoga Instructor".
+     - *Target*: Frontend Dev.
+     - *Action*: KEEP "Certified React Dev", REMOVE "Certified Yoga Instructor". **KEEP THE SECTION**.
+   - **Skills**: Remove outdated skills (e.g., "Windows 98") but KEEP adjacent relevant skills.
+   - **Projects**: If a project is irrelevant, remove it, but keep relevant projects.
+   - **Constraint**: If removing an item empties a section completely, ONLY THEN remove the section header. Otherwise, the section MUST remain.
 
 4. **Experience Section**:
    - Format: Company Name | Location | Dates (MM/YYYY - MM/YYYY)
@@ -882,15 +888,7 @@ CRITICAL: Output ONLY the markdown content. Do NOT wrap it in code blocks. Outpu
       // Log but don't fail - the prompt should prevent this
     }
 
-    // Cache the response
-    try {
-      setCachedResponse(finalResumeText, sanitizedJobDescription, {
-        resume: cleanResume,
-      });
-    } catch (cacheError) {
-      // Cache failure is not critical, continue
-      console.error("Cache error:", cacheError);
-    }
+
 
     // Generate cover letter if requested
     let generatedCoverLetter: string | null = null;
@@ -936,6 +934,16 @@ Generate the cover letter now:`;
         console.error("Cover letter generation error:", coverLetterError);
         // Don't fail the whole request, just skip cover letter
       }
+    }
+
+    // Cache the response (moved here to ensure cover letter is included)
+    try {
+      setCachedResponse(finalResumeText, sanitizedJobDescription, {
+        resume: cleanResume,
+        coverLetter: generatedCoverLetter || undefined
+      }, { includeCoverLetter });
+    } catch (cacheError) {
+      console.error("Cache error:", cacheError);
     }
 
     // ============================================
