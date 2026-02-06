@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 interface ResumeEditorProps {
   content: string;
+  documentType?: "resume" | "coverLetter";
   contactInfo?: {
     fullName: string;
     email: string;
@@ -17,7 +18,7 @@ interface ResumeEditorProps {
   onCancel: () => void;
 }
 
-export function ResumeEditor({ content, contactInfo, onSave, onCancel }: ResumeEditorProps) { // Sync v2
+export function ResumeEditor({ content, documentType = "resume", contactInfo, onSave, onCancel }: ResumeEditorProps) { // Sync v2
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
   const [editedContent, setEditedContent] = useState(content);
   const [isSaving, setIsSaving] = useState(false);
@@ -41,7 +42,7 @@ export function ResumeEditor({ content, contactInfo, onSave, onCancel }: ResumeE
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content: editedContent,
-          type: "resume", // Default to resume, could be prop
+          type: documentType, // Use dynamic type
           preview: true,
           // Pass contact info for header rendering
           name: contactInfo?.fullName,

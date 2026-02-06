@@ -48,6 +48,7 @@ export default function Dashboard() {
   const [canTrial, setCanTrial] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   const [editingResume, setEditingResume] = useState(false);
+  const [editingCoverLetter, setEditingCoverLetter] = useState(false); // New state for CL editor
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>("professional");
@@ -672,7 +673,7 @@ export default function Dashboard() {
       </nav>
 
       {/* Main Content */}
-      <div className={`mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 transition-all duration-300 ${activeTab === "builder" ? "w-full max-w-[98vw]" : "container max-w-7xl"}`}>
+      <div className={`mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 transition-all duration-300 ${activeTab === "builder" ? "w-full max-w-[98vw]" : "container max-w-7xl"}`}>
         <div className="mx-auto w-full">
 
           {/* Tab Navigation */}
@@ -722,19 +723,19 @@ export default function Dashboard() {
           {activeTab === "builder" && (
             <>
               {/* Header Section */}
-              <div className="mb-12 text-center">
-                <div className="inline-flex items-center justify-center p-3 mb-5 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
-                  <Sparkles className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              <div className="mb-8 text-center">
+                <div className="inline-flex items-center justify-center p-3 mb-4 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
+                  <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 </div>
-                <h1 className="mb-4 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                <h1 className="mb-3 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                   Resume Builder
                 </h1>
-                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
                   Upload your resume and paste the job description to generate a tailored, ATS-optimized application.
                 </p>
               </div>
 
-              <div className="grid gap-8 lg:grid-cols-2">
+              <div className="grid gap-6 lg:grid-cols-2">
                 {/* Left Column: Input */}
                 <div className="space-y-6">
 
@@ -743,51 +744,7 @@ export default function Dashboard() {
                     <ImmersiveLoading status={generationStep} />
                   )}
 
-                  {/* COVER LETTER EDITOR (Popup/Section) */}
-                  {generatedCoverLetter && includeCoverLetter && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-8 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-5 w-5 text-indigo-500" />
-                          <h3 className="font-bold text-lg">Cover Letter Editor</h3>
-                        </div>
-                        <span className="text-xs text-slate-500">Editable - Changes save automatically</span>
-                      </div>
-
-                      <textarea
-                        value={generatedCoverLetter}
-                        onChange={(e) => setGeneratedCoverLetter(e.target.value)}
-                        className="w-full h-[400px] p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500 outline-none font-mono text-sm resize-y"
-                        placeholder="Your cover letter will appear here..."
-                      />
-
-                      <div className="flex justify-end gap-3 mt-4">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            if (confirm("Are you sure you want to discard your edits and restore the original?")) {
-                              // Start generation again? No, we don't store original separately currently.
-                              // Ideally we should, but for now let's just warn.
-                            }
-                          }}
-                          className="text-slate-500"
-                        >
-                          Reset
-                        </Button>
-                        <Button
-                          onClick={() => handleDownload("coverLetter")}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          Download Cover Letter
-                        </Button>
-                      </div>
-                    </motion.div>
-                  )}
+                  {/* REMOVED OLD COVER LETTER EDITOR - MOVED TO CARD */}
 
                   {/* RESUME HEALTH SCORE CARD (Only show during checking phase, hide when Editor is active to avoid duplicates) */}
                   {(resumeScore && !generatedResume && !resumeMeta?.score) && !isGenerating && (
@@ -1048,12 +1005,12 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
 
             {/* LEFT COLUMN: Inputs */}
-            <div className="space-y-8 lg:col-span-5 xl:col-span-4">
+            <div className="space-y-6 lg:col-span-5 xl:col-span-4">
 
               {/* 1. Resume Upload */}
               <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 transition-all hover:shadow-xl hover:border-amber-500/40">
-                <div className="p-8">
-                  <div className="flex items-center gap-4 mb-6">
+                <div className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
                     <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm">
                       <UploadCloud className="h-6 w-6" />
                     </div>
@@ -1155,8 +1112,8 @@ export default function Dashboard() {
 
               {/* 3. Job Description & Details */}
               <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 transition-all hover:shadow-xl">
-                <div className="p-8">
-                  <div className="flex items-center gap-4 mb-6">
+                <div className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
                     <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shadow-sm">
                       <Briefcase className="h-6 w-6" />
                     </div>
@@ -1445,26 +1402,53 @@ export default function Dashboard() {
                   )}
 
                   {/* Cover Letter Card */}
+                  {/* Cover Letter Card */}
                   {generatedCoverLetter && (
                     <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden mb-8">
-                      <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+                      <div className="border-b border-slate-100 dark:border-slate-800 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                         <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
                           <FileText className="w-5 h-5" />
                           Cover Letter
                         </div>
-                        <Button
-                          onClick={() => handleDownload("coverLetter")}
-                          size="sm"
-                          className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
-                        >
-                          <Download className="mr-1.5 h-3.5 w-3.5" />
-                          Download PDF
-                        </Button>
-                      </div>
-                      <div className="p-6 max-h-[500px] overflow-y-auto">
-                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed">
-                          {generatedCoverLetter}
+                        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                          <Button
+                            onClick={() => setEditingCoverLetter(!editingCoverLetter)}
+                            size="sm"
+                            variant="outline"
+                            className="h-9 md:h-8 text-xs w-full sm:w-auto"
+                          >
+                            {editingCoverLetter ? "View Preview" : "Edit Mode"}
+                          </Button>
+                          <Button
+                            onClick={() => handleDownload("coverLetter")}
+                            size="sm"
+                            className="h-9 md:h-8 text-xs bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
+                          >
+                            <Download className="mr-1.5 h-3.5 w-3.5" />
+                            Download PDF
+                          </Button>
                         </div>
+                      </div>
+
+                      <div className="p-0">
+                        {editingCoverLetter ? (
+                          <ResumeEditor
+                            content={generatedCoverLetter}
+                            documentType="coverLetter"
+                            contactInfo={contactInfo}
+                            onSave={(edited) => {
+                              setGeneratedCoverLetter(edited);
+                              setEditingCoverLetter(false);
+                            }}
+                            onCancel={() => setEditingCoverLetter(false)}
+                          />
+                        ) : (
+                          <div className="p-6 max-h-[500px] overflow-y-auto">
+                            <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed">
+                              {generatedCoverLetter}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
