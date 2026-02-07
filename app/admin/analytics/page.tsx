@@ -237,7 +237,7 @@ export default function AnalyticsPage() {
 
             const recentErrors = errors.slice(0, 5).map((e) => ({
                 action: e.action,
-                message: (e.metadata as any)?.error || 'Unknown error',
+                message: (e.metadata as { error?: string })?.error || 'Unknown error',
                 date: formatAdminDate(e.created_at)
             }));
 
