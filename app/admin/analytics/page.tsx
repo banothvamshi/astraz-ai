@@ -25,6 +25,42 @@ interface AnalyticsData {
     recentVisits: { visitor_id: string; created_at: string; ip_address: string; user_id: string | null; path: string }[];
 }
 
+interface Profile {
+    id: string;
+    is_premium: boolean;
+    created_at: string;
+    country: string | null;
+}
+
+interface Payment {
+    amount: number;
+    plan_type: string;
+    created_at: string;
+    status: string;
+}
+
+interface Generation {
+    id: string;
+    user_id: string | null;
+    created_at: string;
+    ip_address: string | null;
+}
+
+interface Visit {
+    visitor_id: string;
+    created_at: string;
+    ip_address: string;
+    path?: string;
+    user_id?: string | null;
+}
+
+interface ActivityLog {
+    action: string;
+    metadata: unknown;
+    created_at: string;
+    user_id: string | null;
+}
+
 export default function AnalyticsPage() {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -45,11 +81,11 @@ export default function AnalyticsPage() {
 
             const rawData = await response.json();
 
-            const profiles = rawData.profiles || [];
-            const payments = rawData.payments || [];
-            const generations = rawData.generations || [];
-            const visits = rawData.visits || [];
-            const activityLogs = rawData.logs || [];
+            const profiles: Profile[] = rawData.profiles || [];
+            const payments: Payment[] = rawData.payments || [];
+            const generations: Generation[] = rawData.generations || [];
+            const visits: Visit[] = rawData.visits || [];
+            const activityLogs: ActivityLog[] = rawData.logs || [];
 
             // --- FILTERING BASED ON DATE RANGE ---
             // The API returns all-time data (for accurate Totals). 
@@ -76,9 +112,9 @@ export default function AnalyticsPage() {
             // Usually KPIs show the *Selected Range* aggregates.
             // Let's filter KPIs by range too.
 
-            const filteredPayments = payments.filter((p: any) => isInRange(p.created_at));
-            const filteredProfiles = profiles.filter((p: any) => isInRange(p.created_at));
-            const filteredGenerations = generations.filter((g: any) => isInRange(g.created_at));
+            // const filteredPayments = payments.filter((p) => isInRange(p.created_at));
+            // const filteredProfiles = profiles.filter((p) => isInRange(p.created_at));
+            // const filteredGenerations = generations.filter((g) => isInRange(g.created_at));
 
             // Allow "Total Users" to always be ALL users? 
             // "Total Revenue" usually means "All Time Revenue".
@@ -94,12 +130,12 @@ export default function AnalyticsPage() {
             // Charts = Last X days (as implied by chart logic slice(-6) etc)
 
             // Calculate metrics (ALL TIME)
-            const totalRevenue = payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) / 100;
+            const totalRevenue = payments.reduce((sum: number, p) => sum + (p.amount || 0), 0) / 100;
             const totalUsers = profiles.length;
-            const paidUsers = profiles.filter((p: any) => p.is_premium).length;
+            const paidUsers = profiles.filter((p) => p.is_premium).length;
             const conversionRate = totalUsers > 0 ? (paidUsers / totalUsers) * 100 : 0;
             const totalGenerations = generations.length;
-            const anonymousGenerations = generations.filter((g: any) => !g.user_id).length;
+            const anonymousGenerations = generations.filter((g) => !g.user_id).length;
             const avgRevenuePerUser = paidUsers > 0 ? totalRevenue / paidUsers : 0;
 
             // Group by month for charts (using IST)
@@ -120,18 +156,18 @@ export default function AnalyticsPage() {
 
             // Top IPs Logic (All Time)
             const ipCounts: Record<string, number> = {};
-            generations.forEach((g: any) => {
+            generations.forEach((g) => {
                 if (g.ip_address) {
                     ipCounts[g.ip_address] = (ipCounts[g.ip_address] || 0) + 1;
                 }
             });
 
-            payments.forEach((p: any) => {
+            payments.forEach((p) => {
                 const key = getMonthKey(p.created_at);
                 revenueByMonthMap[key] = (revenueByMonthMap[key] || 0) + (p.amount || 0) / 100;
             });
 
-            profiles.forEach((p: any) => {
+            profiles.forEach((p) => {
                 const key = getMonthKey(p.created_at);
                 usersByMonthMap[key] = (usersByMonthMap[key] || 0) + 1;
                 if (p.country) {
@@ -141,12 +177,12 @@ export default function AnalyticsPage() {
 
             // Filter Generations/Visits for Charts (apply range for the day-by-day views if needed)
             // The previous code just did slice(-30). We will respect that logic.
-            generations.forEach((g: any) => {
+            generations.forEach((g) => {
                 const key = getDayKey(g.created_at);
                 generationsByDayMap[key] = (generationsByDayMap[key] || 0) + 1;
             });
 
-            visits.forEach((v: any) => {
+            visits.forEach((v) => {
                 const key = getDayKey(v.created_at);
                 visitsByDayMap[key] = (visitsByDayMap[key] || 0) + 1;
 
@@ -196,10 +232,10 @@ export default function AnalyticsPage() {
                 .slice(0, 5);
 
             // Fetch Error Logs & DAU from activity_log
-            const errors = (activityLogs || []).filter((l: any) => l.action.includes('error'));
+            const errors = (activityLogs || []).filter((l) => l.action.includes('error'));
             const errorRate = (activityLogs || []).length > 0 ? (errors.length / (activityLogs || []).length) * 100 : 0;
 
-            const recentErrors = errors.slice(0, 5).map((e: any) => ({
+            const recentErrors = errors.slice(0, 5).map((e) => ({
                 action: e.action,
                 message: (e.metadata as any)?.error || 'Unknown error',
                 date: formatAdminDate(e.created_at)
@@ -207,7 +243,7 @@ export default function AnalyticsPage() {
 
             // Calculate DAU from activity_log (Generic DAU)
             const dauMap: Record<string, Set<string>> = {};
-            (activityLogs || []).forEach((log: any) => {
+            (activityLogs || []).forEach((log) => {
                 if (log.user_id) {
                     const day = getDayKey(log.created_at);
                     if (!dauMap[day]) dauMap[day] = new Set();
@@ -221,13 +257,13 @@ export default function AnalyticsPage() {
 
             // Process Visits for Live Logs
             const recentVisits = (visits || [])
-                .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .sort((a: Visit, b: Visit) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .slice(0, 50)
-                .map((v: any) => ({
+                .map((v) => ({
                     visitor_id: v.visitor_id,
                     created_at: v.created_at,
                     ip_address: v.ip_address,
-                    user_id: v.user_id,
+                    user_id: v.user_id ?? null,
                     path: v.path || '/'
                 }));
 
