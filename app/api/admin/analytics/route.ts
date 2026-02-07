@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
             supabaseAdmin.from("profiles").select("id, is_premium, created_at, country"),
             supabaseAdmin.from("payments").select("amount, plan_type, created_at").eq("status", "captured"),
             supabaseAdmin.from("generations").select("id, user_id, created_at, ip_address"),
-            supabaseAdmin.from("analytics_visits").select("visitor_id, created_at, ip_address"),
+            supabaseAdmin.from("analytics_visits").select("visitor_id, created_at, ip_address, path, user_id"),
             supabaseAdmin.from("activity_log").select("action, metadata, created_at, user_id").order('created_at', { ascending: false }).limit(1000)
         ]);
 

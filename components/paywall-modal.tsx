@@ -33,14 +33,14 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
       name: "Starter",
       tagline: "For active job seekers",
       featured: false,
-      features: ["10 Generations/month", "ATS Optimization", "PDF Export", "Cover Letters", "Premium Templates"],
+      features: ["10 Generations", "ATS Optimization", "PDF Export", "Cover Letters", "Premium Templates"],
     },
     {
       key: "professional",
       name: "Professional",
       tagline: "Best value for serious applicants",
       featured: true,
-      features: ["30 Generations/month", "ATS Optimization", "Cover Letters", "Premium Templates", "Priority Processing"],
+      features: ["30 Generations", "ATS Optimization", "Cover Letters", "Premium Templates", "Priority Processing"],
     },
     {
       key: "enterprise",
@@ -48,7 +48,7 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
       tagline: "For career professionals & recruiters",
       featured: false,
       dark: true,
-      features: ["100 Generations/month", "Cover Letters", "All Premium Features", "Priority Support", "Early Access"],
+      features: ["100 Generations", "Cover Letters", "All Premium Features", "Priority Support", "Early Access"],
     },
   ];
 
@@ -152,7 +152,7 @@ export function PaywallModal({ open, onOpenChange, onUpgrade }: PaywallModalProp
             🔒 Secure payment via Razorpay • UPI, Cards, Net Banking supported
           </p>
           <p className="text-xs text-slate-400">
-            Monthly subscription • Cancel anytime • Instant access
+            Subscription • Cancel anytime • Instant access
           </p>
         </div>
       </DialogContent>

@@ -605,16 +605,21 @@ CRITICAL REQUIREMENTS FOR MAXIMUM QUALITY:
    - Synthesis of: Years of Experience + Key Achievement + Top JD Keyword Match.
    - **DO NOT** omit this section.
 
-57. **PRECISION RELEVANCE FILTER (SURGICAL, NOT DESTRUCTIVE)**:
-   - **RULE**: Filter at the **ITEM LEVEL**, not the section level.
-   - **DO NOT DELETE SECTIONS**: If a candidate has a "Certifications" section with 3 items, and 1 is irrelevant, **KEEP THE SECTION** and remove only that 1 irrelevant item.
-   - **Example**: 
+57. **PRECISION RELEVANCE FILTER (DEEP THINKING PROTOCOL)**:
+   - **MANDATORY ANALYSIS STEP**: Before writing any section, you must mentally evaluate every item.
+   - **LOGIC**:
+     1. Look at an item (e.g., "Skill: Blender").
+     2. Ask: "Is this helpful for a [Target Role]?"
+     3. If NO (e.g., Blender for Customer Support), **DELETE IT**.
+     4. If YES (e.g., Communication for Customer Support), **KEEP IT**.
+   - **CRITICAL: SECTION SURVIVAL RULE**:
+     - **NEVER** delete an entire section (e.g., "Projects", "Certifications") unless it is *completely empty* after filtering.
+     - **DEFAULT TO KEEP**: If an item is borderline or potentially useful (e.g., "Python" for a "Project Manager"), **KEEP IT**. Do not over-filter.
+     - **Constraint**: It is better to include a slightly less relevant project than to show an empty or missing Projects section.
+   - **Examples**:
      - *Candidate*: "Certified React Dev", "Certified Yoga Instructor".
      - *Target*: Frontend Dev.
      - *Action*: KEEP "Certified React Dev", REMOVE "Certified Yoga Instructor". **KEEP THE SECTION**.
-   - **Skills**: Remove outdated skills (e.g., "Windows 98") but KEEP adjacent relevant skills.
-   - **Projects**: If a project is irrelevant, remove it, but keep relevant projects.
-   - **Constraint**: If removing an item empties a section completely, ONLY THEN remove the section header. Otherwise, the section MUST remain.
 
 4. **Experience Section**:
    - Format: Company Name | Location | Dates (MM/YYYY - MM/YYYY)

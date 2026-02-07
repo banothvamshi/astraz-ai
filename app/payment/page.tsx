@@ -22,14 +22,14 @@ const PLANS = {
     name: "Starter",
     credits: 10,
     tagline: "For active job seekers",
-    features: ["10 Generations/month", "ATS Optimization", "PDF Export", "Cover Letters", "Premium Templates"],
+    features: ["10 Generations", "ATS Optimization", "PDF Export", "Cover Letters", "Premium Templates"],
     billing: "monthly"
   },
   professional: {
     name: "Professional",
     credits: 30,
     tagline: "Best value for serious applicants",
-    features: ["30 Generations/month", "ATS Optimization", "Cover Letters", "Premium Templates", "Priority Processing"],
+    features: ["30 Generations", "ATS Optimization", "Cover Letters", "Premium Templates", "Priority Processing"],
     popular: true,
     billing: "monthly"
   },
@@ -37,7 +37,7 @@ const PLANS = {
     name: "Enterprise",
     credits: 100,
     tagline: "For career professionals & recruiters",
-    features: ["100 Generations/month", "Cover Letters", "All Premium Features", "Priority Support", "Early Access"],
+    features: ["100 Generations", "Cover Letters", "All Premium Features", "Priority Support", "Early Access"],
     billing: "monthly"
   }
 };
@@ -566,7 +566,7 @@ function PaymentPageContent() {
                 <Lock className="w-4 h-4" /> Secure payment via Razorpay • UPI, Cards, Net Banking supported
               </p>
               <p className="mt-2 text-xs text-slate-400">
-                Monthly subscription • Cancel anytime • Instant access
+                Subscription • Cancel anytime • Instant access
               </p>
               <p className="mt-6 text-sm font-medium text-slate-500">
                 Need help? <a href="mailto:support@astrazai.com" className="text-amber-600 hover:underline">Contact Support</a>

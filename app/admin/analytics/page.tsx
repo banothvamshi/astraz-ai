@@ -22,6 +22,7 @@ interface AnalyticsData {
     errorRate: number;
     recentErrors: { action: string; message: string; date: string }[];
     dailyActiveUsers: { day: string; count: number }[];
+    recentVisits: { visitor_id: string; created_at: string; ip_address: string; user_id: string | null; path: string }[];
 }
 
 export default function AnalyticsPage() {
@@ -218,6 +219,18 @@ export default function AnalyticsPage() {
                 .map(([day, usersSet]) => ({ day, count: usersSet.size }))
                 .sort((a, b) => a.day.localeCompare(b.day));
 
+            // Process Visits for Live Logs
+            const recentVisits = (visits || [])
+                .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 50)
+                .map((v: any) => ({
+                    visitor_id: v.visitor_id,
+                    created_at: v.created_at,
+                    ip_address: v.ip_address,
+                    user_id: v.user_id,
+                    path: v.path || '/'
+                }));
+
             setData({
                 totalRevenue,
                 totalUsers,
@@ -234,7 +247,8 @@ export default function AnalyticsPage() {
                 recentErrors,
                 dailyActiveUsers,
                 visitsByDay,
-                topIPs // Add to interface
+                topIPs,
+                recentVisits
             });
         } catch (e) {
             console.error("Failed to load analytics", e);
@@ -535,6 +549,58 @@ export default function AnalyticsPage() {
                     ) : (
                         <p className="text-sm text-slate-500 text-center py-4">No recent errors detected</p>
                     )}
+                </div>
+            </div>
+            {/* Live Traffic Section */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-indigo-500" />
+                    Live Traffic (Last 50 Visits)
+                </h3>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-700/50">
+                            <tr>
+                                <th className="px-4 py-3 rounded-l-lg">Time</th>
+                                <th className="px-4 py-3">Visitor ID</th>
+                                <th className="px-4 py-3">User</th>
+                                <th className="px-4 py-3">Page</th>
+                                <th className="px-4 py-3 rounded-r-lg">IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {(data?.recentVisits || []).map((visit, i) => (
+                                <tr key={i} className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                    <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                                        {new Date(visit.created_at).toLocaleTimeString()}
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-xs text-slate-400">
+                                        {visit.visitor_id.substring(0, 8)}...
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {visit.user_id ? (
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400">
+                                                Registered
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                                Guest
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">
+                                        {visit.path}
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-xs text-slate-400">
+                                        {visit.ip_address.replace(visit.ip_address.substring(visit.ip_address.lastIndexOf('.')), '.*')}
+                                    </td>
+                                </tr>
+                            ))}
+                            {(!data?.recentVisits || data.recentVisits.length === 0) && (
+                                <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">No recent visits recorded</td></tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

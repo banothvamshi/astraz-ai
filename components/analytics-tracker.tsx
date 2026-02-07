@@ -1,26 +1,35 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { trackVisit } from "@/app/actions/analytics";
 
-export function AnalyticsTracker() {
+function Tracker() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const lastTrackedPath = useRef<string | null>(null);
 
     useEffect(() => {
-        const url = `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`;
+        // Debounce or just fire?
+        // Fire on path change.
+        // We pass pathname + searchParams to capture ?ref= etc
+        const url = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
-        // De-bounce/Prevent duplicates if strict mode double-fires
-        if (lastTrackedPath.current === url) return;
+        // We can't await server actions in useEffect directly without voiding
+        // We use a small timeout to not block hydration
+        const timer = setTimeout(() => {
+            trackVisit(url);
+        }, 1000);
 
-        lastTrackedPath.current = url;
-
-        // Fire and forget
-        trackVisit(url);
-
+        return () => clearTimeout(timer);
     }, [pathname, searchParams]);
 
     return null;
+}
+
+export function AnalyticsTracker() {
+    return (
+        <Suspense fallback={null}>
+            <Tracker />
+        </Suspense>
+    );
 }
