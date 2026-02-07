@@ -118,11 +118,11 @@ export const metadata: Metadata = {
 
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/logo.png", type: "image/png" }
+      { url: "https://www.astrazai.com/favicon.ico", sizes: "any" },
+      { url: "https://www.astrazai.com/logo.png", type: "image/png" }
     ],
-    shortcut: "/favicon.ico",
-    apple: "/logo.png",
+    shortcut: "https://www.astrazai.com/favicon.ico",
+    apple: "https://www.astrazai.com/logo.png",
   }
 };
 
@@ -142,6 +142,17 @@ const jsonLd = {
         "target": "https://www.astrazai.com/dashboard?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
+    },
+    {
+      "@type": "SiteNavigationElement",
+      "@id": "https://www.astrazai.com/#navigation",
+      "name": ["Home", "Login", "Pricing", "Terms"],
+      "url": [
+        "https://www.astrazai.com",
+        "https://www.astrazai.com/login",
+        "https://www.astrazai.com/payment",
+        "https://www.astrazai.com/terms"
+      ]
     },
     {
       "@type": "Organization",
