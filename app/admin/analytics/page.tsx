@@ -23,6 +23,7 @@ interface AnalyticsData {
     recentErrors: { action: string; message: string; date: string }[];
     dailyActiveUsers: { day: string; count: number }[];
     recentVisits: { visitor_id: string; created_at: string; ip_address: string; user_id: string | null; path: string }[];
+    activeVisitors: number;
 }
 
 interface Profile {
@@ -267,6 +268,16 @@ export default function AnalyticsPage() {
                     path: v.path || '/'
                 }));
 
+            // Calculate Active Visitors (Unique IPs in last 15 minutes)
+            const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+            const activeVisitorsSet = new Set<string>();
+            (visits || []).forEach(v => {
+                if (new Date(v.created_at) >= fifteenMinutesAgo) {
+                    activeVisitorsSet.add(v.ip_address); // Use IP for "Active Session"
+                }
+            });
+            const activeVisitors = activeVisitorsSet.size;
+
             setData({
                 totalRevenue,
                 totalUsers,
@@ -284,7 +295,8 @@ export default function AnalyticsPage() {
                 dailyActiveUsers,
                 visitsByDay,
                 topIPs,
-                recentVisits
+                recentVisits,
+                activeVisitors
             });
         } catch (e) {
             console.error("Failed to load analytics", e);
@@ -306,11 +318,11 @@ export default function AnalyticsPage() {
         { title: "Total Users", value: data?.totalUsers || 0, icon: Users, color: "blue", change: "+8.2%" },
         { title: "Paid Users", value: data?.paidUsers || 0, icon: CreditCard, color: "amber", change: "+15.3%" },
         { title: "Conversion Rate", value: `${data?.conversionRate.toFixed(1) || 0}%`, icon: TrendingUp, color: "purple", change: "+2.1%" },
+        { title: "Active Visitors", value: data?.activeVisitors || 0, icon: Eye, color: "rose", change: "Live (15m)" },
         { title: "Total Generations", value: data?.totalGenerations.toLocaleString() || 0, icon: FileText, color: "indigo", change: "+24.7%" },
         { title: "Anonymous Users", value: data?.anonymousGenerations || 0, icon: Globe, color: "slate", change: "Trial Users" },
-        { title: "Avg. Revenue/User", value: `₹${data?.avgRevenuePerUser.toFixed(0) || 0}`, icon: Activity, color: "rose", change: "ARPU" },
-        { title: "Avg. Revenue/User", value: `₹${data?.avgRevenuePerUser.toFixed(0) || 0}`, icon: Activity, color: "rose", change: "ARPU" },
-        { title: "Registered Gens", value: (data?.totalGenerations || 0) - (data?.anonymousGenerations || 0), icon: UserPlus, color: "cyan", change: "Logged In" },
+        { title: "Avg. Revenue/User", value: `₹${data?.avgRevenuePerUser.toFixed(0) || 0}`, icon: Activity, color: "cyan", change: "ARPU" },
+        { title: "Registered Gens", value: (data?.totalGenerations || 0) - (data?.anonymousGenerations || 0), icon: UserPlus, color: "blue", change: "Logged In" },
         { title: "Error Rate", value: `${data?.errorRate.toFixed(1) || 0}%`, icon: AlertTriangle, color: "red", change: "Last 1000 ops" },
     ];
 
@@ -326,7 +338,7 @@ export default function AnalyticsPage() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 max-w-[calc(100vw-40px)] md:max-w-[calc(100vw-300px)] overflow-x-hidden">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>

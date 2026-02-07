@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
         const profiles = allProfiles.data || [];
         const payments = allPayments.data || [];
         const generations = allGenerations.data || [];
-        const visits = allVisits.data || [];
+        const visits = (allVisits.data || []).filter((v: { path: string }) => !v.path || !v.path.startsWith('/admin'));
         const logs = allLogs.data || [];
 
         return NextResponse.json({
